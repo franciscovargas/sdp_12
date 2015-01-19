@@ -16,6 +16,7 @@ void setup()
   comm.addCommand("OFF",LED_off);        // Turns LED off
   comm.addCommand("HELLO",SayHello);     // Echos the string argument back
   comm.addCommand("BLINK",blink_n_times);  //  Blinks LED a specified number of times
+  comm.addCommand("ADD", AddNumbers);    // Adds two integers together
   comm.addDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?") 
   Serial.println("Ready"); 
 
@@ -58,7 +59,7 @@ void blink_n_times()
   int aNumber;  
   char *arg; 
 
-  Serial.println("We're in process_command"); 
+  Serial.println("Processing command..."); 
   arg = comm.next();
   Serial.println(arg);
   if (arg != NULL) 
@@ -77,6 +78,34 @@ void blink_n_times()
     LED_off();
   }
 
+}
+
+void AddNumbers()
+{
+  char *arg1;
+  char *arg2;
+  int firstNumber;
+  int secondNumber;
+  int sum;
+
+  arg1 = comm.next();
+  arg2 = comm.next();
+  if (arg1 != NULL && arg2 != NULL) 
+  {
+    firstNumber=atoi(arg1);
+    secondNumber=atoi(arg2);
+    sum = firstNumber + secondNumber;
+
+    Serial.print(firstNumber);
+    Serial.print(" + ");
+    Serial.print(secondNumber);
+    Serial.print(" = ");
+    Serial.println(sum);
+  }
+  else
+  {
+    Serial.println("Please enter two arguments.");
+  }
 }
 
 // This gets set as the default handler, and gets called when no other command matches. 
