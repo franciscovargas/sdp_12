@@ -12,10 +12,16 @@ class Communications:
             try:
                 self.port = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
                 self.debug = debug
+                time.sleep(0.5)
             except:
                 raise BaseException("Radio not connected or wrong port supplied.")
 
     def write(self, command):
-        self.port.write(command + '\n')
+        self.port.write(command + '\r\n')
         if self.debug:
             print self.port.readline()
+
+if __name__ == '__main__':
+    c = Communications(debug=True)
+    c.write('OFF')
+
