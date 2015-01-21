@@ -23,5 +23,5 @@ class Communications:
 
 if __name__ == '__main__':
     c = Communications(debug=True)
-    c.write('OFF')
+    c.write('BLINK 100')
 
