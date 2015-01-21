@@ -23,8 +23,15 @@ void setup()
 }
 
 void loop()
-{  
-  comm.readSerial();     // We don't do much, just process serial commands
+
+{ if(Serial.available()){
+Serial.print(1);
+comm.readSerial(); // We don't do much, just process serial commands
+}
+else{
+//Serial.print("2");
+comm.readSerial(); // We don't do much, just process serial commands
+}
 }
 
 
