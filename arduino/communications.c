@@ -4,78 +4,77 @@
 SerialCommand comm;   // We create a SerialCommand object
 
 void setup()
-{  
+{
   pinMode(13,OUTPUT);      // initialize pin 13 as digital output (LED)
   pinMode(8, OUTPUT);      // initialize pin 8 to control the radio
   digitalWrite(8,HIGH);    // select the radio
 
   Serial.begin(9600); // start the serial port at 9600 baud
 
-  // Setup callbacks for SerialCommand commands 
-  comm.addCommand("ON",LED_on);          // Turns LED on
-  comm.addCommand("OFF",LED_off);        // Turns LED off
-  comm.addCommand("HELLO",SayHello);     // Echos the string argument back
-  comm.addCommand("BLINK",blink_n_times);  //  Blinks LED a specified number of times
+  // Setup callbacks for SerialCommand commands
+  comm.addCommand("ON", LED_on);          // Turns LED on
+  comm.addCommand("OFF", LED_off);        // Turns LED off
+  comm.addCommand("HELLO", SayHello);     // Echos the string argument back
+  comm.addCommand("BLINK", blink_n_times);  //  Blinks LED a specified number of times
   comm.addCommand("ADD", AddNumbers);    // Adds two integers together
-  comm.addDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "What?") 
-  Serial.println("Ready"); 
+  comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
+  Serial.println("Ready");
 
 }
 
 void loop()
-
-{ if(Serial.available()){
-Serial.print(1);
-comm.readSerial(); // We don't do much, just process serial commands
-}
-else{
-//Serial.print("2");
-comm.readSerial(); // We don't do much, just process serial commands
-}
+{
+  if (Serial.available()) {
+    //Serial.print(1);
+    comm.readSerial(); // We don't do much, just process serial commands
+  }
+  else {
+    //Serial.print("2");
+    comm.readSerial(); // We don't do much, just process serial commands
+  }
 }
 
 
 void LED_on()
 {
-  Serial.println("LED on"); 
-  digitalWrite(13,HIGH);  
+  Serial.println("LED on");
+  digitalWrite(13, HIGH);
 }
 
 void LED_off()
 {
-  Serial.println("LED off"); 
-  digitalWrite(13,LOW);
+  Serial.println("LED off");
+  digitalWrite(13, LOW);
 }
 
 void SayHello()
 {
-  char *arg;  
+  char *arg;
   arg = comm.next();    // Get the next argument from the SerialCommand object buffer
-  if (arg != NULL)      // As long as it existed, take it
+  if (arg != NULL)
   {
-    Serial.print("Hello "); 
-    Serial.println(arg); 
-  } 
+    Serial.print("Hello ");
+    Serial.println(arg);
+  }
   else {
-    Serial.println("Hello there!"); 
+    Serial.println("Hello there!");
   }
 }
 
-void blink_n_times()    
+void blink_n_times()
 {
-  int aNumber;  
-  char *arg; 
+  int aNumber;
+  char *arg;
 
-  Serial.println("Processing command..."); 
+  Serial.println("Processing command...");
   arg = comm.next();
-  Serial.println(arg);
-  if (arg != NULL) 
+  if (arg != NULL)
   {
-    aNumber=atoi(arg);    // Converts a char string to an integer
-    Serial.print("First argument was: "); 
+    aNumber = atoi(arg);    // Converts a char string to an integer
+    Serial.print("First argument was: ");
     Serial.println(aNumber);
   }
-  
+
   int i = 0;
   for (i; i<aNumber; i++)
   {
@@ -97,7 +96,7 @@ void AddNumbers()
 
   arg1 = comm.next();
   arg2 = comm.next();
-  if (arg1 != NULL && arg2 != NULL) 
+  if (arg1 != NULL && arg2 != NULL)
   {
     firstNumber=atoi(arg1);
     secondNumber=atoi(arg2);
@@ -115,8 +114,8 @@ void AddNumbers()
   }
 }
 
-// This gets set as the default handler, and gets called when no other command matches. 
-void unrecognized()
+// This gets set as the default handler, and gets called when no other command matches.
+void unrecognized(const char *command)
 {
-  Serial.println("Command not recognized."); 
+  Serial.println("Command not recognized.");
 }
