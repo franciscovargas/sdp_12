@@ -23,6 +23,7 @@ void setup()
   comm.addCommand("LEFT_MOTOR", left_motor);
   comm.addCommand("RIGHT_MOTOR", right_motor);
   comm.addCommand("BACK_MOTOR", back_motor);
+  comm.addCommand("KICK_MOTOR", kick_motor);
 
   comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
   Serial.println("Ready");
@@ -82,6 +83,20 @@ void back_motor(state, direction, power) {
 	} else if (state=="OFF") {
 		motorStop(3);
 	}
+}
+
+void kick_motor(state, direction, power) {
+  
+  if (state=="ON") {
+    if (direction=="BACKWARDS") {
+      motorBackward(4, power);
+    }
+    else if (direction=="FORWARD") {
+      motorForward(4, power);
+    }
+  } else if (state=="OFF") {
+    motorStop(4);
+  }
 }
 
 void LED_on()
