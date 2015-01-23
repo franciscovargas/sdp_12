@@ -1,6 +1,7 @@
 #include <SoftwareSerial.h>   // We need this even if we're not using a SoftwareSerial object
 #include <SerialCommand.h>
 #include <SDPArduino.h>
+#include <string.h>
 
 SerialCommand comm;   // We create a SerialCommand object
 
@@ -9,9 +10,8 @@ void setup()
   pinMode(13,OUTPUT);      // initialize pin 13 as digital output (LED)
   pinMode(8, OUTPUT);      // initialize pin 8 to control the radio
   digitalWrite(8,HIGH);    // select the radio
-  
+
   Serial.begin(9600); // start the serial port at 9600 baud
-  SDPsetup();
 
   // Setup callbacks for SerialCommand commands
   comm.addCommand("ON", LED_on);          // Turns LED on
@@ -26,6 +26,8 @@ void setup()
   comm.addCommand("KICK_MOTOR", kick_motor);
 
   comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
+
+  SDPsetup();
   Serial.println("Ready");
 
 }
@@ -36,65 +38,103 @@ void loop()
     //Serial.print(1);
     comm.readSerial(); // We don't do much, just process serial commands
   }
-  else {
-    //Serial.print("2");
-    comm.readSerial(); // We don't do much, just process serial commands
-  }
 }
 
-void left_motor(state, direction, power) {
-	
-	if (state=="ON") {
-		if (direction=="BACKWARDS") {
+void left_motor() {
+
+  char *state;
+  char *direction;
+  int power;
+
+  state = comm.next();
+  direction = comm.next();
+  power = atoi(comm.next());
+
+  Serial.print("left_motor function is on");
+
+	if (strcmp(state, "ON")==0) {
+		if (strcmp(direction, "BACKWARDS")==0) {
+      Serial.print("Motor is moving backwards");
 			motorBackward(1, power);
 		}
-		else if (direction=="FORWARD") {
+    else if (strcmp(direction, "FORWARDS")==0) {
+      Serial.print("Motor is moving forwards");
 			motorForward(1, power);
 		}
-	} else if (state=="OFF") {
+	} else if (strcmp(state, "OFF")==0) {
 		motorStop(1);
 	}
 
 }
 
-void right_motor(state, direction, power) {
-	
-	if (state=="ON") {
-		if (direction=="BACKWARDS") {
+void right_motor() {
+
+  char *state;
+  char *direction;
+  int power;
+
+  state = comm.next();
+  direction = comm.next();
+  power = atoi(comm.next());
+
+  if (strcmp(state, "ON")) {
+    if (strcmp(direction, "BACKWARDS")) {
+      Serial.print("Motor is moving backwards");
 			motorBackward(2, power);
 		}
-		else if (direction=="FORWARD") {
+    else if (strcmp(direction, "FORWARDS")) {
+      Serial.print("Motor is moving forwards");
 			motorForward(2, power);
 		}
-	} else if (state=="OFF") {
+  } else if (strcmp(state, "OFF")) {
 		motorStop(2);
 	}
 }
 
-void back_motor(state, direction, power) {
-	
-	if (state=="ON") {
-		if (direction=="BACKWARDS") {
+void back_motor() {
+
+  char *state;
+  char *direction;
+  int power;
+
+  state = comm.next();
+  direction = comm.next();
+  power = atoi(comm.next());
+
+  if (strcmp(state, "ON")) {
+    if (strcmp(direction, "BACKWARDS")) {
+      Serial.print("Motor is moving backwards");
 			motorBackward(3, power);
 		}
-		else if (direction=="FORWARD") {
+    else if (strcmp(direction, "FORWARDS")) {
+      Serial.print("Motor is moving forwards");
 			motorForward(3, power);
 		}
-	} else if (state=="OFF") {
+  } else if (strcmp(state, "OFF")) {
 		motorStop(3);
 	}
 }
 
-void kick_motor(state, direction, power) {
-  
-  if (state=="ON") {
-    if (direction=="BACKWARDS") {
+void kick_motor() {
+
+  char *state;
+  char *direction;
+  int power;
+
+  state = comm.next();
+  direction = comm.next();
+  power = atoi(comm.next());
+
+  if (strcmp(state, "ON")) {
+    if (strcmp(direction, "BACKWARDS")) {
+      Serial.print("Motor is moving backwards");
       motorBackward(4, power);
     }
-    else if (direction=="FORWARD") {
+    else if (strcmp(direction, "FORWARDS")) {
+      Serial.print("Motor is moving forwards");
       motorForward(4, power);
     }
-  } else if (state=="OFF") {
+  } else if (strcmp(state, "OFF")) {
     motorStop(4);
   }
 }
