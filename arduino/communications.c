@@ -183,5 +183,3 @@ void unrecognized(const char *command)
 {
   Serial.println("Command not recognized.");
 }
-
-void 
