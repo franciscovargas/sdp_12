@@ -1,5 +1,6 @@
 #include <SoftwareSerial.h>   // We need this even if we're not using a SoftwareSerial object
 #include <SerialCommand.h>
+#include <SDPArduino.h>
 
 SerialCommand comm;   // We create a SerialCommand object
 
@@ -8,8 +9,9 @@ void setup()
   pinMode(13,OUTPUT);      // initialize pin 13 as digital output (LED)
   pinMode(8, OUTPUT);      // initialize pin 8 to control the radio
   digitalWrite(8,HIGH);    // select the radio
-
+  
   Serial.begin(9600); // start the serial port at 9600 baud
+  SDPsetup();
 
   // Setup callbacks for SerialCommand commands
   comm.addCommand("ON", LED_on);          // Turns LED on
@@ -17,6 +19,11 @@ void setup()
   comm.addCommand("HELLO", SayHello);     // Echos the string argument back
   comm.addCommand("BLINK", blink_n_times);  //  Blinks LED a specified number of times
   comm.addCommand("ADD", AddNumbers);    // Adds two integers together
+
+  comm.addCommand("LEFT_MOTOR", left_motor);
+  comm.addCommand("RIGHT_MOTOR", right_motor);
+  comm.addCommand("BACK_MOTOR", back_motor);
+
   comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
   Serial.println("Ready");
 
@@ -34,6 +41,48 @@ void loop()
   }
 }
 
+void left_motor(state, direction, power) {
+	
+	if (state=="ON") {
+		if (direction=="BACKWARDS") {
+			motorBackward(1, power);
+		}
+		else if (direction=="FORWARD") {
+			motorForward(1, power);
+		}
+	} else if (state=="OFF") {
+		motorStop(1);
+	}
+
+}
+
+void right_motor(state, direction, power) {
+	
+	if (state=="ON") {
+		if (direction=="BACKWARDS") {
+			motorBackward(2, power);
+		}
+		else if (direction=="FORWARD") {
+			motorForward(2, power);
+		}
+	} else if (state=="OFF") {
+		motorStop(2);
+	}
+}
+
+void back_motor(state, direction, power) {
+	
+	if (state=="ON") {
+		if (direction=="BACKWARDS") {
+			motorBackward(3, power);
+		}
+		else if (direction=="FORWARD") {
+			motorForward(3, power);
+		}
+	} else if (state=="OFF") {
+		motorStop(3);
+	}
+}
 
 void LED_on()
 {
@@ -119,3 +168,5 @@ void unrecognized(const char *command)
 {
   Serial.println("Command not recognized.");
 }
+
+void 
