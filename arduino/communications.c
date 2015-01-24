@@ -50,18 +50,21 @@ void left_motor() {
   direction = comm.next();
   power = atoi(comm.next());
 
-  Serial.print("left_motor function is on");
-
 	if (strcmp(state, "ON")==0) {
 		if (strcmp(direction, "BACKWARDS")==0) {
-      Serial.print("Motor is moving backwards");
+      Serial.print("Left motor moving backwards at ");
+      Serial.print(power);
+      Serial.println("%");
 			motorBackward(1, power);
 		}
     else if (strcmp(direction, "FORWARDS")==0) {
-      Serial.print("Motor is moving forwards");
+      Serial.print("Left motor moving forwards at ");
+      Serial.print(power);
+      Serial.println("%");
 			motorForward(1, power);
 		}
 	} else if (strcmp(state, "OFF")==0) {
+    Serial.println("Left motor off");
 		motorStop(1);
 	}
 
@@ -77,16 +80,21 @@ void right_motor() {
   direction = comm.next();
   power = atoi(comm.next());
 
-  if (strcmp(state, "ON")) {
-    if (strcmp(direction, "BACKWARDS")) {
-      Serial.print("Motor is moving backwards");
+  if (strcmp(state, "ON")==0) {
+    if (strcmp(direction, "BACKWARDS")==0) {
+      Serial.print("Right motor moving backwards at ");
+      Serial.print(power);
+      Serial.println("%");
 			motorBackward(2, power);
 		}
-    else if (strcmp(direction, "FORWARDS")) {
-      Serial.print("Motor is moving forwards");
+    else if (strcmp(direction, "FORWARDS")==0) {
+      Serial.print("Right motor moving forwards at ");
+      Serial.print(power);
+      Serial.println("%");
 			motorForward(2, power);
 		}
-  } else if (strcmp(state, "OFF")) {
+  } else if (strcmp(state, "OFF")==0) {
+    Serial.println("Right motor off");
 		motorStop(2);
 	}
 }
@@ -101,17 +109,22 @@ void back_motor() {
   direction = comm.next();
   power = atoi(comm.next());
 
-  if (strcmp(state, "ON")) {
-    if (strcmp(direction, "BACKWARDS")) {
-      Serial.print("Motor is moving backwards");
-			motorBackward(3, power);
-		}
-    else if (strcmp(direction, "FORWARDS")) {
-      Serial.print("Motor is moving forwards");
-			motorForward(3, power);
-		}
-  } else if (strcmp(state, "OFF")) {
-		motorStop(3);
+  if (strcmp(state, "ON")==0) {
+    if (strcmp(direction, "BACKWARDS")==0) {
+      Serial.print("Back motor moving backwards at ");
+      Serial.print(power);
+      Serial.println("%");
+      motorBackward(3, power);
+    }
+    else if (strcmp(direction, "FORWARDS")==0) {
+      Serial.print("Back motor moving forwards at ");
+      Serial.print(power);
+      Serial.println("%");
+      motorForward(3, power);
+    }
+  } else if (strcmp(state, "OFF")==0) {
+    Serial.println("Back motor off");
+    motorStop(3);
 	}
 }
 
@@ -125,16 +138,21 @@ void kick_motor() {
   direction = comm.next();
   power = atoi(comm.next());
 
-  if (strcmp(state, "ON")) {
-    if (strcmp(direction, "BACKWARDS")) {
-      Serial.print("Motor is moving backwards");
+  if (strcmp(state, "ON")==0) {
+    if (strcmp(direction, "BACKWARDS")==0) {
+      Serial.print("Kick motor moving backwards at ");
+      Serial.print(power);
+      Serial.println("%");
       motorBackward(4, power);
     }
-    else if (strcmp(direction, "FORWARDS")) {
-      Serial.print("Motor is moving forwards");
+    else if (strcmp(direction, "FORWARDS")==0) {
+      Serial.print("Kick motor moving forwards at ");
+      Serial.print(power);
+      Serial.println("%");
       motorForward(4, power);
     }
-  } else if (strcmp(state, "OFF")) {
+  } else if (strcmp(state, "OFF")==0) {
+    Serial.println("Kick motor off");
     motorStop(4);
   }
 }
