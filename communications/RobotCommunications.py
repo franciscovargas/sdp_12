@@ -74,7 +74,7 @@ class RobotCommunications(Communications):
 
     def kick(self, motorPower):
         self.write("KICK_MOTOR ON FORWARDS " + str(motorPower))
-        time.sleep(0.35)
+        time.sleep(0.25)
         self.write("KICK_MOTOR ON FORWARDS 0")
 
     def shoot(self):

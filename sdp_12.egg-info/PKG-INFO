@@ -1,0 +1,18 @@
+Metadata-Version: 1.0
+Name: sdp-12
+Version: 1.0
+Summary: SDP group 12 robot project
+Home-page: https://github.com/franciscovargas/sdp_12.git
+Author: Francisco Vargas
+Author-email: vargfran@gmail.com
+License: MIT
+Description: # sdp_12
+        SDP group 12 repositository. (NEEDS UPDATE)
+        
+Keywords: maps random probability open data
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers, Users
+Classifier: Topic :: Software Engineering Large Practical
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2.7
