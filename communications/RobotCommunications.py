@@ -36,10 +36,10 @@ class RobotCommunications(Communications):
         self.write("RIGHT_MOTOR ON BACKWARDS " + str(motorPower))
 
     def moveSidewaysLeft(self, motorPower):
-        self.write("BACK_MOTOR ON BACKWARDS " + str(motorPower))
+        self.write("BACK_MOTOR ON FORWARDS " + str(motorPower))
 
     def moveSidewaysRight(self, motorPower):
-        self.write("BACK_MOTOR ON FORWARDS " + str(motorPower))
+        self.write("BACK_MOTOR ON BACKWARDS " + str(motorPower))
 
     def rotateLeft(self, motorPower):
         self.write("RIGHT_MOTOR ON FORWARDS " + str(motorPower))
@@ -74,7 +74,7 @@ class RobotCommunications(Communications):
 
     def kick(self, motorPower):
         self.write("KICK_MOTOR ON FORWARDS " + str(motorPower))
-        time.sleep(0.2)
+        time.sleep(0.35)
         self.write("KICK_MOTOR ON FORWARDS 0")
 
     def shoot(self):
