@@ -24,6 +24,8 @@ void setup()
   comm.addCommand("RIGHT_MOTOR", right_motor_wrapper);
   comm.addCommand("BACK_MOTOR", back_motor_wrapper);
   comm.addCommand("KICK_MOTOR", kick_motor_wrapper);
+  comm.addCommand("ROTATE_LEFT", rotate_left);
+  comm.addCommand("STOP_ALL", stop_all);
 
   comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -38,6 +40,19 @@ void loop()
     //Serial.print(1);
     comm.readSerial(); // We don't do much, just process serial commands
   }
+}
+
+void rotate_left() {
+
+  char *state;
+  int power;
+
+  state = comm.next();
+  power = atoi(comm.next());
+
+  left_motor(state, -power);
+  right_motor(state, power);
+  back_motor(state, -power*0.8);
 }
 
 void left_motor_wrapper() {
@@ -163,6 +178,14 @@ void kick_motor(char *state, int power) {
     Serial.println("Kick motor off");
     motorStop(4);
   }
+}
+
+void stop_all() {
+  motorStop(1);
+  motorStop(2);
+  motorStop(3);
+  motorStop(4);
+  Serial.println("All motors off");
 }
 
 void LED_on()
