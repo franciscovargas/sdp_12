@@ -20,10 +20,10 @@ void setup()
   comm.addCommand("BLINK", blink_n_times);  //  Blinks LED a specified number of times
   comm.addCommand("ADD", AddNumbers);    // Adds two integers together
 
-  comm.addCommand("LEFT_MOTOR", left_motor);
-  comm.addCommand("RIGHT_MOTOR", right_motor);
-  comm.addCommand("BACK_MOTOR", back_motor);
-  comm.addCommand("KICK_MOTOR", kick_motor);
+  comm.addCommand("LEFT_MOTOR", left_motor_wrapper);
+  comm.addCommand("RIGHT_MOTOR", right_motor_wrapper);
+  comm.addCommand("BACK_MOTOR", back_motor_wrapper);
+  comm.addCommand("KICK_MOTOR", kick_motor_wrapper);
 
   comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -40,13 +40,18 @@ void loop()
   }
 }
 
-void left_motor() {
+void left_motor_wrapper() {
 
   char *state;
   int power;
 
   state = comm.next();
   power = atoi(comm.next());
+
+  left_motor(state, power);
+}
+
+void left_motor(char *state, int power) {
 
 	if (strcmp(state, "ON")==0) {
     motorMove(1, power);
@@ -67,13 +72,18 @@ void left_motor() {
 
 }
 
-void right_motor() {
+void right_motor_wrapper() {
 
   char *state;
   int power;
 
   state = comm.next();
   power = atoi(comm.next());
+
+  right_motor(state, power);
+}
+
+void right_motor(char *state, int power) {
 
   if (strcmp(state, "ON")==0) {
     motorMove(2, power);
@@ -93,13 +103,18 @@ void right_motor() {
   }
 }
 
-void back_motor() {
+void back_motor_wrapper() {
 
   char *state;
   int power;
 
   state = comm.next();
   power = atoi(comm.next());
+
+  back_motor(state, power);
+}
+
+void back_motor(char *state, int power) {
 
   if (strcmp(state, "ON")==0) {
     motorMove(3, power);
@@ -119,13 +134,18 @@ void back_motor() {
   }
 }
 
-void kick_motor() {
+void kick_motor_wrapper() {
 
   char *state;
   int power;
 
   state = comm.next();
   power = atoi(comm.next());
+
+  kick_motor(state, power);
+}
+
+void kick_motor(char *state, int power) {
 
   if (strcmp(state, "ON")==0) {
     motorMove(4, power);
