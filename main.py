@@ -7,6 +7,7 @@ import cv2
 import serial
 import warnings
 import time
+from behaviour.planner import Planner
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -90,6 +91,9 @@ class Controller:
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
                 print model_positions
+
+		# Update planner world beliefs
+		self.planner.update_world(model_positions)
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
