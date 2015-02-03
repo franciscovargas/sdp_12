@@ -1,6 +1,6 @@
-pip install --user polygon
-pip install --user argparse
-pip install --user serial
+pip install --user Polygon2==2.0.6
+pip install --user argparse==1.3.0
+pip install --user pyserial==2.7
 cd /disk/scratch/sdp/
 wget http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.4.10/opencv-2.4.10.zip
 unzip opencv-2.4.10.zip

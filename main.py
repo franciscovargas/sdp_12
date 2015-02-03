@@ -14,10 +14,10 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class Controller:
     """
-    Primary source of robot control. Ties vision and planning together.
+    This class aims to be the bridge in between vision and strategy/logic
     """
 
-    def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyUSB0', comms=1):
+    def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
         """
         Entry point for the SDP system.
 
