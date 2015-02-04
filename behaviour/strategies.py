@@ -1,7 +1,7 @@
 from utilities import *
 import math
 from random import randint
-from RobotCommunications import RobotCommunications
+from communications.RobotCommunications import RobotCommunications
 
 class Strategy(object):
 
@@ -99,11 +99,15 @@ class DefenderDefence(Strategy):
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
-	r = RobotCommunications(debug=True)
-	#r.rotate(80, 1)
-	print 'spinning'
+	
 
     def align(self):
+
+	# spin
+	r = RobotCommunications(debug=True)
+	r.rotate(80, 1)
+	print 'spinning'
+
         """
         Align yourself with the center of our goal.
         """
@@ -117,6 +121,12 @@ class DefenderDefence(Strategy):
             return calculate_motor_speed(displacement, angle, backwards_ok=True)
 
     def defend_goal(self):
+	
+	# spin
+	r = RobotCommunications(debug=True)
+	r.rotate(80, 1)
+	print 'spinning'
+
         """
         Run around, blocking shots.
         """

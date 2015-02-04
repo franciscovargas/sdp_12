@@ -90,7 +90,7 @@ class Controller:
                 #  IMPORTANT
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
-                print model_positions
+                #print model_positions
 
 		# Update planner world beliefs
 		self.planner.update_world(model_positions)
