@@ -106,7 +106,8 @@ class Controller:
         except:
             print("TODO SOMETHING CLEVER HERE")
             raise
-
+        finally:
+            tools.save_colors(self.pitch, self.calibration)
 
 if __name__ == '__main__':
     import argparse

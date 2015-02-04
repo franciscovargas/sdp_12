@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-CONTROL = ["Lower threshold for hue", "Upper threshold for hue", "Lower threshold for saturation", "Upper threshold for saturation", "Lower threshold for value", "Upper threshold for value", "Contrast", "Traditional blur"]
+CONTROL = ["Lower threshold for hue", "Upper threshold for hue", "Lower threshold for saturation", "Upper threshold for saturation", "Lower threshold for value", "Upper threshold for value", "Contrast", "Gaussian blur"]
 MAXBAR = {"Lower threshold for hue":360,
           "Upper threshold for hue":360,
           "Lower threshold for saturation":255,
@@ -9,7 +9,7 @@ MAXBAR = {"Lower threshold for hue":360,
           "Lower threshold for value":255,
           "Upper threshold for value":255,
           "Contrast":100,
-          "Traditional blur":100
+          "Gaussian blur":100
         }
 
 INDEX = {"Lower threshold for hue":0,
@@ -59,7 +59,7 @@ class CalibrationGUI(object):
                        self.calibration[self.color]['max'][2])
         createTrackbar('Contrast',
                        self.calibration[self.color]['contrast'])
-        createTrackbar('Traditional blur',
+        createTrackbar('Gaussian blur',
                        self.calibration[self.color]['blur'])
 
     def change_color(self, color):
@@ -82,12 +82,12 @@ class CalibrationGUI(object):
         values = {}
         for setting in CONTROL:
             values[setting] = float(getTrackbarPos(setting))
-        values['Traditional blur'] = int(values['Traditional blur'])
+        values['Gaussian blur'] = int(values['Gaussian blur'])
 
         self.calibration[self.color]['min'] = np.array([values['Lower threshold for hue'], values['Lower threshold for saturation'], values['Lower threshold for value']])
         self.calibration[self.color]['max'] = np.array([values['Upper threshold for hue'], values['Upper threshold for saturation'], values['Upper threshold for value']])
         self.calibration[self.color]['contrast'] = values['Contrast']
-        self.calibration[self.color]['blur'] = values['Traditional blur']
+        self.calibration[self.color]['blur'] = values['Gaussian blur']
 
         mask = self.get_mask(frame)
         cv2.imshow(self.maskWindowName, mask)
@@ -95,12 +95,13 @@ class CalibrationGUI(object):
     # Duplicated from tracker.py
     def get_mask(self, frame):
         """
-        Traditional blur:
-            K =     [[1, ..., 1],
+        GaussianBlur blur:
+            G =     [[G11, ..., G1N],
                 1/L      ...,
-                     [1, ..., 1]]
-            K is the bluring kernel
+                     [GN1, ..., GNN]]
+            G is the bluring kernel
             L = sqrt(dot(blur, blur))
+            GII Gaussian number
 
         params:
             frame: 
@@ -116,7 +117,9 @@ class CalibrationGUI(object):
         """
         blur = self.calibration[self.color]['blur']
         if blur > 1:
-            frame = cv2.blur(frame, (blur,blur))
+            if blur % 2 == 0:
+                blur += 1
+            frame = cv2.GaussianBlur(frame, (blur, blur), 0)
 
         contrast = self.calibration[self.color]['contrast']
         if contrast > 1.0:
