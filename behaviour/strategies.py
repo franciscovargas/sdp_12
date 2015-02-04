@@ -1,6 +1,7 @@
 from utilities import *
 import math
 from random import randint
+from RobotCommunications import RobotCommunications
 
 class Strategy(object):
 
@@ -97,6 +98,10 @@ class DefenderDefence(Strategy):
         self.their_attacker = self.world.their_attacker
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
+
+	r = RobotCommunications(debug=True)
+	#r.rotate(80, 1)
+	print 'spinning'
 
     def align(self):
         """

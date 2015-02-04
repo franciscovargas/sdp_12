@@ -94,6 +94,7 @@ class Controller:
 
 		# Update planner world beliefs
 		self.planner.update_world(model_positions)
+		self.planner.plan('defender')
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF

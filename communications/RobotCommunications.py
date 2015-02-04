@@ -26,20 +26,23 @@ class RobotCommunications(Communications):
 
     def add(self, arg1, arg2):
         self.write("ADD " + str(arg1) + " " + str(arg2))
+  
 
-    def moveForwards(self, motorPower):
-        self.write("LEFT_MOTOR ON FORWARDS " + str(motorPower))
-        self.write("RIGHT_MOTOR ON FORWARDS " + str(motorPower))
 
-    def moveBackwards(self, motorPower):
-        self.write("LEFT_MOTOR ON BACKWARDS " + str(motorPower))
-        self.write("RIGHT_MOTOR ON BACKWARDS " + str(motorPower))
+    # USE THIS
+    def moveForwards(self, motorPower, time):
+        self.write("MOVE STRAIGHT " + str(motorPower) + " " + str(time))
 
     def moveSidewaysLeft(self, motorPower):
-        self.write("BACK_MOTOR ON FORWARDS " + str(motorPower))
+        self.write("MOVE SIDEWAYS L " + str(motorPower) + " " + str(time))
 
     def moveSidewaysRight(self, motorPower):
-        self.write("BACK_MOTOR ON BACKWARDS " + str(motorPower))
+        self.write("MOVE SIDEWAYS R " + str(motorPower) + " " + str(time))
+
+    def rotate(self, motorPower, time):
+        self.write("ROTATE R " + str(motorPower) + " " + str(time))
+
+
 
     def rotateLeft(self, motorPower):
         self.write("RIGHT_MOTOR ON FORWARDS " + str(motorPower))
