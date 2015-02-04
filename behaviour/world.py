@@ -1,6 +1,7 @@
 from Polygon.cPolygon import Polygon
 from math import cos, sin, hypot, pi, atan2
-#from vision import tools
+from vision import tools
+from postprocessing.postprocessing import Vector
 
 # Width measures the front and back of an object
 # Length measures along the sides of an object

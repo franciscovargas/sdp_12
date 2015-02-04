@@ -41,7 +41,6 @@ class Controller:
 
 	# Set up main planner
         self.planner = Planner(our_side=our_side, pitch_num=self.pitch)
-	print "sucess"
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
