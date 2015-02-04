@@ -1,4 +1,4 @@
-from models import *
+from world import *
 from collisions import *
 from strategies import *
 from utilities import *

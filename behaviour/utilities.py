@@ -1,5 +1,5 @@
 from math import tan, pi, hypot, log
-from planning.models import Robot
+from behaviour.world import Robot
 
 DISTANCE_MATCH_THRESHOLD = 15
 ANGLE_MATCH_THRESHOLD = pi/10
