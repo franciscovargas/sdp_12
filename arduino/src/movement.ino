@@ -35,6 +35,14 @@ void setup()
     SDPsetup();
     Serial.println("Ready");
 
+    while (Serial.available() <= 0) {
+      Serial.write("Marco");
+      delay(300);
+    }
+
+    if (Serial.read() == 'P') {
+        Serial.println("Connected to Radio");
+    }
 }
 
 void loop()

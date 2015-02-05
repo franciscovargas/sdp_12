@@ -15,9 +15,17 @@ class Communications(object):
             try:
                 self.port = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
                 self.debug = debug
+                self.port.flushInput()
                 time.sleep(0.5)
+
+                print "Waiting for the Arduino..."
+
+                if "Marco" in self.port.readline():
+                    print "Connected to Arduino." 
+                    self.port.flushInput()
+                    self.write('P')
             except:
-                raise BaseException("Radio not connected or wrong port supplied.")
+                raise # BaseException("Radio not connected or wrong port supplied.")
 
     def write(self, command):
         self.port.write(command + '\r\n')
