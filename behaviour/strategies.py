@@ -30,7 +30,7 @@ class Strategy(object):
     def generate(self):
         return self.NEXT_ACTION_MAP[self.current_state]()
 
-# Defend againt moving ball
+# Defend againt incoming ball
 class Milestone2Def(Strategy):
 
     UNALIGNED, DEFEND_GOAL = 'UNALIGNED', 'DEFEND_GOAL'
@@ -40,68 +40,63 @@ class Milestone2Def(Strategy):
 
     GOAL_ALIGN_OFFSET = 60
 
-    def __init__(self, world, robot):
+    def __init__(self, world, robotCom):
         super(Milestone2Def, self).__init__(world, self.STATES)
-
+        
         self.NEXT_ACTION_MAP = {
             self.UNALIGNED: self.align,
             self.DEFEND_GOAL: self.defend_goal
         }
 
-        self.our_goal = self.world.our_goal
         # Find the point we want to align to.
         self.goal_front_x = self.get_alignment_position(self.world._our_side)
-        self.their_attacker = self.world.their_attacker
+        self.our_goal = self.world.our_goal
+        
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
         # Used to communicate with the robot
-        self.robot = robot    
-
+        self.robotCom = robotCom    
+    
+    # Not working. Currently, alligning is skipped.
     def align(self):
-
-        # spin
-        #robot.rotate(80, 1)
-        print 'spinning'
-
         """
         Align yourself with the center of our goal.
         """
-        if has_matched(self.our_defender, x=self.goal_front_x, y=self.our_goal.y):
+        if True: # before uncommenting this, make sure that moveFromTo works properly # has_matched(self.our_defender, x=self.goal_front_x, y=self.our_goal.y):
             # We're there. Advance the states and formulate next action.
             self.current_state = self.DEFEND_GOAL
-            return do_nothing()
+            return stop(self.robotCom)
         else:
-            displacement, angle = self.our_defender.get_direction_to_point(
-                self.goal_front_x, self.our_goal.y)
-            return calculate_motor_speed(displacement, angle, backwards_ok=True)
-
-    def defend_goal(self):
+            displacement, angle = self.our_defender.get_direction_to_point(self.goal_front_x, self.our_goal.y)
+            return moveFromTo(self.robotCom, displacement, angle)
     
-        # spin
-        #robot.rotate(80, 1)
-        print 'spinning'
+    # Calculate ideal defending position and move there.
+    def defend_goal(self):     
+        # Specifies the type of defending. Can be 'straight' or 'sideways'
+        type_of_movement = 'straight'
 
-        """
-        Run around, blocking shots.
-        """
-        # Predict where they are aiming.
+        # Predict where they are aiming. NOT TESTED
+        predicted_y = None
         if self.ball.velocity > BALL_VELOCITY:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
-
-        if self.ball.velocity <= BALL_VELOCITY or predicted_y is None: 
-            predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.their_attacker, bounce=False)
-
         if predicted_y is not None:
-            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x,
-                                                                           predicted_y - 7*math.sin(self.our_defender.angle))
-            return calculate_motor_speed(displacement, angle, backwards_ok=True)
+            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, predicted_y - 7*math.sin(self.our_defender.angle))
+            if(self.our_defender.y < self.ball.y):
+                displacement = -displacement
         else:
+            # Try to be in same vertical position as the ball
             y = self.ball.y
             y = max([y, 60])
             y = min([y, self.world._pitch.height - 60])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
-            return calculate_motor_speed(displacement, angle, backwards_ok=True)
+            if(self.our_defender.y < self.ball.y):
+                displacement = -displacement
+        
+        if type_of_movement == 'straight':
+            return moveStraight(self.robotCom, displacement)
+        else:
+            return moveSideways(self.robotCom, displacement)
 
     def get_alignment_position(self, side):
         """
@@ -113,6 +108,98 @@ class Milestone2Def(Strategy):
         else:
             return self.world.our_goal.x - self.GOAL_ALIGN_OFFSET
 
+# Move to center and pass the ball. NOT TESTED !!!!!!!!!!!!!!!!
+class Milestone2Pass(Strategy):
+
+    POSITION, ROTATE, SHOOT, FINISHED = 'POSITION', 'ROTATE', 'SHOOT', 'FINISHED'
+    STATES = [POSITION, ROTATE, SHOOT, FINISHED]
+
+    UP, DOWN = 'UP', 'DOWN'
+
+    def __init__(self, world, robotCom):
+        super(DefenderBouncePass, self).__init__(world, self.STATES)
+
+        # Map states into functions
+        self.NEXT_ACTION_MAP = {
+            self.POSITION: self.position,
+            self.ROTATE: self.rotate,
+            self.SHOOT: self.shoot,
+            self.FINISHED: do_nothing
+        }
+
+        self.our_defender = self.world.our_defender
+        self.their_attacker = self.world.their_attacker
+        self.ball = self.world.ball
+
+        # Find the position to shoot from and cache it
+        self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom 
+
+    def position(self):
+        """
+        Position the robot in the middle close to the goal. Angle does not matter.
+        Executed initially when we've grabbed the ball and want to move.
+        """
+        ideal_x, ideal_y = self.shooting_pos
+        distance, angle = self.our_defender.get_direction_to_point(ideal_x, ideal_y)
+
+        if has_matched(self.our_defender, x=ideal_x, y=ideal_y):
+            self.current_state = self.ROTATE
+            return stop(self.robotCom)
+        else:
+            return moveFromTo(self.robotCom, distance, angle)
+
+    def rotate(self):
+        """
+        Once the robot is in position, rotate forward
+        """
+        angle = self.our_defender.get_rotation_to_point(x, y)
+
+        if has_matched(self.our_defender, angle=angle, angle_threshold=pi/20):
+            return stop(self.robotCom)
+        else:
+            return moveFromTo(self.robotCom, None, angle)
+
+    def shoot(self):
+        """
+        Kick.
+        """
+        self.current_state = self.FINISHED
+        self.our_defender.catcher = 'open'
+        return kick(self.robotCom)
+
+    def _get_shooting_coordinates(self, robot):
+        """
+        Retrieve the coordinates to which we need to move before we set up the pass.
+        """
+        zone_index = robot.zone
+        zone_poly = self.world.pitch.zones[zone_index][0]
+
+        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
+        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
+
+        x = min_x + (max_x - min_x) / 2
+        y =  self.world.pitch.height / 2
+
+        return (x, y)
+
+
+
+
+
+
+
+
+
+# not using the below
+
+
+
+
+
+
 
 class DefenderDefence(Strategy):
 
@@ -123,7 +210,7 @@ class DefenderDefence(Strategy):
 
     GOAL_ALIGN_OFFSET = 60
 
-    def __init__(self, world, robot):
+    def __init__(self, world, robotCom):
         super(DefenderDefence, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
@@ -364,7 +451,7 @@ class DefenderBouncePass(Strategy):
 
     UP, DOWN = 'UP', 'DOWN'
 
-    def __init__(self, world):
+    def __init__(self, world, robotCom):
         super(DefenderBouncePass, self).__init__(world, self.STATES)
 
         # Map states into functions
@@ -533,8 +620,9 @@ class DefenderGrab(Strategy):
     DEFEND, GO_TO_BALL, GRAB_BALL, GRABBED = 'DEFEND', 'GO_TO_BALL', 'GRAB_BALL', 'GRABBED'
     STATES = [DEFEND, GO_TO_BALL, GRAB_BALL, GRABBED]
 
-    def __init__(self, world):
+    def __init__(self, world, robotCom):
         super(DefenderGrab, self).__init__(world, self.STATES)
+        robotCom.stop()
 
         self.NEXT_ACTION_MAP = {
             self.DEFEND: self.defend,

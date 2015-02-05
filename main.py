@@ -43,12 +43,13 @@ class Controller:
 
         # Set up robot communications to bet sent to planner.
         try:
-            self.robotCom =  RobotCommunications(debug=True)
+            self.robotCom = RobotCommunications(debug=True)
         except:
+            print 'not connected to the radio'
             pass
 
         # Set up main planner
-        if(robotCom is not None):
+        if(self.robotCom is not None):
             self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom)
 
         # Set up camera for frames
@@ -102,8 +103,10 @@ class Controller:
                 #print model_positions
 
                 # Update planner world beliefs
-                if(robotCom is not None):
+                if(self.robotCom is not None):
                     self.planner.update_world(model_positions)
+                    
+                    # This activates the defending strategy for our robot. I did not work on attacking strategy.
                     self.planner.plan('defender')
 
                 # Use 'y', 'b', 'r' to change color.

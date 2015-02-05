@@ -1,12 +1,70 @@
-from math import tan, pi, hypot, log
+from math import tan, pi, hypot, log, copysign
 from world import Robot
 
-DISTANCE_MATCH_THRESHOLD = 15
+DISTANCE_MATCH_THRESHOLD = 20
 ANGLE_MATCH_THRESHOLD = pi/10
 BALL_ANGLE_THRESHOLD = pi/20
 MAX_DISPLACEMENT_SPEED = 690
 MAX_ANGLE_SPEED = 50
 BALL_VELOCITY = 3
+
+# Stop everything
+def stop(robotCom):
+    robotCom.stop()
+
+# Moving sideways
+def moveSideways(robotCom, displacement):
+    if abs(displacement) > DISTANCE_MATCH_THRESHOLD:
+        power = copysign(80, displacement)
+        robotCom.moveSideways(power)
+    else:
+        robotCom.stop()
+
+# Move straight indefinitely trying to defend 
+def moveStraight(robotCom, displacement):
+    if abs(displacement) > DISTANCE_MATCH_THRESHOLD:
+        power = copysign(60, displacement)
+        robotCom.moveStraight(power)
+    else:
+        robotCom.stop()
+
+# Move from A to B
+def moveFromTo(robotCom, displacement, angle):
+    angle_thresh = BALL_ANGLE_THRESHOLD
+    
+    if abs(angle) > angle_thresh:
+        power = copysign(40, angle)
+        robotCom.rotate(power)
+        print 'Rotating. power: ' + str(power)
+    elif not (displacement is None):
+        if displacement > DISTANCE_MATCH_THRESHOLD:
+            power = 60
+            # robotCom.moveStraight(power)
+            print 'Moving straight. power: ' + str(power)
+        else:
+            # robot.stop()
+            print 'Robot arrived to desired location'
+    else:
+        # robot.stop()
+        print 'Robot arrived to desired location'
+
+# Kick the ball, full power
+def kick(robotCom):
+    robotCom.kick(100)
+    print 'Kicking the ball'
+
+
+
+
+
+
+# not using the below
+
+
+
+
+
+
 
 
 def is_shot_blocked(world, our_robot, their_robot):
@@ -153,4 +211,4 @@ def calculate_motor_speed(displacement, angle, backwards_ok=False, careful=False
 
 
 def do_nothing():
-    return calculate_motor_speed(0, 0)
+    speed = 10
