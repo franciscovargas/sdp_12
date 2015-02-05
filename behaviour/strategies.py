@@ -1,7 +1,6 @@
 from utilities import *
 import math
 from random import randint
-from communications.RobotCommunications import RobotCommunications
 
 class Strategy(object):
 
@@ -31,28 +30,58 @@ class Strategy(object):
     def generate(self):
         return self.NEXT_ACTION_MAP[self.current_state]()
 
-class DefenderPenalty(Strategy):
+# Defend againt moving ball
+class Milestone2Def(Strategy):
 
-
-    DEFEND_GOAL = 'DEFEND_GOAL'
-    STATES = [DEFEND_GOAL]
+    UNALIGNED, DEFEND_GOAL = 'UNALIGNED', 'DEFEND_GOAL'
+    STATES = [UNALIGNED, DEFEND_GOAL]
     LEFT, RIGHT = 'left', 'right'
     SIDES = [LEFT, RIGHT]
 
+    GOAL_ALIGN_OFFSET = 60
 
-    def __init__(self, world):
-        super(DefenderPenalty, self).__init__(world, self.STATES)
+    def __init__(self, world, robot):
+        super(Milestone2Def, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
+            self.UNALIGNED: self.align,
             self.DEFEND_GOAL: self.defend_goal
         }
 
+        self.our_goal = self.world.our_goal
+        # Find the point we want to align to.
+        self.goal_front_x = self.get_alignment_position(self.world._our_side)
         self.their_attacker = self.world.their_attacker
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
+        # Used to communicate with the robot
+        self.robot = robot    
+
+    def align(self):
+
+        # spin
+        #robot.rotate(80, 1)
+        print 'spinning'
+
+        """
+        Align yourself with the center of our goal.
+        """
+        if has_matched(self.our_defender, x=self.goal_front_x, y=self.our_goal.y):
+            # We're there. Advance the states and formulate next action.
+            self.current_state = self.DEFEND_GOAL
+            return do_nothing()
+        else:
+            displacement, angle = self.our_defender.get_direction_to_point(
+                self.goal_front_x, self.our_goal.y)
+            return calculate_motor_speed(displacement, angle, backwards_ok=True)
 
     def defend_goal(self):
+    
+        # spin
+        #robot.rotate(80, 1)
+        print 'spinning'
+
         """
         Run around, blocking shots.
         """
@@ -74,6 +103,16 @@ class DefenderPenalty(Strategy):
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             return calculate_motor_speed(displacement, angle, backwards_ok=True)
 
+    def get_alignment_position(self, side):
+        """
+        Given the side, find the x coordinate of where we need to align to initially.
+        """
+        assert side in self.SIDES
+        if side == self.LEFT:
+            return self.world.our_goal.x + self.GOAL_ALIGN_OFFSET
+        else:
+            return self.world.our_goal.x - self.GOAL_ALIGN_OFFSET
+
 
 class DefenderDefence(Strategy):
 
@@ -84,7 +123,7 @@ class DefenderDefence(Strategy):
 
     GOAL_ALIGN_OFFSET = 60
 
-    def __init__(self, world):
+    def __init__(self, world, robot):
         super(DefenderDefence, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {

@@ -6,11 +6,14 @@ from utilities import *
 
 class Planner:
 
-    def __init__(self, our_side, pitch_num):
+    def __init__(self, our_side, pitch_num, robot):
         self._world = World(our_side, pitch_num)
         self._world.our_defender.catcher_area = {'width' : 30, 'height' : 30, 'front_offset' : 12} #10
         self._world.our_attacker.catcher_area = {'width' : 30, 'height' : 30, 'front_offset' : 14}
-
+        
+        # Used to communicate with the robot
+        self.robot = robot
+        
         # self._defender_defence_strat = DefenderDefence(self._world)
         # self._defender_attack_strat = DefaultDefenderAttack(self._world)
 
@@ -19,15 +22,15 @@ class Planner:
                                      'score' : [AttackerDriveByTurn, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
                                      'catch' : [AttackerPositionCatch, AttackerCatch]}
 
-        self._defender_strategies = {'defence' : [DefenderDefence, DefenderPenalty],
+        self._defender_strategies = {'defence' : [Milestone2Def, DefenderDefence],
                                      'grab' : [DefenderGrab],
                                      'pass' : [DefenderBouncePass]}
 
         self._defender_state = 'defence'
-        self._defender_current_strategy = self.choose_defender_strategy(self._world)
+        self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robot)
 
         self._attacker_state = 'defence'
-        self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
+        self._attacker_current_strategy = self.choose_attacker_strategy(self._world)        
 
     # Provisional. Choose the first strategy in the applicable list.
     def choose_attacker_strategy(self, world):
@@ -35,9 +38,9 @@ class Planner:
         return next_strategy(world)
 
     # Provisional. Choose the first strategy in the applicable list.
-    def choose_defender_strategy(self, world):
+    def choose_defender_strategy(self, world, robot):
         next_strategy = self._defender_strategies[self._defender_state][0]
-        return next_strategy(world)
+        return next_strategy(world, robot)
 
     @property
     def attacker_strat_state(self):
@@ -81,7 +84,7 @@ class Planner:
                 # If the bal is not in the defender's zone, the state should always be 'defend'.
                 if not self._defender_state == 'defence':
                     self._defender_state = 'defence'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world)
+                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robot)
                 return self._defender_current_strategy.generate()
 
             # We have the ball in our zone, so we grab and pass:
@@ -89,16 +92,16 @@ class Planner:
                 # Check if we should switch from a grabbing to a scoring strategy.
                 if  self._defender_state == 'grab' and self._defender_current_strategy.current_state == 'GRABBED':
                     self._defender_state = 'pass'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world)
+                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robot)
 
                 # Check if we should switch from a defence to a grabbing strategy.
                 elif self._defender_state == 'defence':
                     self._defender_state = 'grab'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world)
+                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robot)
 
                 elif self._defender_state == 'pass' and self._defender_current_strategy.current_state == 'FINISHED':
                     self._defender_state = 'grab'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world)
+                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robot)
 
                 return self._defender_current_strategy.generate()
             # Otherwise, chillax:
