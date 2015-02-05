@@ -60,24 +60,14 @@ void move_wrapper(){
 
     else if (strcmp (type, "SIDEWAYS") == 0){
         char *direction = comm.next();
-        int dir_bool = 1;
-
-        if (strcmp (direction, "L") == 0){
-            dir_bool = -1;
-        }
         power = atoi(comm.next());
-        move_sideways(dir_bool, power);
+        move_sideways(power);
     }
 
     else if (strcmp (type, "DIAGONAL") == 0){
         char *direction = comm.next();
-        int dir_bool = 1;
-
-        if (strcmp (direction, "L") == 0){
-            dir_bool = -1;
-        }
         power = atoi(comm.next());
-        move_diagonal(dir_bool, power);
+        move_diagonal(power);
     }
 
 }
@@ -101,15 +91,15 @@ void move_straight(int power) {
 }
 
 // Move sideways (Left / Right)
-void move_sideways(int dir_bool, int power) {
-    move_motor(BACK_MOTOR, dir_bool * power);
+void move_sideways(int power) {
+    move_motor(BACK_MOTOR, power);
     // dir_bool = -1 OR 1 for Left / Right
     // See how you can compensate the rotation with the front wheels
 }
 
 // Diagonal movement (Left / Right)
-void move_diagonal(int dir_bool, int power){
-    if(dir_bool == -1){ //LEFT
+void move_diagonal(int power){
+    if(power < 0){ //LEFT
         move_motor(BACK_MOTOR, power);
         move_motor(LEFT_MOTOR, -power);
     }
@@ -137,23 +127,20 @@ void rotate_wrapper(){
     time_turn = atof(comm.next());
 
     int dir_bool = -1;
-    if (strcmp (direction, "L") == 0){
+    if (power < 0){
         dir_bool = 1;
     }
 
-    rotate(dir_bool, power, time_turn);
+    rotate(dir_bool, power);
 }
 
 
 // Rotate function
-void rotate(int dir_bool, int power, float time_turn) {
+void rotate(int dir_bool, int power) {
 
     move_motor(LEFT_MOTOR, dir_bool * -1 * power);
     move_motor(RIGHT_MOTOR, dir_bool * power);
     move_motor(BACK_MOTOR, dir_bool * -0.8 * power);
-
-    delay(time_turn*1000);
-    motorAllStop();
 }
 
 // Kicker / Grabber wrapper function

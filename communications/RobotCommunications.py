@@ -12,30 +12,34 @@ class RobotCommunications(Communications):
     def __init__(self, debug=False):
         super(RobotCommunications, self).__init__(debug)
 
+    # Stops all motors
     def stop(self):
         self.write("STOP")
 
+    # Straight movement
     def moveStraight(self, motorPower):
         self.write("MOVE STRAIGHT " + str(motorPower))
 
+    # Sideways LEFT  = -motorPower
+    # Sideways RIGHT = +motorPower
     def moveSidewaysLeft(self, motorPower):
-        self.write("MOVE SIDEWAYS L " + str(motorPower))
+        self.write("MOVE SIDEWAYS " + str(motorPower))
 
-    def moveSidewaysRight(self, motorPower):
-        self.write("MOVE SIDEWAYS R " + str(motorPower))
-
+    # Same as Sideways, it's just diagonal
     def moveDiagonalLeft(self, motorPower):
         self.write("MOVE DIAGONAL L " + str(motorPower))
 
     def moveDiagonalRight(self, motorPower):
         self.write("MOVE DIAGONAL R " + str(motorPower))
 
-    def rotateLeft(self, motorPower, time):
-        self.write("ROTATE L " + str(motorPower) + " " + str(time))
+    # Rotate LEFT  = -motorPower
+    # Rotate RIGHT = +motorPower
+    def rotateLeft(self, motorPower):
+        self.write("ROTATE " + str(motorPower))
 
-    def rotateRight(self, motorPower, time):
-        self.write("ROTATE R " + str(motorPower) + " " + str(time))
-
+        
+    # Grab and Kick take motorPower. The values should be predefined depending
+    # on how far we need to kick or grab (it will probably be a constant)
     def grab(self, motorPower):
         self.write("ACTION GRAB " + str(motorPower))
 
