@@ -12,69 +12,32 @@ class RobotCommunications(Communications):
     def __init__(self, debug=False):
         super(RobotCommunications, self).__init__(debug)
 
-    def turn_on(self):
-        self.write("ON")
+    def stop(self):
+        self.write("STOP")
 
-    def turn_off(self):
-        self.write("OFF")
-
-    def blink(self, arg):
-        self.write("BLINK " + str(arg))
-
-    def say_hello(self):
-        self.write("HELLO")
-
-    def add(self, arg1, arg2):
-        self.write("ADD " + str(arg1) + " " + str(arg2))
-
-    def moveForwards(self, motorPower):
-        self.write("LEFT_MOTOR ON " + str(motorPower))
-        self.write("RIGHT_MOTOR ON " + str(motorPower))
-
-    def moveBackwards(self, motorPower):
-        self.write("LEFT_MOTOR ON " + str(motorPower))
-        self.write("RIGHT_MOTOR ON " + str(motorPower))
+    def moveStraight(self, motorPower):
+        self.write("MOVE STRAIGHT " + str(motorPower))
 
     def moveSidewaysLeft(self, motorPower):
-        self.write("BACK_MOTOR ON " + str(motorPower))
+        self.write("MOVE SIDEWAYS L " + str(motorPower))
 
     def moveSidewaysRight(self, motorPower):
-        self.write("BACK_MOTOR ON " + str(motorPower))
+        self.write("MOVE SIDEWAYS R " + str(motorPower))
 
-    def rotateLeft(self, motorPower):
-        self.write("ROTATE_LEFT ON " + str(motorPower))
+    def moveDiagonalLeft(self, motorPower):
+        self.write("MOVE DIAGONAL L " + str(motorPower))
 
-    def rotateRight(self, motorPower):
-        self.write("ROTATE_RIGHT ON " + str(motorPower))
+    def moveDiagonalRight(self, motorPower):
+        self.write("MOVE DIAGONAL R " + str(motorPower))
 
-    def turnLeft(self, motorPower, ratio):
-        self.write("LEFT_MOTOR ON " + str(motorPower))
-        self.write("RIGHT_MOTOR ON " + str(motorPower))
-        self.write("BACK_MOTOR ON " + str(motorPower))
+    def rotateLeft(self, motorPower, time):
+        self.write("ROTATE L " + str(motorPower) + " " + str(time))
 
-    def turnRight(self, motorPower, ratio):
-        self.write("RIGHT_MOTOR ON " + str(motorPower))
-        self.write("LEFT_MOTOR ON " + str(motorPower))
-        self.write("BACK_MOTOR ON " + str(motorPower))
+    def rotateRight(self, motorPower, time):
+        self.write("ROTATE R " + str(motorPower) + " " + str(time))
 
-    def stop(self):
-        self.write("LEFT_MOTOR OFF")
-        self.write("RIGHT_MOTOR OFF")
-        self.write("BACK_MOTOR OFF")
-        self.write("KICK_MOTOR OFF")
-
-    def catch(self):
-        self.write("KICK_MOTOR ON 60") # update
-        time.sleep(0.3)
-        self.write("KICK_MOTOR ON 0")
+    def grab(self, motorPower):
+        self.write("ACTION GRAB " + str(motorPower))
 
     def kick(self, motorPower):
-        self.write("KICK_MOTOR ON " + str(motorPower))
-        time.sleep(0.25)
-        self.write("KICK_MOTOR ON 0")
-
-    def shoot(self):
-        self.kick(100)
-
-    def passBall(self):
-        self.kick(60) # update
+        self.write("ACTION KICK " + str(motorPower))
