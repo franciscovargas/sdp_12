@@ -13,8 +13,7 @@ int KICK_MOTOR = 4;
 float KICK_TIME = 0.25; // TEST for the time to open/close (at full power)
 // Will use this time to accomodate grabbing (depending on the power)
 
-void setup()
-{
+void setup() {
     pinMode(13,OUTPUT);      // initialize pin 13 as digital output (LED)
     pinMode(8, OUTPUT);      // initialize pin 8 to control the radio
     digitalWrite(8,HIGH);    // select the radio
@@ -28,7 +27,7 @@ void setup()
     comm.addCommand("MOVE", move_wrapper);
     comm.addCommand("ROTATE", rotate_wrapper);
     comm.addCommand("STOP", stop_all);
-    comm.addCommand("ACTION", kg_motor);
+    comm.addCommand("ACTION", kg_wrapper);
 
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -37,8 +36,7 @@ void setup()
 
 }
 
-void loop()
-{
+void loop() {
     if (Serial.available()) {
         comm.readSerial(); // We don't do much, just process serial commands
     }
@@ -46,36 +44,30 @@ void loop()
 
 
 // Parse the serial command and call the movement function
-void move_wrapper(){
+// Direction depends on if POWER is positive or negative
+// Syntax: MOVE TYPE POWER
+void move_wrapper() {
     char *type;
     int power;
 
     type = comm.next();
+    power = atoi(comm.next());
 
-    if (strcmp (type, "STRAIGHT") == 0){
-
-        power = atoi(comm.next());
+    if (strcmp(type, "STRAIGHT") == 0) {
         move_straight(power);
     }
-
-    else if (strcmp (type, "SIDEWAYS") == 0){
-        char *direction = comm.next();
-        power = atoi(comm.next());
+    else if (strcmp(type, "SIDEWAYS") == 0) {
         move_sideways(power);
     }
-
-    else if (strcmp (type, "DIAGONAL") == 0){
-        char *direction = comm.next();
-        power = atoi(comm.next());
+    else if (strcmp(type, "DIAGONAL") == 0) {
         move_diagonal(power);
     }
-
 }
 
 
 // Individual motor move function
 // If the printing will not be necessary anymore, this function can just be replaced
-//// with motorMove() in all the specific functions below
+// with motorMove() in all the specific functions below
 void move_motor(int motor_num, int power) {
 
     motorMove(motor_num, power);
@@ -93,13 +85,12 @@ void move_straight(int power) {
 // Move sideways (Left / Right)
 void move_sideways(int power) {
     move_motor(BACK_MOTOR, power);
-    // dir_bool = -1 OR 1 for Left / Right
     // See how you can compensate the rotation with the front wheels
 }
 
 // Diagonal movement (Left / Right)
-void move_diagonal(int power){
-    if(power < 0){ //LEFT
+void move_diagonal(int power) {
+    if(power < 0) { //LEFT
         move_motor(BACK_MOTOR, power);
         move_motor(LEFT_MOTOR, -power);
     }
@@ -116,18 +107,14 @@ void stop_all() {
 }
 
 // Parse the serial command and and call the rotate function
-void rotate_wrapper(){
-    char *direction;
+// Syntax: ROTATE POWER
+void rotate_wrapper() {
     int power;
-    float time_turn;
 
-    direction = comm.next();
-    Serial.println(direction);
     power = atoi(comm.next());
-    time_turn = atof(comm.next());
 
     int dir_bool = -1;
-    if (power < 0){
+    if (power < 0) {
         dir_bool = 1;
     }
 
@@ -144,33 +131,32 @@ void rotate(int dir_bool, int power) {
 }
 
 // Kicker / Grabber wrapper function
-
-void kg_motor() {
-    char *action;
+// Syntax: ACTION TYPE POWER
+void kg_wrapper() {
+    char *type;
     int power;
 
-    action = comm.next();
+    type = comm.next();
     power = atoi(comm.next());
 
-    if (strcmp (action, "KICK") == 0){
+    if (strcmp(type, "KICK") == 0) {
         kick(power);
     }
-    else if (strcmp(action, "GRAB") == 0){
+    else if (strcmp(type, "GRAB") == 0) {
         grab(power);
     }
 }
 
 
 // Kicker
-
 void kick(int power) {
 
-    if (power != 100){
+    if (power != 100) {
         float time_move = (200-power)/100 * KICK_TIME;
         move_motor(KICK_MOTOR, power);
         delay(time_move*1000);
     }
-    else{
+    else {
         move_motor(KICK_MOTOR, power);
         delay(KICK_TIME*1000);
     }
@@ -182,14 +168,13 @@ void kick(int power) {
 
 
 // Grabber
-
 void grab(int power) {
-    if (power != 100){
+    if (power != 100) {
         float time_move = (200-power)/100 * KICK_TIME;
         move_motor(KICK_MOTOR, -power);
         delay(time_move*1000);
     }
-    else{
+    else {
         move_motor(KICK_MOTOR, -power);
         delay(KICK_TIME*1000);
     }
@@ -201,20 +186,17 @@ void grab(int power) {
 
 
 // LEDs
-void LED_on()
-{
+void LED_on() {
     Serial.println("LED on");
     digitalWrite(13, HIGH);
 }
 
-void LED_off()
-{
+void LED_off() {
     Serial.println("LED off");
     digitalWrite(13, LOW);
 }
 
 // This gets set as the default handler, and gets called when no other command matches.
-void unrecognized(const char *command)
-{
+void unrecognized(const char *command) {
     Serial.println("Command not recognized.");
 }
