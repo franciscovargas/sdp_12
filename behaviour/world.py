@@ -263,19 +263,19 @@ class World(object):
     '''
     This class describes the environment
     '''
+    _ball = Ball(0, 0, 0, 0)
+    _robots = []
+    _robots.append(Robot(0, 0, 0, 0, 0))
+    _robots.append(Robot(1, 0, 0, 0, 0))
+    _robots.append(Robot(2, 0, 0, 0, 0))
+    _robots.append(Robot(3, 0, 0, 0, 0))
+    _goals = []
 
     def __init__(self, our_side, pitch_num):
         assert our_side in ['left', 'right']
         self._pitch = Pitch(pitch_num)
         self._our_side = our_side
         self._their_side = 'left' if our_side == 'right' else 'right'
-        self._ball = Ball(0, 0, 0, 0)
-        self._robots = []
-        self._robots.append(Robot(0, 0, 0, 0, 0))
-        self._robots.append(Robot(1, 0, 0, 0, 0))
-        self._robots.append(Robot(2, 0, 0, 0, 0))
-        self._robots.append(Robot(3, 0, 0, 0, 0))
-        self._goals = []
         self._goals.append(Goal(0, 0, self._pitch.height/2.0, 0))
         self._goals.append(Goal(3, self._pitch.width, self._pitch.height/2.0, pi))
 
