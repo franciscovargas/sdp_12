@@ -8,40 +8,49 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender.catcher_area = {'width' : 30, 'height' : 30, 'front_offset' : 12} #10
-        self._world.our_attacker.catcher_area = {'width' : 30, 'height' : 30, 'front_offset' : 14}
-        
-        # To be passed to strategy. Used to communicate with the robot
+        self._world.our_defender.receivinger_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
+        self._world.our_attacker.receivinger_area = {'width': 30, 'height': 30, 'front_offset': 14}
+
+        # To be passinged to strategy. Used to communicate with the robot
         # BEING USED
         self.robotCom = robotCom
 
-        self._attacker_strategies = {'defence' : [AttackerDefend],
-                                     'grab' : [AttackerGrab, AttackerGrabCareful],
-                                     'score' : [AttackerDriveByTurn, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
-                                     'catch' : [AttackerPositionCatch, AttackerCatch]}
-        
-        # BEING USED
-        self._defender_strategies = {'defence' : [Milestone2Def, DefenderDefence],
-                                     'grab' : [DefenderGrab],
-                                     'pass' : [Milestone2Pass, DefenderBouncePass]}
+        self._attacker_strategies = {'defending': [AttackerDefend],
+                                     'fetching': [AttackerGrab, AttackerGrabCareful],
+                                     'shooting': [AttackerDriveByTurn, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
+                                     'receiving': [AttackerPositionCatch, AttackerCatch]}
 
-        self._defender_state = 'defence'
+        # BEING USED
+        self._defender_strategies = {'defending': [Milestone2Def, DefenderDefence],
+                                     'fetching': [DefenderGrab],
+                                     'passing': [Milestone2Pass, DefenderBouncePass]}
+
+        self._defender_state = 'defending'
         self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robotCom)
 
-        self._attacker_state = 'defence'
-        self._attacker_current_strategy = self.choose_attacker_strategy(self._world)        
+        self._attacker_state = 'defending'
+        self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
 
     # Provisional. Choose the first strategy in the applicable list.
-    def choose_attacker_strategy(self, world):
-        next_strategy = self._attacker_strategies[self._attacker_state][0]
-        return next_strategy(world)
+    def choose_next_strategy(robot_type):
+        if robot_type == 'defender':
+            next_strategy = self._defender_strategies[self._defender_state][0]
+            self._defender_current_strategy = next_strategy(self._world, self.robotCom)
+        elif robot_type == 'attacker':
+            next_strategy = self._attacker_strategies[self._attacker_state][0]
+            self._attacker_current_strategy = next_strategy(self._world)
 
-    # Provisional. Choose the first strategy in the applicable list.
-    # BEING USED
-    def choose_defender_strategy(self, world, robotCom):
-        next_strategy = self._defender_strategies[self._defender_state][0]
         print 'Choosing strategy: ', next_strategy
-        return next_strategy(world, robotCom)
+
+    # def choose_attacker_strategy(self, world):
+    #     next_strategy = self._attacker_strategies[self._attacker_state][0]
+    #     return next_strategy(world)
+
+    # Provisional. Choose the first strategy in the applicable list.
+    # def choose_defender_strategy(self, world, robotCom):
+    #     next_strategy = self._defender_strategies[self._defender_state][0]
+    #     print 'Choosing strategy: ', next_strategy
+    #     return next_strategy(world, robotCom)
 
     @property
     def attacker_strat_state(self):
@@ -57,7 +66,7 @@ class Planner:
 
     @attacker_state.setter
     def attacker_state(self, new_state):
-        assert new_state in ['defence', 'attack']
+        assert new_state in ['defending', 'attack']
         self._attacker_state = new_state
 
     @property
@@ -66,12 +75,17 @@ class Planner:
 
     @defender_state.setter
     def defender_state(self, new_state):
-        assert new_state in ['defence', 'attack']
+        assert new_state in ['defending', 'attack']
         self._defender_state = new_state
 
     def update_world(self, position_dictionary):
         self._world.update_positions(position_dictionary)
-    
+
+    # refactoring functions
+    def in_zone(ball, zone):
+        self._world.pitch.zones[zone].isInside(ball.x, ball.y)
+
+
     def plan(self, robot='defender'):
         assert robot in ['attacker', 'defender']
         our_defender = self._world.our_defender
@@ -82,82 +96,74 @@ class Planner:
         # BEING USED
         if robot == 'defender':
             # If the ball is in not in our defender zone:
-            if not self._world.pitch.zones[our_defender.zone].isInside(ball.x, ball.y):
+            if not in_zone(ball, our_defender.zone) and self._defender_state != 'defending':
                 # If the ball is not in the defender's zone, the state should always be 'defend'.
-                if not self._defender_state == 'defence':
-                    self._defender_state = 'defence'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robotCom)
-                return self._defender_current_strategy.generate()
+                    self._defender_state = 'defending'
+                    choose_next_strategy('defender')
 
-            # We have the ball in our zone, so we grab and pass:
+            # We have the ball in our zone, so we fetching and passing:
             else:
                 # If the ball is still moving, keep defending
-                if ball.velocity >= 3:
-                    if not self._defender_state == 'defence':
-                        self._defender_state = 'defence'
-                        self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robotCom)
+                if ball.velocity >= 3 and self._defender_state != 'defending':
+                    self._defender_state = 'defending'
+                    self.choose_next_strategy('defender')
 
-                # Check if we should switch from a grabbing to a scoring strategy.
-                elif  self._defender_state == 'grab' and self._defender_current_strategy.current_state == 'GRABBED':
-                    self._defender_state = 'pass'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robotCom)
+                # If we've grabbed the ball, switch to a passing strategy.
+                elif self._defender_state == 'fetching' and self._defender_current_strategy.current_state == 'GRABBED':
+                    self._defender_state = 'passing'
+                    self.choose_next_strategy('defender')
 
-                # Check if we should switch from a defence to a grabbing strategy.
-                elif self._defender_state == 'defence':
-                    self._defender_state = 'grab'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robotCom)
+                # If we're defending (and the ball isn't moving), switch to a fetching strategy.
+                elif self._defender_state == 'defending':
+                    self._defender_state = 'fetching'
+                    self.choose_next_strategy('defender')
 
-                elif self._defender_state == 'pass' and self._defender_current_strategy.current_state == 'FINISHED':
-                    self._defender_state = 'grab'
-                    self._defender_current_strategy = self.choose_defender_strategy(self._world, self.robotCom)
+                elif self._defender_state == 'passing' and self._defender_current_strategy.current_state == 'FINISHED':
+                    self._defender_state = 'fetching'
+                    self.choose_next_strategy('defender')
                 else:
                     return do_nothing()
 
-                return self._defender_current_strategy.generate()
+            return self._defender_current_strategy.next_action()
 
-
-        else:
+        elif robot == 'attacker':
             # If the ball is in their defender zone we defend:
-            if self._world.pitch.zones[their_defender.zone].isInside(ball.x, ball.y):
-                if not self._attacker_state == 'defence':
-                    self._attacker_state = 'defence'
-                    self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
-                return self._attacker_current_strategy.generate()
+            if in_zone(ball, their_defender.zone) and self._attacker_state != 'defending':
+                self._attacker_state = 'defending'
+                choose_next_strategy('attacker')
 
-            # If ball is in our attacker zone, then grab the ball and score:
-            elif self._world.pitch.zones[our_attacker.zone].isInside(ball.x, ball.y):
+                return self._attacker_current_strategy.next_action()
+            # If ball is in our attacker zone, then fetch the ball and shoot:
+            elif in_zone(ball, our_attacker.zone):
 
-                # Check if we should switch from a grabbing to a scoring strategy.
-                if self._attacker_state == 'grab' and self._attacker_current_strategy.current_state == 'GRABBED':
-                    self._attacker_state = 'score'
-                    self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
+                # Check if we should switch from a fetching to a scoring strategy.
+                if self._attacker_state == 'fetching' and self._attacker_current_strategy.current_state == 'GRABBED':
+                    self._attacker_state = 'shooting'
+                    choose_next_strategy('attacker')
 
-                elif self._attacker_state == 'grab':
+                elif self._attacker_state == 'fetching':
                     # Switch to careful mode if the ball is too close to the wall.
-                    if abs(self._world.ball.y - self._world.pitch.height) < 0 or abs(self._world.ball.y) < 0:
-                        if isinstance(self._attacker_current_strategy, AttackerGrab):
-                            self._attacker_current_strategy = AttackerGrabCareful(self._world)
-                    else:
-                        if isinstance(self._attacker_current_strategy, AttackerGrabCareful):
-                            self._attacker_current_strategy = AttackerGrab(self._world)
+                    # if abs(self._world.ball.y - self._world.pitch.height) < 0 or abs(self._world.ball.y) < 0:
+                    #     if isinstance(self._attacker_current_strategy, AttackerGrab):
+                    #         self._attacker_current_strategy = AttackerGrabCareful(self._world)
+                    # else:
+                        # if isinstance(self._attacker_current_strategy, AttackerGrabCareful):
+                    self._attacker_current_strategy = AttackerGrab(self._world)
 
-                # Check if we should switch from a defence to a grabbing strategy.
-                elif self._attacker_state in ['defence', 'catch'] :
-                    self._attacker_state = 'grab'
+                # Check if we should switch from a defending to a fetching strategy.
+                elif self._attacker_state in ['defending', 'receiving']:
+                    self._attacker_state = 'fetching'
                     self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
 
-                elif self._attacker_state == 'score' and self._attacker_current_strategy.current_state == 'FINISHED':
-                    self._attacker_state = 'grab'
+                elif self._attacker_state == 'shooting' and self._attacker_current_strategy.current_state == 'FINISHED':
+                    self._attacker_state = 'fetching'
                     self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
 
-                return self._attacker_current_strategy.generate()
-            # If the ball is in our defender zone, prepare to catch the passed ball:
-            elif self._world.pitch.zones[our_defender.zone].isInside(ball.x, ball.y) or \
-                 self._attacker_state == 'catch':
-                 # self._world.pitch.zones[their_attacker.zone].isInside(ball.x, ball.y):
-                if not self._attacker_state == 'catch':
-                    self._attacker_state = 'catch'
-                    self._attacker_current_strategy = self.choose_attacker_strategy(self._world)
-                return self._attacker_current_strategy.generate()
+                return self._attacker_current_strategy.next_action()
+            # If the ball is in our defender zone, prepare to receiving the passinged ball:
+            elif in_zone(ball, our_defender.zone) or self._attacker_state == 'receiving':
+                self._attacker_state = 'receiving'
+                choose_next_strategy('attacker')
+                return self._attacker_current_strategy.next_action()
             else:
                 return calculate_motor_speed(0, 0)
