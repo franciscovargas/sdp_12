@@ -1,5 +1,4 @@
 from Communications import Communications
-import time
 
 
 class RobotCommunications(Communications):
@@ -23,19 +22,19 @@ class RobotCommunications(Communications):
     # Sideways LEFT  = -motorPower
     # Sideways RIGHT = +motorPower
     def moveSideways(self, motorPower):
-        self.write("MOVE SIDEWAYS L " + str(motorPower))
+        self.write("MOVE SIDEWAYS " + str(motorPower))
 
     # Same as Sideways, it's just diagonal
     def moveDiagonalLeft(self, motorPower):
-        self.write("MOVE DIAGONAL L " + str(motorPower))
+        self.write("MOVE DIAGONAL " + str(motorPower))
 
     def moveDiagonalRight(self, motorPower):
-        self.write("MOVE DIAGONAL R " + str(motorPower))
+        self.write("MOVE DIAGONAL " + str(motorPower))
 
     # Rotate LEFT  = -motorPower
     # Rotate RIGHT = +motorPower
     def rotate(self, motorPower):
-        self.write("ROTATE R " + str(motorPower))
+        self.write("ROTATE " + str(motorPower))
 
     # Grab and Kick take motorPower. The values should be predefined depending
     # on how far we need to kick or grab (it will probably be a constant)
