@@ -27,7 +27,7 @@ class Strategy(object):
     def is_last_state(self):
         return self._current_state == self.states[-1]
 
-    def generate(self):
+    def next_action(self):
         return self.NEXT_ACTION_MAP[self.current_state]()
 
 # Defend againt incoming ball
@@ -60,16 +60,8 @@ class Milestone2Def(Strategy):
 
     # Not working. Currently, aligning is skipped.
     def align(self):
-        """
-        Align yourself with the center of our goal.
-        """
-        if True: # before uncommenting this, make sure that moveFromTo works properly # has_matched(self.our_defender, x=self.goal_front_x, y=self.our_goal.y):
-            # We're there. Advance the states and formulate next action.
+        if align_robot(self.robotCom, self.our_defender.angle, 1.57) < 0.5:
             self.current_state = self.DEFEND_GOAL
-            return stop(self.robotCom)
-        else:
-            displacement, angle = self.our_defender.get_direction_to_point(self.goal_front_x, self.our_goal.y)
-            return moveFromTo(self.robotCom, displacement, angle)
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):

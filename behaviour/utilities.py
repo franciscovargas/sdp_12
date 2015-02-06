@@ -20,7 +20,7 @@ def moveSideways(robotCom, displacement):
     else:
         robotCom.stop()
 
-# Move straight indefinitely trying to defend 
+# Move straight indefinitely trying to defend
 def moveStraight(robotCom, displacement):
     if abs(displacement) > DISTANCE_MATCH_THRESHOLD:
         power = copysign(60, displacement)
@@ -31,7 +31,7 @@ def moveStraight(robotCom, displacement):
 # Move from A to B
 def moveFromTo(robotCom, displacement, angle):
     angle_thresh = BALL_ANGLE_THRESHOLD
-    
+
     if abs(angle) > angle_thresh:
         power = copysign(40, angle)
         robotCom.rotate(power)
@@ -53,8 +53,20 @@ def kick(robotCom):
     robotCom.kick(100)
     print 'Kicking the ball'
 
-
-
+def align_robot(robotCom, robot_alignment, target_alignment):
+    difference = abs(robot_alignment - target_alignment)
+    if(difference > 1):
+        print "Aligning..."
+        print "Robot alignment: " + str(robot_alignment) + " Target alignment: " + str(target_alignment)
+        if abs(robot_alignment - target_alignment) > 3.14:
+            direction = -1
+        else:
+            direction = 1
+        robotCom.rotate(direction * 50)
+    else:
+        print "Finished aligning"
+        robotCom.stop()
+    return difference
 
 
 
