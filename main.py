@@ -1,7 +1,9 @@
-from vision.vision import Vision, Camera, GUI
+from vision.vision import Vision
+from vision.camera import Camera
+from vision.GUI import GUI
+import vision.tools as tools
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
-import vision.tools as tools
 from communications import RobotCommunications
 from cv2 import waitKey
 import cv2
