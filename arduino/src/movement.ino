@@ -46,14 +46,14 @@ void loop()
 
 
 // Parse the serial command and call the movement function
-void move_wrapper(){
+void move_wrapper() {
     char *type;
     int power;
     float time_move;
 
     type = comm.next();
 
-    if (strcmp (type, "STRAIGHT") == 0){
+    if (strcmp (type, "STRAIGHT") == 0) {
 
         power = atoi(comm.next());
         time_move = atof(comm.next());
@@ -61,11 +61,11 @@ void move_wrapper(){
         move_straight(power, time_move);
     }
 
-    else if (strcmp (type, "SIDEWAYS") == 0){
+    else if (strcmp (type, "SIDEWAYS") == 0) {
         char *direction = comm.next();
         int dir_bool = 1;
 
-        if (strcmp (direction, "L") == 0){
+        if (strcmp (direction, "L") == 0) {
             dir_bool = -1;
         }
         power = atoi(comm.next());
@@ -74,11 +74,11 @@ void move_wrapper(){
         move_sideways(dir_bool, power, time_move);
     }
 
-    else if (strcmp (type, "DIAGONAL") == 0){
+    else if (strcmp (type, "DIAGONAL") == 0) {
         char *direction = comm.next();
         int dir_bool = 1;
 
-        if (strcmp (direction, "L") == 0){
+        if (strcmp (direction, "L") == 0) {
             dir_bool = -1;
         }
         power = atoi(comm.next());
@@ -92,7 +92,7 @@ void move_wrapper(){
 
 // Individual motor move function
 // If the printing will not be necessary anymore, this function can just be replaced
-//// with motorMove() in all the specific functions below
+// with motorMove() in all the specific functions below
 void move_motor(int motor_num, int power) {
 
     motorMove(motor_num, power);
@@ -106,7 +106,7 @@ void move_straight(int power, float time_move) {
     move_motor(LEFT_MOTOR, power);
     move_motor(RIGHT_MOTOR, power);
 
-    delay(time_move*1000);
+    delay(time_move * 1000);
     motorAllStop();
 }
 
@@ -116,13 +116,13 @@ void move_sideways(int dir_bool, int power, float time_move) {
     // dir_bool = -1 OR 1 for Left / Right
     // See how you can compensate the rotation with the front wheels
 
-    delay(time_move*1000);
+    delay(time_move * 1000);
     motorAllStop();
 }
 
 // Diagonal movement (Left / Right)
-void move_diagonal(int dir_bool, int power, float time_move){
-    if(dir_bool == -1){ //LEFT
+void move_diagonal(int dir_bool, int power, float time_move) {
+    if(dir_bool == -1) { //LEFT
         move_motor(BACK_MOTOR, power);
         move_motor(LEFT_MOTOR, -power);
     }
@@ -131,7 +131,7 @@ void move_diagonal(int dir_bool, int power, float time_move){
         move_motor(RIGHT_MOTOR, power);
     }
 
-    delay(time_move*1000);
+    delay(time_move * 1000);
     motorAllStop();
 }
 
@@ -142,7 +142,7 @@ void stop_all() {
 }
 
 // Parse the serial command and and call the rotate function
-void rotate_wrapper(){
+void rotate_wrapper() {
     char *direction;
     int power;
     float time_turn;
@@ -153,7 +153,7 @@ void rotate_wrapper(){
     time_turn = atof(comm.next());
 
     int dir_bool = -1;
-    if (strcmp (direction, "L") == 0){
+    if (strcmp (direction, "L") == 0) {
         dir_bool = 1;
     }
 
@@ -168,12 +168,11 @@ void rotate(int dir_bool, int power, float time_turn) {
     move_motor(RIGHT_MOTOR, dir_bool * power);
     move_motor(BACK_MOTOR, dir_bool * -0.8 * power);
 
-    delay(time_turn*1000);
+    delay(time_turn * 1000);
     motorAllStop();
 }
 
 // Kicker / Grabber wrapper function
-
 void kg_motor() {
     char *action;
     int power;
@@ -181,27 +180,26 @@ void kg_motor() {
     action = comm.next();
     power = atoi(comm.next());
 
-    if (strcmp (action, "KICK") == 0){
+    if (strcmp(action, "KICK") == 0) {
         kick(power);
     }
-    else if (strcmp(action, "GRAB") == 0){
+    else if (strcmp(action, "GRAB") == 0) {
         grab(power);
     }
 }
 
 
 // Kicker
-
 void kick(int power) {
 
-    if (power != 100){
-        float time_move = (200-power)/100 * KICK_TIME;
+    if (power != 100) {
+        float time_move = (200 - power) / 100 * KICK_TIME;
         move_motor(KICK_MOTOR, power);
-        delay(time_move*1000);
+        delay(time_move * 1000);
     }
-    else{
+    else {
         move_motor(KICK_MOTOR, power);
-        delay(KICK_TIME*1000);
+        delay(KICK_TIME * 1000);
     }
 
     Serial.println("Kicking");
@@ -211,16 +209,15 @@ void kick(int power) {
 
 
 // Grabber
-
 void grab(int power) {
-    if (power != 100){
-        float time_move = (200-power)/100 * KICK_TIME;
+    if (power != 100) {
+        float time_move = (200 - power) / 100 * KICK_TIME;
         move_motor(KICK_MOTOR, -power);
-        delay(time_move*1000);
+        delay(time_move * 1000);
     }
-    else{
+    else {
         move_motor(KICK_MOTOR, -power);
-        delay(KICK_TIME*1000);
+        delay(KICK_TIME * 1000);
     }
 
     Serial.println("Grabbing");

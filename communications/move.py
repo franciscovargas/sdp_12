@@ -1,4 +1,7 @@
 from RobotCommunications import RobotCommunications
+import time
 
 r = RobotCommunications(debug=True)
-r.rotate(80, 1)
+r.rotate(50)
+time.sleep(1)
+r.stop()

@@ -7,6 +7,8 @@ import cv2
 import serial
 import warnings
 import time
+from behaviour.planner import Planner
+from communications.RobotCommunications import RobotCommunications
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -16,6 +18,7 @@ class Controller:
     """
     This class aims to be the bridge in between vision and strategy/logic
     """
+    robotCom = None
 
     def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
         """
@@ -38,6 +41,17 @@ class Controller:
 
         self.pitch = pitch
 
+        # Set up robot communications to bet sent to planner.
+        try:
+            self.robotCom = RobotCommunications(debug=True)
+        except:
+            print 'not connected to the radio'
+            pass
+
+        # Set up main planner
+        if(self.robotCom is not None):
+            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom)
+
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
         frame = self.camera.get_frame()
@@ -52,9 +66,6 @@ class Controller:
 
         # Set up postprocessing for vision
         self.postprocessing = Postprocessing()
-
-        # Set up main planner
-        # self.planner = Planner(our_side=our_side, pitch_num=self.pitch)
 
         # Set up GUI
         self.GUI = GUI(calibration=self.calibration, pitch=self.pitch)
@@ -89,7 +100,14 @@ class Controller:
                 #  IMPORTANT
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
-                print model_positions
+                #print model_positions
+
+                # Update planner world beliefs
+                if(self.robotCom is not None):
+                    self.planner.update_world(model_positions)
+                    
+                    # This activates the defending strategy for our robot. I did not work on attacking strategy.
+                    self.planner.plan('defender')
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
@@ -106,6 +124,8 @@ class Controller:
         except:
             print("TODO SOMETHING CLEVER HERE")
             raise
+        finally:
+            tools.save_colors(self.pitch, self.calibration)
 
 
 if __name__ == '__main__':
