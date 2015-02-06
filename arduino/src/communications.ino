@@ -2,6 +2,7 @@
 #include <SerialCommand.h>
 #include <SDPArduino.h>
 #include <string.h>
+#include <math.h>
 
 SerialCommand comm;   // We create a SerialCommand object
 
@@ -25,6 +26,7 @@ void setup()
   comm.addCommand("BACK_MOTOR", back_motor_wrapper);
   comm.addCommand("KICK_MOTOR", kick_motor_wrapper);
   comm.addCommand("ROTATE_LEFT", rotate_left);
+  comm.addCommand("ROTATE_RIGHT", rotate_right);
   comm.addCommand("STOP_ALL", stop_all);
 
   comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
@@ -53,6 +55,19 @@ void rotate_left() {
   left_motor(state, -power);
   right_motor(state, power);
   back_motor(state, -power*0.8);
+}
+
+void rotate_right() {
+
+  char *state;
+  int power;
+
+  state = comm.next();
+  power = atoi(comm.next());
+
+  left_motor(state, power);
+  right_motor(state, -power);
+  back_motor(state, power*0.8);
 }
 
 void left_motor_wrapper() {
@@ -272,3 +287,4 @@ void unrecognized(const char *command)
 {
   Serial.println("Command not recognized.");
 }
+
