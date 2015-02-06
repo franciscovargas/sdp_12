@@ -276,16 +276,18 @@ class Camera(object):
 
 class GUI(object):
 
-    VISION = 'SUCH VISION'
+    VISION = 'VISION'
     BG_SUB = 'BG Subtract'
     NORMALIZE = 'Normalize  '
     COMMS = 'Communications on/off '
+    RADIAL_DIST = "Undistort on/off"
 
     def nothing(self, x):
         pass
 
     def __init__(self, calibration, pitch):
         self.zones = None
+        print calibration
         self.calibration_gui = CalibrationGUI(calibration)
         # self.arduino = arduino
         self.pitch = pitch
@@ -294,6 +296,7 @@ class GUI(object):
 
         cv2.createTrackbar(self.BG_SUB, self.VISION, 0, 1, self.nothing)
         cv2.createTrackbar(self.NORMALIZE, self.VISION, 0, 1, self.nothing)
+        cv2.createTrackbar(self.RADIAL_DIST, self.VISION, 0, 1, self.nothing)
         # cv2.createTrackbar(
         #     self.COMMS, self.VISION, self.arduino.comms, 1, lambda x:  self.arduino.setComms(x))
 

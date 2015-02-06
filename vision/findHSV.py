@@ -30,7 +30,11 @@ def nothing(x):
     pass
 
 class CalibrationGUI(object):
-
+    """
+    This class caters for the creation of
+    the hue, saturation, value, contrast and
+    blur threshold trackbars
+    """
     def __init__(self, calibration):
         self.color = 'plate'
         # self.pre_options = pre_options
@@ -63,7 +67,9 @@ class CalibrationGUI(object):
                        self.calibration[self.color]['blur'])
 
     def change_color(self, color):
-
+        """
+        Changes the color mask within the GUI
+        """
         cv2.destroyWindow(self.maskWindowName)
         self.color = color
         self.maskWindowName = "Mask " + self.color

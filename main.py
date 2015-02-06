@@ -2,6 +2,7 @@ from vision.vision import Vision, Camera, GUI
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
 import vision.tools as tools
+from communications import RobotCommunications
 from cv2 import waitKey
 import cv2
 import serial
@@ -16,6 +17,7 @@ class Controller:
     """
     This class aims to be the bridge in between vision and strategy/logic
     """
+    robotComs = None
 
     def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
         """
@@ -37,6 +39,11 @@ class Controller:
         assert our_side in ['left', 'right']
 
         self.pitch = pitch
+        # Set up communications if thre are any
+        try:
+            self.robotComs = RobotCommunications(debug=True)
+        except:
+            print("arduino unplugged moving on to vision")
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
@@ -89,8 +96,10 @@ class Controller:
                 #  IMPORTANT
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
-                print model_positions
-
+                # if comns then logic !
+                if self.robotComs is not None:
+                    # planner.Planner(roles, robotComs)
+                    pass
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
                 actions = []
