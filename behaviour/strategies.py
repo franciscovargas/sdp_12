@@ -42,7 +42,7 @@ class Milestone2Def(Strategy):
 
     def __init__(self, world, robotCom):
         super(Milestone2Def, self).__init__(world, self.STATES)
-        
+
         self.NEXT_ACTION_MAP = {
             self.UNALIGNED: self.align,
             self.DEFEND_GOAL: self.defend_goal
@@ -51,14 +51,14 @@ class Milestone2Def(Strategy):
         # Find the point we want to align to.
         self.goal_front_x = self.get_alignment_position(self.world._our_side)
         self.our_goal = self.world.our_goal
-        
+
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
         # Used to communicate with the robot
-        self.robotCom = robotCom    
-    
-    # Not working. Currently, alligning is skipped.
+        self.robotCom = robotCom
+
+    # Not working. Currently, aligning is skipped.
     def align(self):
         """
         Align yourself with the center of our goal.
@@ -70,9 +70,9 @@ class Milestone2Def(Strategy):
         else:
             displacement, angle = self.our_defender.get_direction_to_point(self.goal_front_x, self.our_goal.y)
             return moveFromTo(self.robotCom, displacement, angle)
-    
+
     # Calculate ideal defending position and move there.
-    def defend_goal(self):     
+    def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
         type_of_movement = 'straight'
 
@@ -92,7 +92,7 @@ class Milestone2Def(Strategy):
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y < self.ball.y):
                 displacement = -displacement
-        
+
         if type_of_movement == 'straight':
             return moveStraight(self.robotCom, displacement)
         else:
@@ -135,7 +135,7 @@ class Milestone2Pass(Strategy):
         self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
 
         # Used to communicate with the robot
-        self.robotCom = robotCom 
+        self.robotCom = robotCom
 
     def position(self):
         """
@@ -225,7 +225,7 @@ class DefenderDefence(Strategy):
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
-	
+
 
     def align(self):
 
@@ -247,7 +247,7 @@ class DefenderDefence(Strategy):
             return calculate_motor_speed(displacement, angle, backwards_ok=True)
 
     def defend_goal(self):
-	
+
 	# spin
 	r = RobotCommunications(debug=True)
 	r.rotate(80, 1)
@@ -260,7 +260,7 @@ class DefenderDefence(Strategy):
         if self.ball.velocity > BALL_VELOCITY:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
 
-        if self.ball.velocity <= BALL_VELOCITY or predicted_y is None: 
+        if self.ball.velocity <= BALL_VELOCITY or predicted_y is None:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.their_attacker, bounce=False)
 
         if predicted_y is not None:
@@ -435,7 +435,7 @@ class AttackerPositionCatch(Strategy):
             displacement, angle = self.our_attacker.get_direction_to_point(self.our_attacker.x + 10 * math.cos(attacker_angle),
                                                                            self.our_attacker.y + 10 * math.sin(attacker_angle))
             return calculate_motor_speed(None, angle, careful=True)
-        
+
         return do_nothing()
 
 
@@ -646,7 +646,7 @@ class DefenderGrab(Strategy):
                 displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x,
                                                                                predicted_y - 7*math.sin(self.our_defender.angle))
                 return calculate_motor_speed(displacement, angle, backwards_ok=True)
-        
+
         self.current_state = self.GO_TO_BALL
         return do_nothing()
 
