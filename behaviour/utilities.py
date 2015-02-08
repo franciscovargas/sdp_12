@@ -8,13 +8,16 @@ MAX_DISPLACEMENT_SPEED = 690
 MAX_ANGLE_SPEED = 50
 BALL_MOVING = 3
 
+BALL_ALIGN_THRESHOLD = 25
+ROBOT_ALIGN_THRESHOLD = pi/6
+
 # Stop everything
 def stop(robotCom):
     robotCom.stop()
 
 # Moving sideways
 def moveSideways(robotCom, displacement):
-    if abs(displacement) > DISTANCE_MATCH_THRESHOLD:
+    if abs(displacement) > BALL_ALIGN_THRESHOLD:
         power = copysign(80, displacement)
         robotCom.moveSideways(power)
     else:
@@ -22,7 +25,7 @@ def moveSideways(robotCom, displacement):
 
 # Move straight indefinitely trying to defend
 def moveStraight(robotCom, displacement):
-    if abs(displacement) > DISTANCE_MATCH_THRESHOLD:
+    if abs(displacement) > BALL_ALIGN_THRESHOLD:
         power = copysign(60, displacement)
         robotCom.moveStraight(power)
     else:
@@ -55,18 +58,19 @@ def kick(robotCom):
 
 def align_robot(robotCom, robot_alignment, target_alignment):
     difference = abs(robot_alignment - target_alignment)
-    if(difference > 1):
+    if(difference > ROBOT_ALIGN_THRESHOLD):
         print "Aligning..."
         print "Robot alignment: " + str(robot_alignment) + " Target alignment: " + str(target_alignment)
         if abs(robot_alignment - target_alignment) > 3.14:
             direction = -1
         else:
             direction = 1
-        robotCom.rotate(direction * 50)
+        robotCom.rotate(direction * 40)
+        return False
     else:
         print "Finished aligning"
         robotCom.stop()
-    return difference
+        return True
 
 
 

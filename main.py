@@ -9,6 +9,7 @@ import warnings
 import time
 from behaviour.planner import Planner
 from communications.RobotCommunications import RobotCommunications
+from communications.TestCommunications import TestCommunications
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -19,6 +20,10 @@ class Controller:
     This class aims to be the bridge in between vision and strategy/logic
     """
     robotCom = None
+    
+    # Set to True if we want to use the real robot.
+    # Set to False if we want to print out commands to console only.
+    USE_REAL_ROBOT = False
 
     def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
         """
@@ -43,10 +48,12 @@ class Controller:
 
         # Set up robot communications to bet sent to planner.
         try:
-            self.robotCom = RobotCommunications(debug=True)
+            if self.USE_REAL_ROBOT:
+                self.robotCom = RobotCommunications(debug=True)
+            else:
+                self.robotCom = TestCommunications(debug=True)
         except:
             print 'not connected to the radio'
-            pass
 
         # Set up main planner
         if(self.robotCom is not None):

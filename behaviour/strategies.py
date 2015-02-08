@@ -58,17 +58,18 @@ class DoNothing(Strategy):
 # Defend against incoming ball
 class Milestone2Def(Strategy):
 
-    STATES = ['UNALIGNED', 'ALIGNED']
+    STATES = ['UNALIGNED', 'DEFEND_GOAL']
     SIDES = ['LEFT', 'RIGHT']
 
     GOAL_ALIGN_OFFSET = 60
+    ROBOT_ALIGN_THRESHOLD = pi/6
 
     def __init__(self, world, robotCom):
         super(Milestone2Def, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
-            'ALIGNED': self.defend_goal
+            'DEFEND_GOAL': self.defend_goal
         }
 
         # Find the point we want to align to.
@@ -84,12 +85,16 @@ class Milestone2Def(Strategy):
     # Not working. Currently, aligning is skipped.
     def align(self):
         if align_robot(self.robotCom, self.our_defender.angle, 1.57) < 0.5:
-            self.current_state = 'ALIGNED'
+            self.current_state = 'DEFEND_GOAL'
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
         type_of_movement = 'straight'
+
+        # If the robot somehew unaligned himself.
+        if (abs(self.self.our_defender.angle - pi/2) > ROBOT_ALIGN_THRESHOLD):
+            self.current_state = self.UNALIGNED
 
         # Predict where they are aiming. NOT TESTED
         predicted_y = None
