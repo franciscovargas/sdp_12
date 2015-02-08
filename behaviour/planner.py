@@ -1,7 +1,7 @@
 from world import World
 from strategies import AttackerDefend, AttackerGrab, AttackerGrabCareful, AttackerDriveByTurn, AttackerDriveBy, \
     AttackerTurnScore, AttackerScoreDynamic, AttackerPositionCatch, AttackerCatch, Milestone2Def, Milestone2Pass, \
-    DefenderDefence, DefenderGrab, DefenderBouncePass, DoNothing
+    DefenderDefence, DefenderGrab, DefenderBouncePass
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
