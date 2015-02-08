@@ -1,23 +1,23 @@
 import cv2
 import numpy as np
 
-CONTROLS = ["LH", "UH", "LS", "US", "LV", "UV", "CT", "BL"]
-MAXBAR = {"LH":360,
-          "UH":360,
-          "LS":255,
-          "US":255,
-          "LV":255,
-          "UV":255,
-          "CT":100,
-          "BL":100
+CONTROL = ["Lower threshold for hue", "Upper threshold for hue", "Lower threshold for saturation", "Upper threshold for saturation", "Lower threshold for value", "Upper threshold for value", "Contrast", "Gaussian blur"]
+MAXBAR = {"Lower threshold for hue":360,
+          "Upper threshold for hue":360,
+          "Lower threshold for saturation":255,
+          "Upper threshold for saturation":255,
+          "Lower threshold for value":255,
+          "Upper threshold for value":255,
+          "Contrast":100,
+          "Gaussian blur":100
         }
 
-INDEX = {"LH":0,
-         "UH":0,
-         "LS":1,
-         "US":1,
-         "LV":2,
-         "UV":2
+INDEX = {"Lower threshold for hue":0,
+         "Upper threshold for hue":0,
+         "Lower threshold for saturation":1,
+         "Upper threshold for saturation":1,
+         "Lower threshold for value":2,
+         "Upper threshold for value":2
         }
 
 KEYS = {ord('y'):'yellow',
@@ -30,7 +30,11 @@ def nothing(x):
     pass
 
 class CalibrationGUI(object):
-
+    """
+    This class caters for the creation of
+    the hue, saturation, value, contrast and
+    blur threshold trackbars
+    """
     def __init__(self, calibration):
         self.color = 'plate'
         # self.pre_options = pre_options
@@ -45,17 +49,27 @@ class CalibrationGUI(object):
 
         createTrackbar = lambda setting, value: cv2.createTrackbar(setting, self.maskWindowName, int(value), \
                 MAXBAR[setting], nothing)
-        createTrackbar('LH', self.calibration[self.color]['min'][0])
-        createTrackbar('UH', self.calibration[self.color]['max'][0])
-        createTrackbar('LS', self.calibration[self.color]['min'][1])
-        createTrackbar('US', self.calibration[self.color]['max'][1])
-        createTrackbar('LV', self.calibration[self.color]['min'][2])
-        createTrackbar('UV', self.calibration[self.color]['max'][2])
-        createTrackbar('CT', self.calibration[self.color]['contrast'])
-        createTrackbar('BL', self.calibration[self.color]['blur'])
+        createTrackbar('Lower threshold for hue',
+                       self.calibration[self.color]['min'][0])
+        createTrackbar('Upper threshold for hue',
+                       self.calibration[self.color]['max'][0])
+        createTrackbar('Lower threshold for saturation',
+                       self.calibration[self.color]['min'][1])
+        createTrackbar('Upper threshold for saturation',
+                       self.calibration[self.color]['max'][1])
+        createTrackbar('Lower threshold for value',
+                       self.calibration[self.color]['min'][2])
+        createTrackbar('Upper threshold for value',
+                       self.calibration[self.color]['max'][2])
+        createTrackbar('Contrast',
+                       self.calibration[self.color]['contrast'])
+        createTrackbar('Gaussian blur',
+                       self.calibration[self.color]['blur'])
 
     def change_color(self, color):
-
+        """
+        Changes the color mask within the GUI
+        """
         cv2.destroyWindow(self.maskWindowName)
         self.color = color
         self.maskWindowName = "Mask " + self.color
@@ -72,23 +86,46 @@ class CalibrationGUI(object):
         getTrackbarPos = lambda setting: cv2.getTrackbarPos(setting, self.maskWindowName)
 
         values = {}
-        for setting in CONTROLS:
+        for setting in CONTROL:
             values[setting] = float(getTrackbarPos(setting))
-        values['BL'] = int(values['BL'])
+        values['Gaussian blur'] = int(values['Gaussian blur'])
 
-        self.calibration[self.color]['min'] = np.array([values['LH'], values['LS'], values['LV']])
-        self.calibration[self.color]['max'] = np.array([values['UH'], values['US'], values['UV']])
-        self.calibration[self.color]['contrast'] = values['CT']
-        self.calibration[self.color]['blur'] = values['BL']
+        self.calibration[self.color]['min'] = np.array([values['Lower threshold for hue'], values['Lower threshold for saturation'], values['Lower threshold for value']])
+        self.calibration[self.color]['max'] = np.array([values['Upper threshold for hue'], values['Upper threshold for saturation'], values['Upper threshold for value']])
+        self.calibration[self.color]['contrast'] = values['Contrast']
+        self.calibration[self.color]['blur'] = values['Gaussian blur']
 
         mask = self.get_mask(frame)
         cv2.imshow(self.maskWindowName, mask)
 
     # Duplicated from tracker.py
     def get_mask(self, frame):
+        """
+        GaussianBlur blur:
+            G =     [[G11, ..., G1N],
+                1/L      ...,
+                     [GN1, ..., GNN]]
+            G is the bluring kernel
+            L = sqrt(dot(blur, blur))
+            GII Gaussian number
+
+        params:
+            frame: 
+                description: camera image
+                type: numpy array
+
+        output:
+            frame_mask;
+                description: filtered (blured) camera image.
+                    it is blured by the GUI given parameters.
+                type: numpy array
+
+        """
         blur = self.calibration[self.color]['blur']
         if blur > 1:
-            frame = cv2.blur(frame, (blur,blur))
+            if blur % 2 == 0:
+                blur += 1
+            frame = cv2.GaussianBlur(frame, (blur, blur), 0)
 
         contrast = self.calibration[self.color]['contrast']
         if contrast > 1.0:

@@ -1,7 +1,10 @@
-from vision.vision import Vision, Camera, GUI
+from vision.vision import Vision
+from vision.camera import Camera
+from vision.GUI import GUI
+import vision.tools as tools
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
-import vision.tools as tools
+from communications import RobotCommunications
 from cv2 import waitKey
 import cv2
 import serial
@@ -45,6 +48,11 @@ class Controller:
         assert our_side in ['left', 'right']
 
         self.pitch = pitch
+        # Set up communications if thre are any
+        try:
+            self.robotComs = RobotCommunications(debug=True)
+        except:
+            print("arduino unplugged moving on to vision")
 
         # Set up robot communications to bet sent to planner.
         try:
@@ -108,7 +116,6 @@ class Controller:
                 #  IMPORTANT
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
-                #print model_positions
 
                 # Update planner world beliefs
                 if(self.robotCom is not None):
@@ -132,7 +139,6 @@ class Controller:
             raise
         finally:
             tools.save_colors(self.pitch, self.calibration)
-
 
 if __name__ == '__main__':
     import argparse
