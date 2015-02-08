@@ -60,7 +60,7 @@ class Milestone2Def(Strategy):
 
     STATES = ['UNALIGNED', 'DEFEND_GOAL']
 
-    ROBOT_ALIGN_THRESHOLD = pi/6
+    ROBOT_ALIGN_THRESHOLD = pi/4
 
     def __init__(self, world, robotCom):
         super(Milestone2Def, self).__init__(world, self.STATES)
@@ -78,10 +78,8 @@ class Milestone2Def(Strategy):
 
     # Align robot so that he is 90 degrees from facing to goal
     def align(self):
-        if (abs(self.our_defender.angle - pi/2) <= self.ROBOT_ALIGN_THRESHOLD):
+        if align_robot(self.robotCom, self.our_defender.angle, pi/2):
             self.current_state = 'DEFEND_GOAL'
-        else:
-            align_robot(self.robotCom, self.our_defender.angle, pi/2)
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
@@ -90,7 +88,7 @@ class Milestone2Def(Strategy):
 
         # If the robot somehew unaligned himself.
         if (abs(self.our_defender.angle - pi/2) > self.ROBOT_ALIGN_THRESHOLD):
-            self.current_state = 'UNALIGNED'
+            pass#self.current_state = 'UNALIGNED'
 
         # Predict where they are aiming. NOT TESTED
         predicted_y = None
@@ -98,7 +96,7 @@ class Milestone2Def(Strategy):
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
         if predicted_y is not None:
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, predicted_y - 7*sin(self.our_defender.angle))
-            if(self.our_defender.y < self.ball.y):
+            if(self.our_defender.y > self.ball.y):
                 displacement = -displacement
         else:
             # Try to be in same vertical position as the ball
@@ -106,7 +104,7 @@ class Milestone2Def(Strategy):
             y = max([y, 60])
             y = min([y, self.world._pitch.height - 60])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
-            if(self.our_defender.y < self.ball.y):
+            if(self.our_defender.y > self.ball.y):
                 displacement = -displacement
 
         if type_of_movement == 'straight':
