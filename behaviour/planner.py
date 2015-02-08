@@ -70,10 +70,11 @@ class Planner:
 
         if self.robotType == 'defender':
             # If the ball is in not in our defender zone:
-            if not self.in_zone(ball, our_defender.zone) and self._state != 'defending':
+            if not self.in_zone(ball, our_defender.zone):
                 # If the ball is not in the defender's zone, the state should always be 'defend'.
-                self._state = 'defending'
-                self.get_next_strategy()
+                if self._state != 'defending':
+                    self._state = 'defending'
+                    self.get_next_strategy()
                 print "Defending, ball not in our zone"
 
             # We have the ball in our zone, so we fetching and passing:

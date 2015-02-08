@@ -8,8 +8,8 @@ MAX_DISPLACEMENT_SPEED = 690
 MAX_ANGLE_SPEED = 50
 BALL_MOVING = 3
 
-BALL_ALIGN_THRESHOLD = 25
-ROBOT_ALIGN_THRESHOLD = pi/6
+BALL_ALIGN_THRESHOLD = 20
+ROBOT_ALIGN_THRESHOLD = pi/4
 
 # Stop everything
 def stop(robotCom):
@@ -26,7 +26,7 @@ def moveSideways(robotCom, displacement):
 # Move straight indefinitely trying to defend
 def moveStraight(robotCom, displacement):
     if abs(displacement) > BALL_ALIGN_THRESHOLD:
-        power = copysign(60, displacement)
+        power = copysign(70, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
