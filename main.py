@@ -113,6 +113,7 @@ class Controller:
                 # Update planner world beliefs
                 if(self.robotCom is not None):
                     self.planner.update_world(model_positions)
+                    self.planner.plan()
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF

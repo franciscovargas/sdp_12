@@ -59,7 +59,7 @@ class Planner:
         self._world.update_positions(position_dictionary)
 
     def in_zone(self, ball, zone):
-        self._world.pitch.zones[zone].isInside(ball.x, ball.y)
+        return self._world.pitch.zones[zone].isInside(ball.x, ball.y)
 
     def plan(self):
         assert self.robotType in ['attacker', 'defender']
@@ -71,10 +71,11 @@ class Planner:
 
         if self.robotType == 'defender':
             # If the ball is in not in our defender zone:
-            if not self.in_zone(ball, our_defender.zone):  #and self._state != 'defending':
+            if not self.in_zone(ball, our_defender.zone) and self._state != 'defending':
                 # If the ball is not in the defender's zone, the state should always be 'defend'.
-                    self._state = 'defending'
-                    print "Defending, ball not in our zone"
+                self._state = 'defending'
+                self.get_next_strategy()
+                print "Defending, ball not in our zone"
 
             # We have the ball in our zone, so we fetching and passing:
             else:
@@ -138,5 +139,4 @@ class Planner:
             else:
                 self._state = 'do_nothing'
 
-        self.get_next_strategy()
         return self._current_strategy.next_action()

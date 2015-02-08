@@ -59,7 +59,6 @@ class DoNothing(Strategy):
 class Milestone2Def(Strategy):
 
     STATES = ['UNALIGNED', 'DEFEND_GOAL']
-    SIDES = ['LEFT', 'RIGHT']
 
     ROBOT_ALIGN_THRESHOLD = pi/6
 
@@ -81,7 +80,6 @@ class Milestone2Def(Strategy):
     def align(self):
         if (abs(self.our_defender.angle - pi/2) <= self.ROBOT_ALIGN_THRESHOLD):
             self.current_state = 'DEFEND_GOAL'
-            self.next_action()
         else:
             align_robot(self.robotCom, self.our_defender.angle, pi/2)
 
