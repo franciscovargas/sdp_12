@@ -1,5 +1,5 @@
 from utilities import align_robot, predict_y_intersection, moveStraight, moveSideways, moveFromTo, has_matched, \
-    stop, do_nothing, BALL_MOVING, kick
+    stop, do_nothing, BALL_MOVING, kick, grab
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -188,6 +188,9 @@ class Milestone2Grab(Strategy):
 
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)

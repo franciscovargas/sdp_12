@@ -1,7 +1,7 @@
 from world import World
 from strategies import AttackerDefend, AttackerGrab, AttackerGrabCareful, AttackerDriveByTurn, AttackerDriveBy, \
     AttackerTurnScore, AttackerScoreDynamic, AttackerPositionCatch, AttackerCatch, Milestone2Def, Milestone2Pass, \
-    DefenderDefence, DefenderGrab, DefenderBouncePass
+    Milestone2Grab, DefenderDefence, DefenderGrab, DefenderBouncePass
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
@@ -9,8 +9,8 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom, robotType):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender.receiving_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
-        self._world.our_attacker.receiving_area = {'width': 30, 'height': 30, 'front_offset': 14}
+        self._world.our_defender._receiving_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
+        self._world.our_attacker._receiving_area = {'width': 30, 'height': 30, 'front_offset': 14}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
@@ -22,7 +22,7 @@ class Planner:
                                      'receiving': [AttackerPositionCatch, AttackerCatch]}
 
         self._defender_strategies = {'defending': [Milestone2Def, DefenderDefence],
-                                     'fetching': [DefenderGrab],
+                                     'fetching': [Milestone2Grab, DefenderGrab],
                                      'passing': [Milestone2Pass, DefenderBouncePass]}
 
         self._state = 'defending'

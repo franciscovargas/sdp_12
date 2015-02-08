@@ -117,17 +117,17 @@ class Robot(PitchObject):
 
     @property
     def catcher_area(self):
-        front_left = (self.x + self._catcher_area['front_offset'] + self._catcher_area['height'], self.y + self._catcher_area['width']/2.0)
-        front_right = (self.x + self._catcher_area['front_offset'] + self._catcher_area['height'], self.y - self._catcher_area['width']/2.0)
-        back_left = (self.x + self._catcher_area['front_offset'], self.y + self._catcher_area['width']/2.0)
-        back_right = (self.x + self._catcher_area['front_offset'], self.y - self._catcher_area['width']/2.0)
+        front_left = (self.x + self._receiving_area['front_offset'] + self._receiving_area['height'], self.y + self._receiving_area['width']/2.0)
+        front_right = (self.x + self._receiving_area['front_offset'] + self._receiving_area['height'], self.y - self._receiving_area['width']/2.0)
+        back_left = (self.x + self._receiving_area['front_offset'], self.y + self._receiving_area['width']/2.0)
+        back_right = (self.x + self._receiving_area['front_offset'], self.y - self._receiving_area['width']/2.0)
         area = Polygon((front_left, front_right, back_left, back_right))
         area.rotate(self.angle, self.x, self.y)
         return area
 
     @catcher_area.setter
     def catcher_area(self, area_dict):
-        self._catcher_area = area_dict
+        self._receiving_area = area_dict
 
     @property
     def catcher(self):
