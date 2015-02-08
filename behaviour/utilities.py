@@ -42,26 +42,26 @@ def moveFromTo(robotCom, displacement, angle):
     elif not (displacement is None):
         if displacement > DISTANCE_MATCH_THRESHOLD:
             power = 60
-            # robotCom.moveStraight(power)
-            print 'Moving straight. power: ' + str(power)
+            robotCom.moveStraight(power)
         else:
-            # robot.stop()
-            print 'Robot arrived to desired location'
+            robot.stop()
     else:
-        # robot.stop()
-        print 'Robot arrived to desired location'
+        robot.stop()
 
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(100)
-    print 'Kicking the ball'
+
+# Grab the ball
+def grab(robotCom)
+    robotCom.grab(60)
 
 def align_robot(robotCom, robot_alignment, target_alignment):
     difference = abs(robot_alignment - target_alignment)
     if(difference > ROBOT_ALIGN_THRESHOLD):
         print "Aligning..."
         print "Robot alignment: " + str(robot_alignment) + " Target alignment: " + str(target_alignment)
-        if abs(robot_alignment - target_alignment) > 3.14:
+        if abs(robot_alignment - target_alignment) > pi:
             direction = -1
         else:
             direction = 1
@@ -71,6 +71,8 @@ def align_robot(robotCom, robot_alignment, target_alignment):
         print "Finished aligning"
         robotCom.stop()
         return True
+
+
 
 
 
@@ -227,4 +229,4 @@ def calculate_motor_speed(displacement, angle, backwards_ok=False, careful=False
 
 
 def do_nothing():
-    speed = 10
+    pass

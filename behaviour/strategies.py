@@ -42,10 +42,7 @@ class Milestone2Def(Strategy):
 
     UNALIGNED, DEFEND_GOAL = 'UNALIGNED', 'DEFEND_GOAL'
     STATES = [UNALIGNED, DEFEND_GOAL]
-    LEFT, RIGHT = 'left', 'right'
-    SIDES = [LEFT, RIGHT]
 
-    GOAL_ALIGN_OFFSET = 60
     ROBOT_ALIGN_THRESHOLD = pi/6
 
     def __init__(self, world, robotCom):
@@ -56,28 +53,27 @@ class Milestone2Def(Strategy):
             self.DEFEND_GOAL: self.defend_goal
         }
 
-        # Find the point we want to align to.
-        self.goal_front_x = self.get_alignment_position(self.world._our_side)
-        self.our_goal = self.world.our_goal
-
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-    # Not working. Currently, aligning is skipped.
+    # Align robot so that he is 90 degrees from facing to goal
     def align(self):
-        if align_robot(self.robotCom, self.our_defender.angle, pi/2):
+        if (abs(self.our_defender.angle - pi/2) <= self.ROBOT_ALIGN_THRESHOLD):
             self.current_state = self.DEFEND_GOAL
+            self.next_action()
+        else:
+            align_robot(self.robotCom, self.our_defender.angle, pi/2)
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
         type_of_movement = 'straight'
-        
+
         # If the robot somehew unaligned himself.
-        if (abs(self.self.our_defender.angle - pi/2) > ROBOT_ALIGN_THRESHOLD):
+        if (abs(self.our_defender.angle - pi/2) > self.ROBOT_ALIGN_THRESHOLD):
             self.current_state = self.UNALIGNED
 
         # Predict where they are aiming. NOT TESTED
@@ -98,19 +94,9 @@ class Milestone2Def(Strategy):
                 displacement = -displacement
 
         if type_of_movement == 'straight':
-            return moveStraight(self.robotCom, displacement)
-        else:
-            return moveSideways(self.robotCom, displacement)
-
-    def get_alignment_position(self, side):
-        """
-        Given the side, find the x coordinate of where we need to align to initially.
-        """
-        assert side in self.SIDES
-        if side == self.LEFT:
-            return self.world.our_goal.x + self.GOAL_ALIGN_OFFSET
-        else:
-            return self.world.our_goal.x - self.GOAL_ALIGN_OFFSET
+            moveStraight(self.robotCom, displacement)
+        elif type_of_movement == 'sideways':
+            moveSideways(self.robotCom, displacement)
 
 # Move to center and pass the ball. NOT TESTED !!!!!!!!!!!!!!!!
 class Milestone2Pass(Strategy):
@@ -151,9 +137,9 @@ class Milestone2Pass(Strategy):
 
         if has_matched(self.our_defender, x=ideal_x, y=ideal_y):
             self.current_state = self.ROTATE
-            return stop(self.robotCom)
+            stop(self.robotCom)
         else:
-            return moveFromTo(self.robotCom, distance, angle)
+            moveFromTo(self.robotCom, distance, angle)
 
     def rotate(self, x, y):
         """
@@ -162,9 +148,9 @@ class Milestone2Pass(Strategy):
         angle = self.our_defender.get_rotation_to_point(x, y)
 
         if has_matched(self.our_defender, angle=angle, angle_threshold=pi/20):
-            return stop(self.robotCom)
+            stop(self.robotCom)
         else:
-            return moveFromTo(self.robotCom, None, angle)
+            moveFromTo(self.robotCom, None, angle)
 
     def shoot(self):
         """
@@ -189,6 +175,38 @@ class Milestone2Pass(Strategy):
 
         return (x, y)
 
+class Milestone2Grab(Strategy):
+
+    GO_TO_BALL, GRAB_BALL, GRABBED = 'GO_TO_BALL', 'GRAB_BALL', 'GRABBED'
+    STATES = [GO_TO_BALL, GRAB_BALL, GRABBED]
+
+    def __init__(self, world, robotCom):
+        super(Milestone2Grab, self).__init__(world, self.STATES)
+
+        self.NEXT_ACTION_MAP = {
+            self.GO_TO_BALL: self.position,
+            self.GRAB_BALL: self.grab,
+            self.GRABBED: do_nothing
+        }
+
+        self.our_defender = self.world.our_defender
+        self.ball = self.world.ball
+
+    def position(self):
+        displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
+        if self.our_defender.can_catch_ball(self.ball):
+            self.current_state = self.GRAB_BALL
+        else:
+            moveFromTo(self.robotCom, displacement, angle)
+
+    def grab(self):
+        if self.our_defender.has_ball(self.ball):
+            self.current_state = self.GRABBED
+        else:
+            self.our_defender.catcher = 'closed'
+            grab(self.robotCom)
+
+
 
 
 
@@ -198,6 +216,11 @@ class Milestone2Pass(Strategy):
 
 
 # not using the below
+
+
+
+
+
 
 
 
