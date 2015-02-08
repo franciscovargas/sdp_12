@@ -53,7 +53,7 @@ def kick(robotCom):
     robotCom.kick(100)
 
 # Grab the ball
-def grab(robotCom)
+def grab(robotCom):
     robotCom.grab(60)
 
 def align_robot(robotCom, robot_alignment, target_alignment):

@@ -13,15 +13,14 @@ class Planner:
         self._world.our_attacker.receiving_area = {'width': 30, 'height': 30, 'front_offset': 14}
 
         # To be assigned to strategy. Used to communicate with the robot
-        # BEING USED
         self.robotCom = robotCom
+        self.robotType = robotType
 
         self._attacker_strategies = {'defending': [AttackerDefend],
                                      'fetching': [AttackerGrab, AttackerGrabCareful],
                                      'shooting': [AttackerDriveByTurn, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
                                      'receiving': [AttackerPositionCatch, AttackerCatch]}
 
-        # BEING USED
         self._defender_strategies = {'defending': [Milestone2Def, DefenderDefence],
                                      'fetching': [DefenderGrab],
                                      'passing': [Milestone2Pass, DefenderBouncePass],
@@ -43,16 +42,6 @@ class Planner:
 
         print 'Choosing strategy: ', next_strategy
 
-    # def choose_attacker_strategy(self, world):
-    #     next_strategy = self._attacker_strategies[self._state][0]
-    #     return next_strategy(world)
-
-    # Provisional. Choose the first strategy in the applicable list.
-    # def choose_defender_strategy(self, world, robotCom):
-    #     next_strategy = self._defender_strategies[self._state][0]
-    #     print 'Choosing strategy: ', next_strategy
-    #     return next_strategy(world, robotCom)
-
     @property
     def strat_state(self):
         return self._current_strategy.current_state
@@ -69,10 +58,8 @@ class Planner:
     def update_world(self, position_dictionary):
         self._world.update_positions(position_dictionary)
 
-    # refactoring functions
     def in_zone(self, ball, zone):
         self._world.pitch.zones[zone].isInside(ball.x, ball.y)
-
 
     def plan(self):
         assert self.robotType in ['attacker', 'defender']
@@ -81,7 +68,7 @@ class Planner:
         their_defender = self._world.their_defender
         their_attacker = self._world.their_attacker
         ball = self._world.ball
-        # BEING USED
+
         if self.robotType == 'defender':
             # If the ball is in not in our defender zone:
             if not self.in_zone(ball, our_defender.zone):  #and self._state != 'defending':
