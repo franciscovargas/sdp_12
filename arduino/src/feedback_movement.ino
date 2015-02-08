@@ -113,21 +113,16 @@ void rotate_wrapper() {
 
     power = atoi(comm.next());
 
-    int dir_bool = -1;
-    if (power < 0) {
-        dir_bool = 1;
-    }
-
-    rotate(dir_bool, power);
+    rotate(power);
 }
 
 
 // Rotate function
-void rotate(int dir_bool, int power) {
+void rotate(int power) {
 
-    move_motor(LEFT_MOTOR, dir_bool * -1 * power);
-    move_motor(RIGHT_MOTOR, dir_bool * power);
-    move_motor(BACK_MOTOR, dir_bool * -0.8 * power);
+    move_motor(LEFT_MOTOR, -1 * power);
+    move_motor(RIGHT_MOTOR, power);
+    move_motor(BACK_MOTOR, -0.8 * power);
 }
 
 // Kicker / Grabber wrapper function
