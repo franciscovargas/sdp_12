@@ -26,7 +26,7 @@ def moveSideways(robotCom, displacement):
 # Move straight indefinitely trying to defend
 def moveStraight(robotCom, displacement):
     if abs(displacement) > BALL_ALIGN_THRESHOLD:
-        power = copysign(70, displacement)
+        power = copysign(100, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
@@ -56,28 +56,36 @@ def kick(robotCom):
 def grab(robotCom):
     robotCom.grab(60)
 
-def align_robot(robotCom, robot_alignment, target_alignment):
-    difference = abs(robot_alignment - target_alignment)
-    if(difference > ROBOT_ALIGN_THRESHOLD):
+def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
+    difference = normalize_angle(robot_alignment, target_alignment)
+    print 'Difference: ' + str(difference)
+    if(difference > angle_threshold and difference < 2*pi - angle_threshold):
         print "Aligning..."
         print "Robot alignment: " + str(robot_alignment) + " Target alignment: " + str(target_alignment)
-        if abs(robot_alignment - target_alignment) > pi:
-            direction = -1
-        else:
+        if difference > pi:
             direction = 1
-        robotCom.rotate(direction * 80)
+        else:
+            direction = -1
+        robotCom.rotate(direction * 50)
         return False
     else:
         print "Finished aligning"
-        if abs(robot_alignment - target_alignment) > pi:
-            direction = -1
-        else:
+        if difference > pi:
             direction = 1
-        robotCom.rotate(direction * -30)
-        robotCom.stop()
+        else:
+            direction = -1
+        robotCom.stop_rotate(direction * -30)
         return True
 
+def normalize_angle(robot_alignment, target_alignment):
+    robot_alignment -= target_alignment
+    
+    if(robot_alignment >= 2*pi):
+        robot_alignment -= 2*pi
+    elif(robot_alignment < 0):
+        robot_alignment += 2*pi
 
+    return robot_alignment
 
 
 

@@ -1,0 +1,7 @@
+TODO:
+    Add function STOP_STRAIGHT which stops straight movement by moving in the opposite direction for 0.5 seconds
+    Same style as STOP_ROTATE.
+
+    
+
+

@@ -61,7 +61,8 @@ class Milestone2Def(Strategy):
 
     # Align robot so that he is 90 degrees from facing to goal
     def align(self):
-        if align_robot(self.robotCom, self.our_defender.angle, pi/2):
+        if align_robot(self.robotCom, self.our_defender.angle, pi/2, self.ROBOT_ALIGN_THRESHOLD):
+            self.ROBOT_ALIGN_THRESHOLD = pi/4
             self.current_state = 'DEFEND_GOAL'
 
     # Calculate ideal defending position and move there.
@@ -71,7 +72,8 @@ class Milestone2Def(Strategy):
 
         # If the robot somehew unaligned himself.
         if (abs(self.our_defender.angle - pi/2) > self.ROBOT_ALIGN_THRESHOLD):
-            pass#self.current_state = 'UNALIGNED'
+            self.ROBOT_ALIGN_THRESHOLD = pi/4
+            self.current_state = 'UNALIGNED'
 
         # Predict where they are aiming. NOT TESTED
         predicted_y = None

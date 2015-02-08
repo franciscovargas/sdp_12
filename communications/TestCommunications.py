@@ -9,7 +9,8 @@ class TestCommunications(Communications):
     KICK_MOTOR = 4
 
     def __init__(self, debug=False):
-        super(TestCommunications, self).__init__(debug)
+        pass
+        #super(TestCommunications, self).__init__(debug)
 
     # Stops all motors
     def stop(self):
@@ -35,6 +36,9 @@ class TestCommunications(Communications):
     # Rotate RIGHT = +motorPower
     def rotate(self, motorPower):
         print "ROTATE " + str(motorPower)
+
+    def stop_rotate(self, motorPower):
+        print "STOP_ROTATE " + str(motorPower)
 
     # Grab and Kick take motorPower. The values should be predefined depending
     # on how far we need to kick or grab (it will probably be a constant)

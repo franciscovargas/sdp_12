@@ -55,13 +55,14 @@ class Controller:
             print("arduino unplugged moving on to vision")
 
         # Set up robot communications to bet sent to planner.
-        try:
-            if self.USE_REAL_ROBOT:
+        if self.USE_REAL_ROBOT: 
+            try:
                 self.robotCom = RobotCommunications(debug=True)
-            else:
+            except:
                 self.robotCom = TestCommunications(debug=True)
-        except:
-            print 'not connected to the radio'
+                print 'Not connected to the radio, using TestCommunications instead.'
+        else:
+            self.robotCom = TestCommunications(debug=True)
 
         # Set up main planner
         if(self.robotCom is not None):
@@ -118,9 +119,8 @@ class Controller:
                 model_positions = self.postprocessing.analyze(model_positions)
 
                 # Update planner world beliefs
-                if(self.robotCom is not None):
-                    self.planner.update_world(model_positions)
-                    self.planner.plan()
+                self.planner.update_world(model_positions)
+                self.planner.plan()
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
