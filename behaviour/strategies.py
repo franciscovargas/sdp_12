@@ -1,5 +1,5 @@
 from utilities import align_robot, predict_y_intersection, moveStraight, moveSideways, moveFromTo, has_matched, \
-    stop, do_nothing, BALL_VELOCITY, kick
+    stop, do_nothing, BALL_MOVING, kick
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -7,6 +7,7 @@ from random import randint
 # Imports from their code that are needed to compile (and maybe later)
 from utilities import calculate_motor_speed, open_catcher, kick_ball, turn_shoot, grab_ball, is_shot_blocked, \
     is_attacker_shot_blocked
+
 
 class Strategy(object):
 
@@ -37,13 +38,28 @@ class Strategy(object):
         return self.NEXT_ACTION_MAP[self.current_state]()
 
 
+class DoNothing(Strategy):
+
+    STATES = ['WAITING']
+
+    def __init__(self, robotCom):
+        super(DoNothing, self).__init__(self.world, self.STATES)
+
+        self.NEXT_ACTION_MAP = {
+            'WAITING': self.do_nothing
+        }
+
+        self.robotCom = robotCom
+
+    def do_nothing(self):
+        self.robotCom.stop()
+
+
 # Defend against incoming ball
 class Milestone2Def(Strategy):
 
-    UNALIGNED, DEFEND_GOAL = 'UNALIGNED', 'DEFEND_GOAL'
-    STATES = [UNALIGNED, DEFEND_GOAL]
-    LEFT, RIGHT = 'left', 'right'
-    SIDES = [LEFT, RIGHT]
+    STATES = ['UNALIGNED', 'ALIGNED']
+    SIDES = ['LEFT', 'RIGHT']
 
     GOAL_ALIGN_OFFSET = 60
 
@@ -51,8 +67,8 @@ class Milestone2Def(Strategy):
         super(Milestone2Def, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
-            self.UNALIGNED: self.align,
-            self.DEFEND_GOAL: self.defend_goal
+            'UNALIGNED': self.align,
+            'ALIGNED': self.defend_goal
         }
 
         # Find the point we want to align to.
@@ -68,7 +84,7 @@ class Milestone2Def(Strategy):
     # Not working. Currently, aligning is skipped.
     def align(self):
         if align_robot(self.robotCom, self.our_defender.angle, 1.57) < 0.5:
-            self.current_state = self.DEFEND_GOAL
+            self.current_state = 'ALIGNED'
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
@@ -77,7 +93,7 @@ class Milestone2Def(Strategy):
 
         # Predict where they are aiming. NOT TESTED
         predicted_y = None
-        if self.ball.velocity > BALL_VELOCITY:
+        if self.ball.velocity > BALL_MOVING:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
         if predicted_y is not None:
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, predicted_y - 7*sin(self.our_defender.angle))
@@ -244,10 +260,10 @@ class DefenderDefence(Strategy):
         Run around, blocking shots.
         """
         # Predict where they are aiming.
-        if self.ball.velocity > BALL_VELOCITY:
+        if self.ball.velocity > BALL_MOVING:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
 
-        if self.ball.velocity <= BALL_VELOCITY or predicted_y is None:
+        if self.ball.velocity <= BALL_MOVING or predicted_y is None:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.their_attacker, bounce=False)
 
         if predicted_y is not None:
@@ -626,7 +642,7 @@ class DefenderGrab(Strategy):
         If the ball is heading towards our goal at high velocity then don't go directly into
         grabbing mode once the ball enters our zone. Try to match it's y-coordinate as fast as possible.
         '''
-        if self.ball.velocity > BALL_VELOCITY:
+        if self.ball.velocity > BALL_MOVING:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=True)
 
             if predicted_y is not None:

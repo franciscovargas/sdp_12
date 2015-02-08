@@ -50,7 +50,8 @@ class Controller:
 
         # Set up main planner
         if(self.robotCom is not None):
-            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom)
+            # currently we are assuming we are the defender
+            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom, robotType='defender')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
@@ -105,9 +106,6 @@ class Controller:
                 # Update planner world beliefs
                 if(self.robotCom is not None):
                     self.planner.update_world(model_positions)
-                    
-                    # This activates the defending strategy for our robot. I did not work on attacking strategy.
-                    self.planner.plan('defender')
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
