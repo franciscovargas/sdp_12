@@ -1,10 +1,16 @@
-from utilities import *
-import math
+from utilities import align_robot, predict_y_intersection, moveStraight, moveSideways, moveFromTo, has_matched, \
+    stop, do_nothing, BALL_VELOCITY, kick
+from math import pi, sin, cos
 from random import randint
+# Up until here are the imports that we're using
+
+# Imports from their code that are needed to compile (and maybe later)
+from utilities import calculate_motor_speed, open_catcher, kick_ball, turn_shoot, grab_ball, is_shot_blocked, \
+    is_attacker_shot_blocked
 
 class Strategy(object):
 
-    PRECISE_BALL_ANGLE_THRESHOLD = math.pi / 15.0
+    PRECISE_BALL_ANGLE_THRESHOLD = pi / 15.0
     UP, DOWN = 'UP', 'DOWN'
 
     def __init__(self, world, states):
@@ -30,7 +36,8 @@ class Strategy(object):
     def next_action(self):
         return self.NEXT_ACTION_MAP[self.current_state]()
 
-# Defend againt incoming ball
+
+# Defend against incoming ball
 class Milestone2Def(Strategy):
 
     UNALIGNED, DEFEND_GOAL = 'UNALIGNED', 'DEFEND_GOAL'
@@ -73,7 +80,7 @@ class Milestone2Def(Strategy):
         if self.ball.velocity > BALL_VELOCITY:
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
         if predicted_y is not None:
-            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, predicted_y - 7*math.sin(self.our_defender.angle))
+            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, predicted_y - 7*sin(self.our_defender.angle))
             if(self.our_defender.y < self.ball.y):
                 displacement = -displacement
         else:
@@ -143,7 +150,7 @@ class Milestone2Pass(Strategy):
         else:
             return moveFromTo(self.robotCom, distance, angle)
 
-    def rotate(self):
+    def rotate(self, x, y):
         """
         Once the robot is in position, rotate forward
         """
@@ -173,7 +180,7 @@ class Milestone2Pass(Strategy):
         max_x = int(max(zone_poly, key=lambda z: z[0])[0])
 
         x = min_x + (max_x - min_x) / 2
-        y =  self.world.pitch.height / 2
+        y = self.world.pitch.height / 2
 
         return (x, y)
 
@@ -217,14 +224,7 @@ class DefenderDefence(Strategy):
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
-
-
     def align(self):
-
-	# spin
-	r = RobotCommunications(debug=True)
-	r.rotate(80, 1)
-	print 'spinning'
 
         """
         Align yourself with the center of our goal.
@@ -240,11 +240,6 @@ class DefenderDefence(Strategy):
 
     def defend_goal(self):
 
-	# spin
-	r = RobotCommunications(debug=True)
-	r.rotate(80, 1)
-	print 'spinning'
-
         """
         Run around, blocking shots.
         """
@@ -257,7 +252,7 @@ class DefenderDefence(Strategy):
 
         if predicted_y is not None:
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x,
-                                                                           predicted_y - 7*math.sin(self.our_defender.angle))
+                                                                           predicted_y - 7*sin(self.our_defender.angle))
             return calculate_motor_speed(displacement, angle, backwards_ok=True)
         else:
             y = self.ball.y
@@ -319,7 +314,7 @@ class AttackerDefend(Strategy):
             ideal_y = (self.their_attacker.y + self.their_defender.y) / 2
         else:
             ideal_x = self.our_attacker.x
-            ideal_y = predicted_y - 7  *math.sin(self.our_attacker.angle)
+            ideal_y = predicted_y - 7*sin(self.our_attacker.angle)
 
         displacement, angle = self.our_attacker.get_direction_to_point(ideal_x, ideal_y)
         if not has_matched(self.our_attacker, ideal_x, ideal_y):
@@ -334,7 +329,7 @@ class AttackerCatch(Strategy):
     STATES = [PREPARE, CATCH]
 
     def __init__(self, world):
-        super(AttackerCatchStrategy, self).__init__(world, STATES)
+        super(AttackerCatch, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             self.PREPARE: self.prepare,
@@ -424,8 +419,8 @@ class AttackerPositionCatch(Strategy):
         if attacker_angle:
             # Offsets the attacker's position in the direction of the desired angled in order to calculate the
             # required rotation.
-            displacement, angle = self.our_attacker.get_direction_to_point(self.our_attacker.x + 10 * math.cos(attacker_angle),
-                                                                           self.our_attacker.y + 10 * math.sin(attacker_angle))
+            displacement, angle = self.our_attacker.get_direction_to_point(self.our_attacker.x + 10 * cos(attacker_angle),
+                                                                           self.our_attacker.y + 10 * sin(attacker_angle))
             return calculate_motor_speed(None, angle, careful=True)
 
         return do_nothing()
@@ -636,7 +631,7 @@ class DefenderGrab(Strategy):
 
             if predicted_y is not None:
                 displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x,
-                                                                               predicted_y - 7*math.sin(self.our_defender.angle))
+                                                                               predicted_y - 7*sin(self.our_defender.angle))
                 return calculate_motor_speed(displacement, angle, backwards_ok=True)
 
         self.current_state = self.GO_TO_BALL
@@ -936,7 +931,7 @@ class AttackerDriveBy(Strategy):
 
         angle = self.our_attacker.get_rotation_to_point(goal_x, goal_y)
 
-        if has_matched(self.our_attacker, angle=angle, angle_threshold=math.pi/30):
+        if has_matched(self.our_attacker, angle=angle, angle_threshold=pi/30):
             if is_shot_blocked(self.world, self.our_attacker, self.their_defender):
                 # Drive to the other side.
                 self.drive_side = other_side
@@ -1032,7 +1027,7 @@ class AttackerDriveByTurn(Strategy):
     def center(self):
         if has_matched(self.our_attacker, x=self._get_zone_center_x(), y=self.our_attacker.y):
             # We're there. Advance the states and formulate next action.
-            if self.our_attacker.angle < math.pi:
+            if self.our_attacker.angle < pi:
                 self.align_y = self.world.pitch.height
             else:
                 self.align_y = 0
@@ -1045,14 +1040,14 @@ class AttackerDriveByTurn(Strategy):
 
     def rotate(self):
         displacement, angle = self.our_attacker.get_direction_to_point(self.our_attacker.x, self.align_y)
-        if has_matched(self.our_attacker, angle=angle, angle_threshold=math.pi/30):
+        if has_matched(self.our_attacker, angle=angle, angle_threshold=pi/30):
             self.current_state = self.DRIVE
             return do_nothing()
         else:
             return calculate_motor_speed(None, angle, careful=True)
 
     def drive(self):
-        y = self.goal_points[self.drive_side] - 10 * math.sin(self.our_attacker.angle)
+        y = self.goal_points[self.drive_side] - 10 * sin(self.our_attacker.angle)
 
         distance, angle = self.our_attacker.get_direction_to_point(self.our_attacker.x, y)
         if has_matched(self.our_attacker, x=self.our_attacker.x, y=y):
@@ -1071,12 +1066,12 @@ class AttackerDriveByTurn(Strategy):
         # Decide the direction of the right angle turn, based on our position and
         # side on the pitch.
         if self.world._our_side == 'right':
-            if self.our_attacker.angle < math.pi:
+            if self.our_attacker.angle < pi:
                 orientation = 1
             else:
                 orientation = -1
         else:
-            if self.our_attacker.angle < math.pi:
+            if self.our_attacker.angle < pi:
                 orientation = -1
             else:
                 orientation = 1
@@ -1155,8 +1150,8 @@ class AttackerTurnScore(Strategy):
         our_attacker = self.our_attacker
         # Check if we have a clear shot
         if not is_attacker_shot_blocked(self.world, self.our_attacker, self.their_defender) and \
-               (abs(our_attacker.angle - math.pi / 2) < math.pi / 20 or \
-               abs(our_attacker.angle - 3*math.pi/2) < math.pi / 20):
+               (abs(our_attacker.angle - pi / 2) < pi / 20 or \
+               abs(our_attacker.angle - 3*pi/2) < pi / 20):
             self.current_state = self.KICK
             return self.kick()
 
@@ -1181,12 +1176,12 @@ class AttackerTurnScore(Strategy):
         # Decide the direction of the right angle turn, based on our position and
         # side on the pitch.
         if self.world._our_side == 'left':
-            if self.our_attacker.angle > 0 and self.our_attacker.angle < math.pi:
+            if self.our_attacker.angle > 0 and self.our_attacker.angle < pi:
                 orientation = -1
             else:
                 orientation = 1
         else:
-            if self.our_attacker.angle > 0 and self.our_attacker.angle < math.pi:
+            if self.our_attacker.angle > 0 and self.our_attacker.angle < pi:
                 orientation = 1
             else:
                 orientation = -1

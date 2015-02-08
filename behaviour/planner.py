@@ -1,17 +1,18 @@
-from world import *
-from collisions import *
-from strategies import *
-from utilities import *
+from world import World
+from strategies import AttackerDefend, AttackerGrab, AttackerGrabCareful, AttackerDriveByTurn, AttackerDriveBy, \
+    AttackerTurnScore, AttackerScoreDynamic, AttackerPositionCatch, AttackerCatch, Milestone2Def, Milestone2Pass, \
+    DefenderDefence, DefenderGrab, DefenderBouncePass
+from utilities import calculate_motor_speed, do_nothing
 
 
 class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender.receivinger_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
-        self._world.our_attacker.receivinger_area = {'width': 30, 'height': 30, 'front_offset': 14}
+        self._world.our_defender.receiving_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
+        self._world.our_attacker.receiving_area = {'width': 30, 'height': 30, 'front_offset': 14}
 
-        # To be passinged to strategy. Used to communicate with the robot
+        # To be assigned to strategy. Used to communicate with the robot
         # BEING USED
         self.robotCom = robotCom
 
