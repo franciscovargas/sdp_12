@@ -67,7 +67,7 @@ class Controller:
         # Set up main planner
         if(self.robotCom is not None):
             # currently we are assuming we are the defender
-            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom, robotType='defender')
+            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom, robotType='attacker')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)

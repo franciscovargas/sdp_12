@@ -1,15 +1,15 @@
 from math import tan, pi, hypot, log, copysign
 from world import Robot
 
-DISTANCE_MATCH_THRESHOLD = 20
-ANGLE_MATCH_THRESHOLD = pi/10
-BALL_ANGLE_THRESHOLD = pi/20
-MAX_DISPLACEMENT_SPEED = 690
-MAX_ANGLE_SPEED = 50
-BALL_MOVING = 3
-
 BALL_ALIGN_THRESHOLD = 20
 ROBOT_ALIGN_THRESHOLD = pi/4
+
+POWER_SIDEWAYS = 80
+POWER_STRAIGHT = 100
+POWER_ROTATE = 50
+POWER_STOP_ROTATION = 30
+POWER_GRAB = 60
+POWER_KICK = 100
 
 # Stop everything
 def stop(robotCom):
@@ -18,7 +18,7 @@ def stop(robotCom):
 # Moving sideways
 def moveSideways(robotCom, displacement):
     if abs(displacement) > BALL_ALIGN_THRESHOLD:
-        power = copysign(80, displacement)
+        power = copysign(POWER_SIDEWAYS, displacement)
         robotCom.moveSideways(power)
     else:
         robotCom.stop()
@@ -26,35 +26,27 @@ def moveSideways(robotCom, displacement):
 # Move straight indefinitely trying to defend
 def moveStraight(robotCom, displacement):
     if abs(displacement) > BALL_ALIGN_THRESHOLD:
-        power = copysign(100, displacement)
+        power = copysign(POWER_STRAIGHT, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
 
 # Move from A to B
 def moveFromTo(robotCom, displacement, angle):
-    angle_thresh = BALL_ANGLE_THRESHOLD
-
-    if abs(angle) > angle_thresh:
-        power = copysign(40, angle)
-        robotCom.rotate(power)
-        print 'Rotating. power: ' + str(power)
+    if abs(angle) > ROBOT_ALIGN_THRESHOLD:
+        align_robot(robotCom, angle, 0, ROBOT_ALIGN_THRESHOLD)
     elif not (displacement is None):
-        if displacement > DISTANCE_MATCH_THRESHOLD:
-            power = 60
-            robotCom.moveStraight(power)
-        else:
-            robot.stop()
+        moveStraight(robotCom, displacement)
     else:
-        robot.stop()
-
-# Kick the ball, full power
-def kick(robotCom):
-    robotCom.kick(100)
+        stop(robotCom)
 
 # Grab the ball
 def grab(robotCom):
-    robotCom.grab(60)
+    robotCom.grab(POWER_GRAB)
+
+# Kick the ball, full power
+def kick(robotCom):
+    robotCom.kick(POWER_KICK)
 
 def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
     difference = normalize_angle(robot_alignment, target_alignment)
@@ -66,7 +58,7 @@ def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
             direction = 1
         else:
             direction = -1
-        robotCom.rotate(direction * 50)
+        robotCom.rotate(direction * POWER_ROTATE)
         return False
     else:
         print "Finished aligning"
@@ -74,7 +66,7 @@ def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
             direction = 1
         else:
             direction = -1
-        robotCom.stop_rotate(direction * -30)
+        robotCom.stop_rotate(direction * -POWER_STOP_ROTATION)
         return True
 
 def normalize_angle(robot_alignment, target_alignment):
@@ -96,7 +88,13 @@ def normalize_angle(robot_alignment, target_alignment):
 
 
 
-
+# Variables used by old code. 
+DISTANCE_MATCH_THRESHOLD = 20
+ANGLE_MATCH_THRESHOLD = pi/10
+BALL_ANGLE_THRESHOLD = pi/20
+MAX_DISPLACEMENT_SPEED = 690
+MAX_ANGLE_SPEED = 50
+BALL_MOVING = 3
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''
