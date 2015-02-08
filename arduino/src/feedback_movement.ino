@@ -26,6 +26,7 @@ void setup() {
 
     comm.addCommand("MOVE", move_wrapper);
     comm.addCommand("ROTATE", rotate_wrapper);
+    comm.addCommand("STOP_ROTATE", stop_rotating_wrapper);
     comm.addCommand("STOP", stop_all);
     comm.addCommand("ACTION", kg_wrapper);
 
@@ -123,6 +124,23 @@ void rotate(int power) {
     move_motor(LEFT_MOTOR, -1 * power);
     move_motor(RIGHT_MOTOR, power);
     move_motor(BACK_MOTOR, -0.8 * power);
+}
+
+void stop_rotating_wrapper() {
+    int power;
+
+    power = atoi(comm.next());
+
+    stop_rotating(power);
+}
+
+void stop_rotating(int power) {
+
+    move_motor(LEFT_MOTOR, -1 * power);
+    move_motor(RIGHT_MOTOR, power);
+    move_motor(BACK_MOTOR, -0.8 * power);
+    delay(500);
+    stop_all();
 }
 
 // Kicker / Grabber wrapper function

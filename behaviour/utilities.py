@@ -65,10 +65,15 @@ def align_robot(robotCom, robot_alignment, target_alignment):
             direction = -1
         else:
             direction = 1
-        robotCom.rotate(direction * 40)
+        robotCom.rotate(direction * 80)
         return False
     else:
         print "Finished aligning"
+        if abs(robot_alignment - target_alignment) > pi:
+            direction = -1
+        else:
+            direction = 1
+        robotCom.rotate(direction * -30)
         robotCom.stop()
         return True
 
