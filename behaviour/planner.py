@@ -23,8 +23,7 @@ class Planner:
 
         self._defender_strategies = {'defending': [Milestone2Def, DefenderDefence],
                                      'fetching': [DefenderGrab],
-                                     'passing': [Milestone2Pass, DefenderBouncePass],
-                                     'doing_nothing': [DoNothing]}
+                                     'passing': [Milestone2Pass, DefenderBouncePass]}
 
         self._state = 'defending'
         # assume we are the defender for now
@@ -83,30 +82,33 @@ class Planner:
                 # If the ball is still moving, keep defending
                 if ball.velocity >= BALL_MOVING and self._state != 'defending':
                     self._state = 'defending'
+                    self.get_next_strategy()
                     print "Defending, ball in our zone but moving"
 
                 # If we've grabbed the ball, switch to a passing strategy.
                 elif self._state == 'fetching' and self.strat_state == 'GRABBED':
                     self._state = 'passing'
+                    self.get_next_strategy()
                     print "We've grabbed the ball"
 
                 # If we're defending (and the ball isn't moving), switch to a fetching strategy.
                 elif self._state == 'defending':
                     self._state = 'fetching'
+                    self.get_next_strategy()
                     print "Defending, fetching the ball"
 
                 elif self._state == 'passing' and self.strat_state == 'FINISHED':
                     self._state = 'fetching'
+                    self.get_next_strategy()
                     print "Passing the ball"
                 else:
-                    self._state = 'doing_nothing'
-                    # return do_nothing()
                     print "Doing nothing"
 
         elif self.robotType == 'attacker':
             # If the ball is in their defender zone we defend:
             if self.in_zone(ball, their_defender.zone) and self._state != 'defending':
                 self._state = 'defending'
+                self.get_next_strategy()
                 print "Ball in their defender zone, defending"
 
             # If ball is in our attacker zone, then fetch the ball and shoot:
@@ -115,6 +117,7 @@ class Planner:
                 # Check if we should switch from a fetching to a scoring strategy.
                 if self._state == 'fetching' and self.strat_state == 'GRABBED':
                     self._state = 'shooting'
+                    self.get_next_strategy()
                     print "Ball grabbed, shooting"
 
                 # elif self._state == 'fetching':
@@ -129,15 +132,20 @@ class Planner:
                 # Check if we should switch from a defending to a fetching strategy.
                 elif self._state in ['defending', 'receiving']:
                     self._state = 'fetching'
-                    print ""
+                    self.get_next_strategy()
+                    print "Ball in our zone, switching from defending/receiving to fetching"
 
-                elif self._state == 'shooting' and self._current_strategy.current_state == 'FINISHED':
+                elif self._state == 'shooting' and self.strat_state == 'FINISHED':
                     self._state = 'fetching'
+                    self.get_next_strategy()
+                    print "Finished shooting, switching to fetching"
 
-            # If the ball is in our defender zone, prepare to receiving the passinged ball:
+            # If the ball is in our defender zone, prepare to receiving the passed ball:
             elif self.in_zone(ball, our_defender.zone) or self._state == 'receiving':
                 self._state = 'receiving'
+                self.get_next_strategy()
+                print "Ball in our defender zone, preparing to receive ball"
             else:
-                self._state = 'do_nothing'
+                print "Doing nothing"
 
         return self._current_strategy.next_action()

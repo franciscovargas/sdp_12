@@ -38,23 +38,6 @@ class Strategy(object):
         return self.NEXT_ACTION_MAP[self.current_state]()
 
 
-class DoNothing(Strategy):
-
-    STATES = ['WAITING']
-
-    def __init__(self, robotCom):
-        super(DoNothing, self).__init__(self.world, self.STATES)
-
-        self.NEXT_ACTION_MAP = {
-            'WAITING': self.do_nothing
-        }
-
-        self.robotCom = robotCom
-
-    def do_nothing(self):
-        self.robotCom.stop()
-
-
 # Defend against incoming ball
 class Milestone2Def(Strategy):
 
