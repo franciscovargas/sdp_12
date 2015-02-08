@@ -1,7 +1,7 @@
 from world import World
 from strategies import AttackerDefend, AttackerGrab, AttackerGrabCareful, AttackerDriveByTurn, AttackerDriveBy, \
     AttackerTurnScore, AttackerScoreDynamic, AttackerPositionCatch, AttackerCatch, Milestone2Def, Milestone2Pass, \
-    Milestone2Grab, DefenderDefence, DefenderGrab, DefenderBouncePass
+    Milestone2Grab, Milestone2Kick, DefenderDefence, DefenderGrab, DefenderBouncePass
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
@@ -17,8 +17,8 @@ class Planner:
         self.robotType = robotType
 
         self._attacker_strategies = {'defending': [AttackerDefend],
-                                     'fetching': [AttackerGrab, AttackerGrabCareful],
-                                     'shooting': [AttackerDriveByTurn, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
+                                     'fetching': [Milestone2Grab, AttackerGrab, AttackerGrabCareful],
+                                     'shooting': [Milestone2Kick, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
                                      'receiving': [AttackerPositionCatch, AttackerCatch]}
 
         self._defender_strategies = {'defending': [Milestone2Def, DefenderDefence],

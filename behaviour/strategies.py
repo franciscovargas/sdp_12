@@ -104,7 +104,7 @@ class Milestone2Pass(Strategy):
     UP, DOWN = 'UP', 'DOWN'
 
     def __init__(self, world, robotCom):
-        super(DefenderBouncePass, self).__init__(world, self.STATES)
+        super(Milestone2Pass, self).__init__(world, self.STATES)
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
@@ -206,7 +206,62 @@ class Milestone2Grab(Strategy):
             self.our_defender.catcher = 'closed'
             grab(self.robotCom)
 
+# Rotate towards the goal and kick the ball
+class Milestone2Kick(Strategy):
 
+    STATES = ['ROTATE', 'SHOOT', 'FINISHED']
+
+    def __init__(self, world, robotCom):
+        super(Milestone2Kick, self).__init__(world, self.STATES)
+
+        # Map states into functions
+        self.NEXT_ACTION_MAP = {
+            'ROTATE': self.rotate,
+            'KICK': self.kick,
+            'FINISHED': do_nothing
+        }
+
+        self.our_defender = self.world.our_defender
+        self.their_attacker = self.world.their_attacker
+        self.ball = self.world.ball
+
+        # Find the position to shoot from and cache it
+        self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
+
+    def rotate(self, x, y):
+        """
+        Once the robot is in position, rotate forward
+        """
+        angle = self.our_defender.get_rotation_to_point(x, y)
+
+        if has_matched(self.our_defender, angle=angle, angle_threshold=pi/20):
+            self.current_state = 'KICK'
+            stop(self.robotCom)
+        else:
+            moveFromTo(self.robotCom, None, angle)
+
+    def kick(self):
+        self.current_state = 'FINISHED'
+        self.our_defender.catcher = 'open'
+        return kick(self.robotCom)
+
+    def _get_shooting_coordinates(self, robot):
+        """
+        Retrieve the coordinates to which we need to move before we set up the pass.
+        """
+        zone_index = robot.zone
+        zone_poly = self.world.pitch.zones[zone_index][0]
+
+        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
+        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
+
+        x = min_x + (max_x - min_x) / 2
+        y = self.world.pitch.height / 2
+
+        return (x, y)
 
 
 
