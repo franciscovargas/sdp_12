@@ -25,6 +25,7 @@ void setup() {
     comm.addCommand("OFF", LED_off);        // Turns LED off
 
     comm.addCommand("MOVE", move_wrapper);
+    comm.addCommand("STOP_STRAIGHT", stop_straight_wrapper);
     comm.addCommand("ROTATE", rotate_wrapper);
     comm.addCommand("STOP_ROTATE", stop_rotating_wrapper);
     comm.addCommand("STOP", stop_all);
@@ -139,6 +140,21 @@ void stop_rotating(int power) {
     move_motor(LEFT_MOTOR, -1 * power);
     move_motor(RIGHT_MOTOR, power);
     move_motor(BACK_MOTOR, -0.8 * power);
+    delay(500);
+    stop_all();
+}
+
+void stop_straight_wrapper() {
+    int power;
+
+    power = atoi(comm.next());
+
+    stop_rotating(power);
+}
+
+void stop_straight(int power) {
+    move_motor(LEFT_MOTOR, power);
+    move_motor(RIGHT_MOTOR, power);
     delay(500);
     stop_all();
 }

@@ -19,6 +19,9 @@ class RobotCommunications(Communications):
     def moveStraight(self, motorPower):
         self.write("MOVE STRAIGHT " + str(motorPower))
 
+    def stopStraight(self, motorPower):
+        self.write("STOP_STRAIGHT + " + str(motorPower))
+
     # Sideways LEFT  = -motorPower
     # Sideways RIGHT = +motorPower
     def moveSideways(self, motorPower):
@@ -36,7 +39,7 @@ class RobotCommunications(Communications):
     def rotate(self, motorPower):
         self.write("ROTATE " + str(motorPower))
 
-    def stop_rotate(self, motorPower):
+    def stopRotate(self, motorPower):
         self.write("STOP_ROTATE " + str(motorPower))
 
     # Grab and Kick take motorPower. The values should be predefined depending
