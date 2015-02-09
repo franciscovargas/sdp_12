@@ -33,12 +33,11 @@ class Planner:
     def get_next_strategy(self):
         if self.robotType == 'defender':
             next_strategy = self._defender_strategies[self._state][0]
-            self._current_strategy = next_strategy(self._world, self.robotCom)
 
         elif self.robotType == 'attacker':
             next_strategy = self._attacker_strategies[self._state][0]
-            self._current_strategy = next_strategy(self._world, self.robotCom)
 
+        self._current_strategy = next_strategy(self._world, self.robotCom)
         print 'Choosing strategy: ', next_strategy
 
     @property
@@ -114,13 +113,13 @@ class Planner:
                     self._state = 'shooting'
                     self.get_next_strategy()
                     print "Ball grabbed, shooting"
-                
+
                 # Check if we managed to shoot the ball and swith to fetching strategy.
                 elif self._state == 'shooting' and self.strat_state == 'FINISHED':
                     self._state = 'fetching'
                     self.get_next_strategy()
                     print "Finished shooting, switching to fetching"
-                
+
                 elif self._state == 'defending':
                     self._state = 'fetching'
                     self.get_next_strategy()
