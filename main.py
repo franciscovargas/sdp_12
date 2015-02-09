@@ -23,10 +23,10 @@ class Controller:
     This class aims to be the bridge in between vision and strategy/logic
     """
     robotCom = None
-    
+
     # Set to True if we want to use the real robot.
     # Set to False if we want to print out commands to console only.
-    USE_REAL_ROBOT = False
+    USE_REAL_ROBOT = True
 
     def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
         """
@@ -55,7 +55,7 @@ class Controller:
             print("arduino unplugged moving on to vision")
 
         # Set up robot communications to bet sent to planner.
-        if self.USE_REAL_ROBOT: 
+        if self.USE_REAL_ROBOT:
             try:
                 self.robotCom = RobotCommunications(debug=True)
             except:
@@ -67,7 +67,7 @@ class Controller:
         # Set up main planner
         if(self.robotCom is not None):
             # currently we are assuming we are the defender
-            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom, robotType='attacker')
+            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom, robotType='defender')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
