@@ -73,7 +73,10 @@ class Controller:
         # Set up main planner
         if(self.robotCom is not None):
             # currently we are assuming we are the defender
-            self.planner = Planner(our_side=our_side, pitch_num=self.pitch, robotCom=self.robotCom, robotType='defender')
+            self.planner = Planner(our_side=our_side,
+                                   pitch_num=self.pitch,
+                                   robotCom=self.robotCom,
+                                   robotType='defender')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
@@ -83,8 +86,11 @@ class Controller:
         # Set up vision
         self.calibration = tools.get_colors(pitch)
         self.vision = Vision(
-            pitch=pitch, color=color, our_side=our_side,
-            frame_shape=frame.shape, frame_center=center_point,
+            pitch=pitch,
+            color=color,
+            our_side=our_side,
+            frame_shape=frame.shape,
+            frame_center=center_point,
             calibration=self.calibration)
 
         # Set up postprocessing for vision

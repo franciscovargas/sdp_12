@@ -159,7 +159,13 @@ class Tracker(object):
 
 class RobotTracker(Tracker):
 
-    def __init__(self, color, crop, offset, pitch, name, calibration):
+    def __init__(self,
+                 color,
+                 crop,
+                 offset,
+                 pitch,
+                 name,
+                 calibration):
         """
         Initialize tracker.
 
@@ -380,7 +386,12 @@ class BallTracker(Tracker):
     Track red ball on the pitch.
     """
 
-    def __init__(self, crop, offset, pitch, calibration, name='ball'):
+    def __init__(self,
+                 crop,
+                 offset,
+                 pitch,
+                 calibration,
+                 name='ball'):
         """
         Initialize tracker.
 
