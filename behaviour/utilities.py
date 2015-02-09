@@ -1,12 +1,13 @@
 from math import tan, pi, hypot, log, copysign
 from world import Robot
 
-BALL_ALIGN_THRESHOLD = 20
+BALL_ALIGN_THRESHOLD = 10
 ROBOT_ALIGN_THRESHOLD = pi/4
 
 POWER_SIDEWAYS = 80
-POWER_STRAIGHT = 100
-POWER_ROTATE = 50
+POWER_STRAIGHT = 70
+POWER_STOP_STRAIGHT = 70
+POWER_ROTATE = 40
 POWER_STOP_ROTATION = 30
 POWER_GRAB = 60
 POWER_KICK = 100
@@ -29,6 +30,14 @@ def moveStraight(robotCom, displacement):
         power = copysign(POWER_STRAIGHT, displacement)
         robotCom.moveStraight(power)
     else:
+        robotCom.stopStraight(-POWER_STOP_STRAIGHT)
+
+# Move straight, with speed relative to the distance left to cover
+def moveStraight(robotCom, displacement):
+    if abs(displacement) > BALL_ALIGN_THRESHOLD:
+        power = (POWER_STRAIGHT * 0.005 * displacement) + copysign(40, displacement)
+        robotCom.moveStraight(power)
+    else:
         robotCom.stop()
 
 # Move from A to B
@@ -48,30 +57,33 @@ def grab(robotCom):
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
 
+# rotate the robot until it is at the target alignment, with speed relative to
+# the difference between the robot and target alignments
 def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
     difference = normalize_angle(robot_alignment, target_alignment)
-    print 'Difference: ' + str(difference)
+    print "Difference: " + str(difference)
+
+    if (difference > pi):
+        direction = 1
+        difference = 2*pi - difference
+    else:
+        direction = -1
+
     if(difference > angle_threshold and difference < 2*pi - angle_threshold):
         print "Aligning..."
-        print "Robot alignment: " + str(robot_alignment) + " Target alignment: " + str(target_alignment)
-        if difference > pi:
-            direction = 1
-        else:
-            direction = -1
-        robotCom.rotate(direction * POWER_ROTATE)
+        power = (POWER_ROTATE * 0.15 * difference) + 30
+        print "Power: " + str(power)
+        robotCom.rotate(direction * power)
         return False
     else:
-        print "Finished aligning"
-        if difference > pi:
-            direction = 1
-        else:
-            direction = -1
-        robotCom.stop_rotate(direction * -POWER_STOP_ROTATION)
+        robotCom.stopRotate(direction * -POWER_STOP_ROTATION)
         return True
 
+# to find the angle between the robot's alignment and our target alignment,
+# makes the target angle 0/the origin, and returns the robot's alignment in terms of that
 def normalize_angle(robot_alignment, target_alignment):
     robot_alignment -= target_alignment
-    
+
     if(robot_alignment >= 2*pi):
         robot_alignment -= 2*pi
     elif(robot_alignment < 0):
@@ -88,7 +100,7 @@ def normalize_angle(robot_alignment, target_alignment):
 
 
 
-# Variables used by old code. 
+# Variables used by old code.
 DISTANCE_MATCH_THRESHOLD = 20
 ANGLE_MATCH_THRESHOLD = pi/10
 BALL_ANGLE_THRESHOLD = pi/20
