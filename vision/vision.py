@@ -124,7 +124,10 @@ class Vision:
             (0, width, 0, height), 0, pitch, calibration)
 
     def _get_zones(self, width, height):
-        return [(val[0], val[1], 0, height) for val in tools.get_zones(width, height, pitch=self.pitch)]
+        return [(val[0], val[1], 0, height)
+                for val in tools.get_zones(width,
+                                           height,
+                                           pitch=self.pitch)]
 
     def _get_opponent_color(self, our_color):
         return (TEAM_COLORS - set([our_color])).pop()
@@ -142,13 +145,18 @@ class Vision:
         positions = self.get_adjusted_positions(positions)
 
         # Wrap list of positions into a dictionary
-        keys = ['our_defender', 'our_attacker', 'their_defender', 'their_attacker', 'ball']
+        keys = ['our_defender',
+                'our_attacker',
+                'their_defender',
+                'their_attacker',
+                'ball']
         regular_positions = dict()
         for i, key in enumerate(keys):
             regular_positions[key] = positions[i]
 
         # Error check we got a frame
-        height, width, channels = frame.shape if frame is not None else (None, None, None)
+        height, width, channels = frame.shape if frame is not None \
+            else (None, None, None)
 
         model_positions = {
             'our_attacker': self.to_info(positions[1], height),
@@ -162,8 +170,10 @@ class Vision:
 
     def get_adjusted_point(self, point):
         """
-        Given a point on the plane, calculate the adjusted point, by taking into account
-        the height of the robot, the height of the camera and the distance of the point
+        Given a point on the plane, calculate the
+        adjusted point, by taking into account the
+        height of the robot, the height of the
+        camera and the distance of the point
         from the center of the lens.
         """
         plane_height = 250.0
@@ -232,11 +242,17 @@ class Vision:
             [5-tuple] positions     - locations of the robots and the ball
         """
         queues = [Queue() for i in range(5)]
-        objects = [self.us[0], self.us[1], self.opponents[0], self.opponents[1], self.ball_tracker]
+        objects = [self.us[0],
+                   self.us[1],
+                   self.opponents[0],
+                   self.opponents[1],
+                   self.ball_tracker]
 
         # Define processes
         processes = [
-            Process(target=obj.find, args=((frame, queues[i]))) for (i, obj) in enumerate(objects)]
+            Process(target=obj.find, args=((frame, queues[i])))
+                                            for (i, obj)
+                                            in enumerate(objects)]
 
         # Start processes
         for process in processes:
