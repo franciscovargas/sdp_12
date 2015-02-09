@@ -3,9 +3,6 @@ import numpy as np
 from collections import namedtuple
 import warnings
 
-# Turning on KMEANS fitting:
-KMEANS = False
-
 # Turn off warnings for PolynomialFit
 warnings.simplefilter('ignore', np.RankWarning)
 warnings.simplefilter('ignore', RuntimeWarning)
@@ -37,12 +34,9 @@ class Tracker(object):
             # Create a mask
             frame_mask = cv2.inRange(frame_hsv, adjustments['min'], adjustments['max'])
 
-            # Apply threshold to the masked image, no idea what the values mean
-            return_val, threshold = cv2.threshold(frame_mask, 127, 255, 0)
-
             # Find contours
             contours, hierarchy = cv2.findContours(
-                threshold,
+                frame_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE
             )
@@ -71,15 +65,9 @@ class Tracker(object):
         # Create a mask
         frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
 
-        kernel = np.ones((5, 5), np.uint8)
-        erosion = cv2.erode(frame_mask, kernel, iterations=1)
-
-        # Apply threshold to the masked image, no idea what the values mean
-        return_val, threshold = cv2.threshold(frame_mask, 127, 255, 0)
-
         # Find contours, they describe the masked image - our T
         contours, hierarchy = cv2.findContours(
-            threshold,
+            frame_mask,
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
@@ -351,30 +339,6 @@ class RobotTracker(Tracker):
             'front': None
         })
         return
-
-    def kmeans(self, plate):
-
-        prep = plate.reshape((-1,3))
-        prep = np.float32(prep)
-
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-        k = 4
-        ret, label, colour_centers = cv2.kmeans(prep, k, criteria, 20, cv2.KMEANS_RANDOM_CENTERS)
-        colour_centers = np.uint8(colour_centers)
-
-        # Get the new image based on the clusters found
-        res = colour_centers[label.flatten()]
-        res2 = res.reshape((plate.shape))
-
-        # if self.name == 'Their Defender':
-        #     colour_centers = np.array([colour_centers])
-        #     print "********************", self.name
-        #     print colour_centers
-        #     print 'HSV######'
-        #     print cv2.cvtColor(colour_centers, cv2.COLOR_BGR2HSV)
-
-        return res2
-
 
 class BallTracker(Tracker):
     """

@@ -28,7 +28,13 @@ class Controller:
     # Set to False if we want to print out commands to console only.
     USE_REAL_ROBOT = True
 
-    def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
+    def __init__(self,
+                 pitch, 
+                 color,
+                 our_side,
+                 video_port=0,
+                 comm_port='/dev/ttyACM0',
+                 comms=1):
         """
         Entry point for the SDP system.
 
@@ -135,6 +141,7 @@ class Controller:
                 counter += 1
 
         except:
+            # This exception is stupid TODO: refactor.
             print("TODO SOMETHING CLEVER HERE")
             raise
         finally:

@@ -22,7 +22,13 @@ class Vision:
     Locate objects on the pitch.
     """
 
-    def __init__(self, pitch, color, our_side, frame_shape, frame_center, calibration):
+    def __init__(self,
+                 pitch,
+                 color,
+                 our_side,
+                 frame_shape,
+                 frame_center,
+                 calibration):
         """
         Initialize the vision system.
 
@@ -46,39 +52,71 @@ class Vision:
         if our_side == 'left':
             self.us = [
                 RobotTracker(
-                    color=color, crop=zones[0], offset=zones[0][0], pitch=pitch,
-                    name='Our Defender', calibration=calibration),   # defender
+                    color=color,
+                    crop=zones[0],
+                    offset=zones[0][0],
+                    pitch=pitch,
+                    name='Our Defender',
+                    calibration=calibration),   # defender
                 RobotTracker(
-                    color=color, crop=zones[2], offset=zones[2][0], pitch=pitch,
-                    name='Our Attacker', calibration=calibration)   # attacker
+                    color=color,
+                    crop=zones[2],
+                    offset=zones[2][0],
+                    pitch=pitch,
+                    name='Our Attacker',
+                    calibration=calibration)   # attacker
             ]
 
             self.opponents = [
                 RobotTracker(
-                    color=opponent_color, crop=zones[3], offset=zones[3][0], pitch=pitch,
-                    name='Their Defender', calibration=calibration),
+                    color=opponent_color,
+                    crop=zones[3],
+                    offset=zones[3][0],
+                    pitch=pitch,
+                    name='Their Defender',
+                    calibration=calibration),
                 RobotTracker(
-                    color=opponent_color, crop=zones[1], offset=zones[1][0], pitch=pitch,
-                    name='Their Attacker', calibration=calibration)
+                    color=opponent_color,
+                    crop=zones[1],
+                    offset=zones[1][0],
+                    pitch=pitch,
+                    name='Their Attacker',
+                    calibration=calibration)
 
             ]
         else:
             self.us = [
                 RobotTracker(
-                    color=color, crop=zones[3], offset=zones[3][0], pitch=pitch,
-                    name='Our Defender', calibration=calibration),
+                    color=color,
+                    crop=zones[3],
+                    offset=zones[3][0],
+                    pitch=pitch,
+                    name='Our Defender',
+                    calibration=calibration),
                 RobotTracker(
-                    color=color, crop=zones[1], offset=zones[1][0], pitch=pitch,
-                    name='Our Attacker', calibration=calibration)
-            ]
+                    color=color,
+                    crop=zones[1],
+                    offset=zones[1][0],
+                    pitch=pitch,
+                    name='Our Attacker',
+                    calibration=calibration)
+            ] 
 
             self.opponents = [
                 RobotTracker(
-                    color=opponent_color, crop=zones[0], offset=zones[0][0], pitch=pitch,
-                    name='Their Defender', calibration=calibration),   # defender
+                    color=opponent_color,
+                    crop=zones[0],
+                    offset=zones[0][0],
+                    pitch=pitch,
+                    name='Their Defender',
+                    calibration=calibration),   # defender
                 RobotTracker(
-                    color=opponent_color, crop=zones[2], offset=zones[2][0], pitch=pitch,
-                    name='Their Attacker', calibration=calibration)
+                    color=opponent_color,
+                    crop=zones[2],
+                    offset=zones[2][0],
+                    pitch=pitch,
+                    name='Their Attacker',
+                    calibration=calibration)
             ]
 
         # Set up trackers
