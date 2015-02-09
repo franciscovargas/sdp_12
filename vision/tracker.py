@@ -23,16 +23,20 @@ class Tracker(object):
             if frame is None:
                 return None
             if adjustments['blur'] > 1:
-                frame = cv2.blur(frame, (adjustments['blur'], adjustments['blur']))
+                frame = cv2.blur(frame,
+                                 (adjustments['blur'], adjustments['blur']))
 
             if adjustments['contrast'] > 1.0:
-                frame = cv2.add(frame, np.array([float(adjustments['contrast'])]))
+                frame = cv2.add(frame,
+                                np.array([float(adjustments['contrast'])]))
 
             # Convert frame to HSV
             frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
             # Create a mask
-            frame_mask = cv2.inRange(frame_hsv, adjustments['min'], adjustments['max'])
+            frame_mask = cv2.inRange(frame_hsv,
+                                     adjustments['min'],
+                                     adjustments['max'])
 
             # Find contours
             contours, hierarchy = cv2.findContours(
@@ -46,7 +50,13 @@ class Tracker(object):
             return None
 
     # TODO: Used by Ball tracker - REFACTOR
-    def preprocess(self, frame, crop, min_color, max_color, contrast, blur):
+    def preprocess(self,
+                   frame,
+                   crop,
+                   min_color,
+                   max_color,
+                   contrast,
+                   blur):
         # Crop frame
         frame = frame[crop[2]:crop[3], crop[0]:crop[1]]
 
@@ -60,10 +70,13 @@ class Tracker(object):
             frame = cv2.add(frame, np.array([float(contrast)]))
 
         # Convert frame to HSV
-        frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        frame_hsv = cv2.cvtColor(frame,
+                                 cv2.COLOR_BGR2HSV)
 
         # Create a mask
-        frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
+        frame_mask = cv2.inRange(frame_hsv,
+                                 min_color,
+                                 max_color)
 
         # Find contours, they describe the masked image - our T
         contours, hierarchy = cv2.findContours(
@@ -81,7 +94,10 @@ class Tracker(object):
         rightmost = tuple(cnt[cnt[:, :, 0].argmax()][0])
         topmost = tuple(cnt[cnt[:, :, 1].argmin()][0])
         bottommost = tuple(cnt[cnt[:, :, 1].argmax()][0])
-        return (leftmost, topmost, rightmost, bottommost)
+        return (leftmost,
+                topmost,
+                rightmost,
+                bottommost)
 
     def get_bounding_box(self, points):
         """
@@ -91,7 +107,10 @@ class Tracker(object):
         rightmost = max(points, key=lambda x: x[0])[0]
         topmost = min(points, key=lambda x: x[1])[1]
         bottommost = max(points, key=lambda x: x[1])[1]
-        return BoundingBox(leftmost, topmost, rightmost - leftmost, bottommost - topmost)
+        return BoundingBox(leftmost,
+                           topmost,
+                           rightmost - leftmost,
+                           bottommost - topmost)
 
     def get_contour_corners(self, contour):
         """
@@ -110,7 +129,8 @@ class Tracker(object):
         for i, cnt in enumerate(contours):
             if cv2.contourArea(cnt) > 100:
                 cnts.append(cnt)
-        return reduce(lambda x, y: np.concatenate((x, y)), cnts) if len(cnts) else None
+        return reduce(lambda x, y: np.concatenate((x, y)),
+                                   cnts) if len(cnts) else None
 
     def get_largest_contour(self, contours):
         """
@@ -139,7 +159,13 @@ class Tracker(object):
 
 class RobotTracker(Tracker):
 
-    def __init__(self, color, crop, offset, pitch, name, calibration):
+    def __init__(self,
+                 color,
+                 crop,
+                 offset,
+                 pitch,
+                 name,
+                 calibration):
         """
         Initialize tracker.
 
@@ -195,12 +221,23 @@ class RobotTracker(Tracker):
             mask_frame = frame.copy()
 
             # Fill the dummy frame
-            cv2.rectangle(mask_frame, (0, 0), (width, height), (0, 0, 0), -1)
-            cv2.circle(mask_frame, (width / 2, height / 2), 9, (255, 255, 255), -1)
+            cv2.rectangle(mask_frame,
+                          (0, 0),
+                          (width, height),
+                          (0, 0, 0),
+                          -1)
+            cv2.circle(mask_frame,
+                       (width / 2, height / 2),
+                       9,
+                       (255, 255, 255),
+                       -1)
 
             # Mask the original image
-            mask_frame = cv2.cvtColor(mask_frame, cv2.COLOR_BGR2GRAY)
-            frame = cv2.bitwise_and(frame, frame, mask=mask_frame)
+            mask_frame = cv2.cvtColor(mask_frame,
+                                      cv2.COLOR_BGR2GRAY)
+            frame = cv2.bitwise_and(frame,
+                                    frame,
+                                    mask=mask_frame)
 
             adjustment = self.calibration['dot']
             contours = self.get_contours(frame, adjustment)
@@ -257,7 +294,8 @@ class RobotTracker(Tracker):
                 ]
 
                 # (3) Search for the dot
-                dot = self.get_dot(plate_frame, plate_bound_box.x + self.offset, plate_bound_box.y)
+                dot = self.get_dot(plate_frame, plate_bound_box.x + self.offset,
+                                   plate_bound_box.y)
 
                 if dot is not None:
                     # Since get_dot adds offset, we need to remove it
@@ -292,11 +330,13 @@ class RobotTracker(Tracker):
                     sides = [
                         (
                             Center(first[1], first[2]),
-                            Center(front_rear_distances[0][1], front_rear_distances[0][2])
+                            Center(front_rear_distances[0][1],
+                                   front_rear_distances[0][2])
                         ),
                         (
                             Center(front[1][1], front[1][2]),
-                            Center(front_rear_distances[1][1], front_rear_distances[1][2])
+                            Center(front_rear_distances[1][1],
+                                   front_rear_distances[1][2])
                         )
                     ]
 
@@ -306,7 +346,8 @@ class RobotTracker(Tracker):
                             (first[1] + front[1][1]) / 2 + self.offset,
                             (front[1][2] + first[2]) / 2),
                         Center(
-                            (front_rear_distances[1][1] + front_rear_distances[0][1]) / 2 + self.offset,
+                            (front_rear_distances[1][1] + front_rear_distances[0][1]) \
+                                / 2 + self.offset,
                             (front_rear_distances[1][2] + front_rear_distances[0][2]) / 2)
                     )
 
@@ -345,7 +386,12 @@ class BallTracker(Tracker):
     Track red ball on the pitch.
     """
 
-    def __init__(self, crop, offset, pitch, calibration, name='ball'):
+    def __init__(self,
+                 crop,
+                 offset,
+                 pitch,
+                 calibration,
+                 name='ball'):
         """
         Initialize tracker.
 

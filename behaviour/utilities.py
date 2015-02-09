@@ -2,7 +2,7 @@ from math import tan, pi, hypot, log, copysign
 from world import Robot
 
 BALL_ALIGN_THRESHOLD = 10
-ROBOT_ALIGN_THRESHOLD = pi/4
+ROBOT_ALIGN_THRESHOLD = pi/8
 
 POWER_SIDEWAYS = 80
 POWER_STRAIGHT = 70
@@ -41,13 +41,12 @@ def moveStraight(robotCom, displacement):
         robotCom.stop()
 
 # Move from A to B
-def moveFromTo(robotCom, displacement, angle):
-    if abs(angle) > ROBOT_ALIGN_THRESHOLD:
-        align_robot(robotCom, angle, 0, ROBOT_ALIGN_THRESHOLD)
-    elif not (displacement is None):
-        moveStraight(robotCom, displacement)
-    else:
-        stop(robotCom)
+def moveFromTo(robotCom, displacement, robot_angle, target_angle):
+    if align_robot(robotCom, robot_angle, target_angle, ROBOT_ALIGN_THRESHOLD):
+        if not (displacement is None):
+            moveStraight(robotCom, displacement)
+        else:
+            stop(robotCom)
 
 # Grab the ball
 def grab(robotCom):
@@ -69,7 +68,9 @@ def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
     else:
         direction = -1
 
-    if(difference > angle_threshold and difference < 2*pi - angle_threshold):
+    print "Difference in align_robot: " + str(difference)
+
+    if(difference > angle_threshold):
         print "Aligning..."
         power = (POWER_ROTATE * 0.15 * difference) + 30
         print "Power: " + str(power)

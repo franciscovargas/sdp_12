@@ -80,16 +80,16 @@ class Milestone2Def(Strategy):
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
         if predicted_y is not None:
             y = predicted_y - 7*sin(self.our_defender.angle)
-            y = max([y, 60])
-            y = min([y, self.world._pitch.height - 60])
+            y = max([y, 65])
+            y = min([y, self.world._pitch.height - 65])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
         else:
             # Try to be in same vertical position as the ball
             y = self.ball.y
-            y = max([y, 60])
-            y = min([y, self.world._pitch.height - 60])
+            y = max([y, 65])
+            y = min([y, self.world._pitch.height - 65])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
@@ -102,13 +102,16 @@ class Milestone2Def(Strategy):
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class Milestone2DefGrab(Strategy):
 
-    STATES = ['GO_TO_BALL', 'GRAB_BALL', 'GRABBED']
+    STATES = ['ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
+
+    ROBOT_ALIGN_THRESHOLD = pi/8
 
     def __init__(self, world, robotCom):
         super(Milestone2DefGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
-            'GO_TO_BALL': self.position,
+            'ROTATE_TO_BALL': self.rotate,
+	    'MOVE_TO_BALL': self.position,
             'GRAB_BALL': self.grab,
             'GRABBED': do_nothing
         }
@@ -118,13 +121,26 @@ class Milestone2DefGrab(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
+    
+    def rotate(self):
+	displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
+	
+	if angle < 0:
+	    angle += 2*pi
+	print 'Angle: ' + str(angle)
+	print 'Robot angle: ' + str(self.our_defender.angle)
+	if align_robot(self.robotCom, self.our_defender.angle, self.our_defender.angle + angle, self.ROBOT_ALIGN_THRESHOLD):
+            self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
+	if angle < 0:
+	    angle += 2*pi
         if self.our_defender.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
+	    bbbbb
         else:
-            moveFromTo(self.robotCom, displacement, angle)
+            moveStraight(self.robotCom, displacement)
 
     def grab(self):
         if self.our_defender.has_ball(self.ball):
@@ -172,7 +188,7 @@ class Milestone2DefPass(Strategy):
             self.current_state = 'ROTATE'
             stop(self.robotCom)
         else:
-            moveFromTo(self.robotCom, distance, angle)
+            moveFromTo(self.robotCom, distance, self.our_defender.angle, angle)
 
     def rotate(self):
         """
@@ -184,7 +200,7 @@ class Milestone2DefPass(Strategy):
             stop(self.robotCom)
             self.current_state = 'SHOOT'
         else:
-            moveFromTo(self.robotCom, None, angle)
+            moveFromTo(self.robotCom, None, self.our_defender.angle, angle)
 
     def shoot(self):
         """
@@ -241,7 +257,7 @@ class Milestone2AttKick(Strategy):
             stop(self.robotCom)
             self.current_state = 'SHOOT'
         else:
-            moveFromTo(self.robotCom, None, angle)
+            moveFromTo(self.robotCom, None, self.our_defender.angle, angle)
 
     def shoot(self):
         """
@@ -291,7 +307,7 @@ class Milestone2AttGrab(Strategy):
         if self.our_attacker.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
         else:
-            moveFromTo(self.robotCom, displacement, angle)
+            moveFromTo(self.robotCom, displacement, self.our_defender.angle, angle)
 
     def grab(self):
         if self.our_attacker.has_ball(self.ball):
