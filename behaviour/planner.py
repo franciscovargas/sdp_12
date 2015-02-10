@@ -61,26 +61,18 @@ class Planner:
         return self._world.pitch.zones[zone].isInside(ball.x, ball.y)
 
     def plan(self):
-	print self.strat_state
+        print "Current state: %s" % self.strat_state
 
         assert self.robotType in ['attacker', 'defender']
         our_defender = self._world.our_defender
         our_attacker = self._world.our_attacker
-        their_defender = self._world.their_defender
-        their_attacker = self._world.their_attacker
+        # their_defender = self._world.their_defender
+        # their_attacker = self._world.their_attacker
         ball = self._world.ball
 
         if self.robotType == 'defender':
-            # If the ball is in not in our defender zone:
-            if not self.in_zone(ball, our_defender.zone):
-                # If the ball is not in the defender's zone, the state should always be 'defend'.
-                if self._state != 'defending':
-                    self._state = 'defending'
-                    self.get_next_strategy()
-                print "Defending, ball not in our zone"
-
-            # We have the ball in our zone, so we fetching and passing:
-            else:
+            # If the ball is in our defender zone:
+            if self.in_zone(ball, our_defender.zone):
                 # # If the ball is still moving, keep defending
                 # if ball.velocity >= BALL_MOVING:
                 #     if self._state != 'defending':
@@ -98,14 +90,22 @@ class Planner:
                 elif self._state == 'defending':
                     self._state = 'fetching'
                     self.get_next_strategy()
-                    print "Defending, fetching the ball"
+                    print "Switching from defending to fetching the ball"
 
                 elif self._state == 'passing' and self.strat_state == 'FINISHED':
-                    #self._state = 'fetching'
-                    #self.get_next_strategy()
-                    print "Passing the ball"
+                    self._state = 'fetching'
+                    self.get_next_strategy()
+                    print "Finished passing, but ball in our zone: fetching the ball"
                 else:
                     print "Keeping same strategy"
+
+            # If the ball's outside of our defender's zone, make sure we're defending
+            else:
+                # If the ball is not in the defender's zone, the state should always be 'defend'.
+                if self._state != 'defending':
+                    self._state = 'defending'
+                    self.get_next_strategy()
+                print "Defending, ball not in our zone"
 
         elif self.robotType == 'attacker':
 
@@ -120,8 +120,8 @@ class Planner:
                 # Check if we managed to shoot the ball..
                 elif self._state == 'shooting' and self.strat_state == 'FINISHED':
                     # Robot stops now and waits until the ball goes outside his zone.
-                        #self._state = 'fetching'
-                        #self.get_next_strategy()
+                    self._state = 'fetching'
+                    self.get_next_strategy()
                     print "Finished shooting, switching to fetching"
 
                 elif self._state == 'defending':
@@ -129,11 +129,13 @@ class Planner:
                     self.get_next_strategy()
                     print "Ball in our zone, switching from defending/receiving to fetching"
 
-            elif self._state != 'defending':
-                self._state = 'defending'
-                self.get_next_strategy()
-        
+            # if we're already defending, and the ball isn't in our zone, don't change strategy
+            elif self._state == 'defending':
+                print "Ball out of zone, already defending"
+            # if we're not already defending, and the ball isn't in our zone, switch to defending
             else:
                 self._state = 'defending'
+                self.get_next_strategy()
+                print "Ball out of zone, switching to defending"
 
         return self._current_strategy.next_action()

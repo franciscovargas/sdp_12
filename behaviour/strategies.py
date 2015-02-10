@@ -1,5 +1,5 @@
 from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, has_matched, \
-    stop, do_nothing, BALL_MOVING, kick, grab
+    stop, do_nothing, BALL_MOVING, kick, grab, ROBOT_ALIGN_THRESHOLD
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -11,8 +11,7 @@ from utilities import calculate_motor_speed, open_catcher, kick_ball, turn_shoot
 
 class Strategy(object):
 
-    PRECISE_BALL_ANGLE_THRESHOLD = pi/8
-    ROBOT_ALIGN_THRESHOLD = pi/8
+    PRECISE_BALL_ANGLE_THRESHOLD = pi/10
     UP, DOWN = 'UP', 'DOWN'
 
     def __init__(self, world, states):
@@ -70,7 +69,7 @@ class Milestone2Def(Strategy):
         type_of_movement = 'straight'
 
         # If the robot somehew unaligned himself.
-        if (abs(self.our_defender.angle - pi/2) > self.ROBOT_ALIGN_THRESHOLD):
+        if (abs(self.our_defender.angle - pi/2) > ROBOT_ALIGN_THRESHOLD):
             self.current_state = 'UNALIGNED'
 
         # Predict where they are aiming.
@@ -102,12 +101,13 @@ class Milestone2Def(Strategy):
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class Milestone2DefGrab(Strategy):
 
-    STATES = ['ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
+    STATES = ['OPEN_CATCHER', 'ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
         super(Milestone2DefGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
+            'OPEN_CATCHER': self.openCatcher,
             'ROTATE_TO_BALL': self.rotate,
             'MOVE_TO_BALL': self.position,
             'GRAB_BALL': self.grab,
@@ -120,6 +120,12 @@ class Milestone2DefGrab(Strategy):
         # Used to communicate with the robot
         self.robotCom = robotCom
 
+    def openCatcher(self):
+        kick(self.robotCom)
+        self.our_defender.catcher == 'OPEN'
+
+        self.current_state = 'ROTATE_TO_BALL'
+
     def rotate(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
 
@@ -131,7 +137,7 @@ class Milestone2DefGrab(Strategy):
 
         if align_robot(self.robotCom,
                        self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y),
-                       self.ROBOT_ALIGN_THRESHOLD):
+                       self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
@@ -147,12 +153,14 @@ class Milestone2DefGrab(Strategy):
             moveStraight(self.robotCom, displacement)
 
     def grab(self):
-        if self.our_defender.has_ball(self.ball):
-            self.current_state = 'GRABBED'
-            print 'FUCK FUCK FUCK FUCK'
-        else:
-            self.our_defender.catcher = 'closed'
-            grab(self.robotCom)
+        # if self.our_defender.has_ball(self.ball):
+        #     self.current_state = 'GRABBED'
+        # else:
+        #     self.our_defender.catcher = 'CLOSED'
+        #     self.robotCom.grabCont(100)
+        self.robotCom.grab(100)
+        self.current_state = 'GRABBED'
+        self.our_defender.catcher = 'CLOSED'
 
 
 # Defender robot - Move to center and pass the ball.
@@ -165,9 +173,9 @@ class Milestone2DefPass(Strategy):
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
-            'ROTATE_TO_MIDDLE': self.rotatePosition,
-            'GO_TO_MIDDLE': self.position,
-            'ROTATE_TO_GOAL': self.rotate,
+            'ROTATE_TO_MIDDLE': self.rotate,
+            # 'GO_TO_MIDDLE': self.position,
+            # 'ROTATE_TO_GOAL': self.rotate,
             'SHOOT': self.shoot,
             'FINISHED': do_nothing
         }
@@ -175,53 +183,56 @@ class Milestone2DefPass(Strategy):
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
-        # Find the position to shoot from and cache it
-        self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
+        # # Find the position to shoot from and cache it
+        # self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
 
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-    # Rotate robot towards the middle of our defending zone.
-    def rotatePosition(self):
-        ideal_x, ideal_y = self.shooting_pos
-        angle = self.our_defender.get_rotation_to_point(ideal_x, ideal_y)
+    # # Rotate robot towards the middle of our defending zone.
+    # def rotatePosition(self):
+    #     ideal_x, ideal_y = self.shooting_pos
+    #     angle = self.our_defender.get_rotation_to_point(ideal_x, ideal_y)
 
-        if align_robot(self.robotCom,
-                       angle,
-                       self.PRECISE_BALL_ANGLE_THRESHOLD):
-            stop(self.robotCom)
-            self.current_state = 'GO_TO_MIDDLE'
+    #     if align_robot(self.robotCom,
+    #                    angle,
+    #                    self.PRECISE_BALL_ANGLE_THRESHOLD):
+    #         stop(self.robotCom)
+    #         self.current_state = 'GO_TO_MIDDLE'
 
-    def position(self):
-        """
-        Position the robot in the middle close to the goal. Angle does not matter.
-        Executed initially when we've grabbed the ball and want to move.
-        """
-        ideal_x, ideal_y = self.shooting_pos
-        distance, angle = self.our_defender.get_direction_to_point(ideal_x, ideal_y)
+    # def position(self):
+    #     """
+    #     Position the robot in the middle close to the goal. Angle does not matter.
+    #     Executed initially when we've grabbed the ball and want to move.
+    #     """
+    #     ideal_x, ideal_y = self.shooting_pos
+    #     distance, angle = self.our_defender.get_direction_to_point(ideal_x, ideal_y)
 
-        if has_matched(self.our_defender, x=ideal_x, y=ideal_y):
-            self.current_state = 'ROTATE_TO_GOAL'
-            stop(self.robotCom)
-        else:
-            moveStraight(self.robotCom, distance)
+    #     if has_matched(self.our_defender, x=ideal_x, y=ideal_y):
+    #         self.current_state = 'ROTATE_TO_GOAL'
+    #         stop(self.robotCom)
+    #     else:
+    #         moveStraight(self.robotCom, distance)
 
     # Rotate robot towards their goal.
     def rotate(self):
-        angle = self.our_defender.get_rotation_to_point(self.world.their_goal.x, self.world.their_goal.y)
+        # angle = self.our_defender.get_rotation_to_point(self.world.their_goal.x, self.world.their_goal.y)
 
-        if align_robot(self.robotCom,
-                       angle,
-                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+        if align_robot_to_pitch(self.robotCom,
+                                self.our_defender.angle,
+                                0):
             self.current_state = 'SHOOT'
 
     def shoot(self):
         """
         Kick.
         """
-        self.current_state = 'FINISHED'
-        self.our_defender.catcher = 'open'
-        kick(self.robotCom)
+        if (abs(self.our_defender.angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'ROTATE_TO_MIDDLE'
+        else:
+            self.current_state = 'FINISHED'
+            self.our_defender.catcher = 'OPEN'
+            kick(self.robotCom)
 
     def _get_shooting_coordinates(self, robot):
         """
@@ -282,7 +293,7 @@ class Milestone2AttKick(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
-    
+
     # Rotate robot towards the goal.
     def rotate(self):
         angle = self.our_attacker.get_rotation_to_point(self.world.their_goal.x, self.world.their_goal.y)
@@ -296,23 +307,23 @@ class Milestone2AttKick(Strategy):
     # Kick the ball.
     def shoot(self):
         self.current_state = 'FINISHED'
-        self.our_attacker.catcher = 'open'
+        self.our_attacker.catcher = 'OPEN'
         kick(self.robotCom)
 
-    def _get_shooting_coordinates(self, robot):
-        """
-        Retrieve the coordinates to which we need to move before we set up the pass.
-        """
-        zone_index = robot.zone
-        zone_poly = self.world.pitch.zones[zone_index][0]
+    # def _get_shooting_coordinates(self, robot):
+    #     """
+    #     Retrieve the coordinates to which we need to move before we set up the pass.
+    #     """
+    #     zone_index = robot.zone
+    #     zone_poly = self.world.pitch.zones[zone_index][0]
 
-        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
-        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
+    #     min_x = int(min(zone_poly, key=lambda z: z[0])[0])
+    #     max_x = int(max(zone_poly, key=lambda z: z[0])[0])
 
-        x = min_x + (max_x - min_x) / 2
-        y = self.world.pitch.height / 2
+    #     x = min_x + (max_x - min_x) / 2
+    #     y = self.world.pitch.height / 2
 
-        return (x, y)
+    #     return (x, y)
 
 
 # Attacker robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
@@ -359,7 +370,7 @@ class Milestone2AttGrab(Strategy):
         if self.our_attacker.has_ball(self.ball):
             self.current_state = 'GRABBED'
         else:
-            self.our_attacker.catcher = 'closed'
+            self.our_attacker.catcher = 'CLOSED'
             grab(self.robotCom)
 
 
@@ -520,8 +531,8 @@ class AttackerCatch(Strategy):
 
     def prepare(self):
         self.current_state = self.CATCH
-        if self.our_attacker.catcher == 'closed':
-            self.our_attacker.catcher = 'open'
+        if self.our_attacker.catcher == 'CATCH':
+            self.our_attacker.catcher = 'OPEN'
             return open_catcher()
         else:
             return do_nothing()

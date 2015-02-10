@@ -3,14 +3,14 @@ from world import Robot
 import time
 
 BALL_APPROACH_THRESHOLD = 20
-ROBOT_ALIGN_THRESHOLD = pi/8
+ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS = 80
 POWER_STRAIGHT_MAX = 80
 POWER_STRAIGHT_MIN = 50
 POWER_STOP_STRAIGHT = 70
 POWER_ROTATE_MAX = 40
-POWER_ROTATE_MIN = 30
+POWER_ROTATE_MIN = 25
 POWER_STOP_ROTATION = 30
 POWER_GRAB = 100
 POWER_KICK = 100
@@ -47,12 +47,12 @@ def moveStraight(robotCom, displacement):
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
-    time.sleep(0.5)
+    # time.sleep(0.5)
 
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
-    time.sleep(0.5)
+    # time.sleep(0.5)
 
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
@@ -62,7 +62,7 @@ def align_robot(robotCom, angle, angle_threshold):
 
     if(abs(angle) > angle_threshold):
         print "Aligning..."
-        power = (POWER_ROTATE_MAX * 0.12 * angle) + copysign(POWER_ROTATE_MIN, angle)
+        power = (POWER_ROTATE_MAX * 0.1 * angle) + copysign(POWER_ROTATE_MIN, angle)
         print "Power: " + str(power)
         robotCom.rotate(power)
         return False
