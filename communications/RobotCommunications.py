@@ -39,6 +39,10 @@ class RobotCommunications(Communications):
     def rotate(self, motorPower):
         self.write("ROTATE " + str(motorPower))
 
+    # Rotate and Grab - 2 args: power_rotate, power_grab
+    def rotate_and_grab(self, motorPower_r, motorPower_g):
+        self.write("RG " + str(motorPower_r) + " " + str(motorPower_g))
+
     def stopRotate(self, motorPower):
         self.write("STOP_ROTATE " + str(motorPower))
 

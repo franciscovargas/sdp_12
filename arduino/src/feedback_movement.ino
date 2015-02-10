@@ -30,6 +30,7 @@ void setup() {
     comm.addCommand("STOP_ROTATE", stop_rotating_wrapper);
     comm.addCommand("STOP", stop_all);
     comm.addCommand("ACTION", kg_wrapper);
+    comm.addCommand("RG", rg_wrapper);
 
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -125,6 +126,26 @@ void rotate(int power) {
     move_motor(LEFT_MOTOR, -1 * power);
     move_motor(RIGHT_MOTOR, power);
     move_motor(BACK_MOTOR, -0.8 * power);
+}
+
+// Rotate and grab function
+void rg_wrapper() {
+    int power_rotate;
+    int power_grab;
+
+    power_rotate = atoi(comm.next());
+    power_grab = atoi(comm.next());
+
+    rotate_and_grab(power_rotate, power_grab);
+}
+
+void rotate_and_grab(int power_rotate, int power_grab){
+    //Rotate
+    move_motor(LEFT_MOTOR, -1 * power_rotate);
+    move_motor(RIGHT_MOTOR, power_rotate);
+    move_motor(BACK_MOTOR, -0.8 * power_rotate);
+    // Grab
+    move_motor(KICK_MOTOR, -power_grab);
 }
 
 void stop_rotating_wrapper() {

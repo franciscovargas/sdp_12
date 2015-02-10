@@ -40,6 +40,10 @@ class TestCommunications(Communications):
     def rotate(self, motorPower):
         print "ROTATE " + str(motorPower)
 
+    # Rotate and Grab - 2 args: power_rotate, power_grab
+    def rotate_and_grab(self, motorPower_r, motorPower_g):
+        self.write("RG " + str(motorPower_r) + " " + str(motorPower_g))
+
     def stopRotate(self, motorPower):
         print "STOP_ROTATE " + str(motorPower)
 
@@ -47,6 +51,9 @@ class TestCommunications(Communications):
     # on how far we need to kick or grab (it will probably be a constant)
     def grab(self, motorPower):
         print "ACTION GRAB " + str(motorPower)
+
+    def grab_cont(self, motorPower):
+        self.write("ACTION GRAB_CONT " + str(motorPower))
 
     def kick(self, motorPower):
         print "ACTION KICK " + str(motorPower)
