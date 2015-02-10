@@ -174,6 +174,9 @@ void kg_wrapper() {
     else if (strcmp(type, "GRAB") == 0) {
         grab(power);
     }
+    else if (strcmp(type, "GRAB_CONT") == 0) {
+        grab_continuous(power);
+    }
 }
 
 
@@ -212,6 +215,10 @@ void grab(int power) {
     motorAllStop();
 }
 
+void grab_continuous(int power) {
+    move_motor(KICK_MOTOR, -power);
+    Serial.println("Graaaabing");
+}
 
 
 // LEDs

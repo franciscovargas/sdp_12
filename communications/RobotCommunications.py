@@ -47,6 +47,9 @@ class RobotCommunications(Communications):
     def grab(self, motorPower):
         self.write("ACTION GRAB " + str(motorPower))
 
+    def grab(self, motorPower):
+        self.write("ACTION GRAB_CONT " + str(motorPower))
+
     def kick(self, motorPower):
         self.write("ACTION KICK " + str(motorPower))
 
