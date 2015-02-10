@@ -60,6 +60,8 @@ class Planner:
         return self._world.pitch.zones[zone].isInside(ball.x, ball.y)
 
     def plan(self):
+	print self.strat_state
+
         assert self.robotType in ['attacker', 'defender']
         our_defender = self._world.our_defender
         our_attacker = self._world.our_attacker

@@ -1,4 +1,4 @@
-from utilities import align_robot, predict_y_intersection, moveStraight, moveSideways, moveFromTo, has_matched, \
+from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, moveFromTo, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab
 from math import pi, sin, cos
 from random import randint
@@ -12,6 +12,7 @@ from utilities import calculate_motor_speed, open_catcher, kick_ball, turn_shoot
 class Strategy(object):
 
     PRECISE_BALL_ANGLE_THRESHOLD = pi / 15.0
+    ROBOT_ALIGN_THRESHOLD = pi/6
     UP, DOWN = 'UP', 'DOWN'
 
     def __init__(self, world, states):
@@ -43,8 +44,6 @@ class Milestone2Def(Strategy):
 
     STATES = ['UNALIGNED', 'DEFEND_GOAL']
 
-    ROBOT_ALIGN_THRESHOLD = pi/4
-
     def __init__(self, world, robotCom):
         super(Milestone2Def, self).__init__(world, self.STATES)
 
@@ -62,7 +61,7 @@ class Milestone2Def(Strategy):
 
     # Align robot so that he is 90 degrees from facing to goal
     def align(self):
-        if align_robot(self.robotCom, self.our_defender.angle, pi/2, self.ROBOT_ALIGN_THRESHOLD):
+        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, pi/2):
             self.current_state = 'DEFEND_GOAL'
 
     # Calculate ideal defending position and move there.
@@ -80,16 +79,16 @@ class Milestone2Def(Strategy):
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
         if predicted_y is not None:
             y = predicted_y - 7*sin(self.our_defender.angle)
-            y = max([y, 65])
-            y = min([y, self.world._pitch.height - 65])
+            y = max([y, 70])
+            y = min([y, self.world._pitch.height - 70])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
         else:
             # Try to be in same vertical position as the ball
             y = self.ball.y
-            y = max([y, 65])
-            y = min([y, self.world._pitch.height - 65])
+            y = max([y, 70])
+            y = min([y, self.world._pitch.height - 70])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
@@ -103,8 +102,6 @@ class Milestone2Def(Strategy):
 class Milestone2DefGrab(Strategy):
 
     STATES = ['ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
-
-    ROBOT_ALIGN_THRESHOLD = pi/8
 
     def __init__(self, world, robotCom):
         super(Milestone2DefGrab, self).__init__(world, self.STATES)
@@ -129,7 +126,9 @@ class Milestone2DefGrab(Strategy):
 	    angle += 2*pi
 	print 'Angle: ' + str(angle)
 	print 'Robot angle: ' + str(self.our_defender.angle)
-	if align_robot(self.robotCom, self.our_defender.angle, self.our_defender.angle + angle, self.ROBOT_ALIGN_THRESHOLD):
+	if align_robot(self.robotCom,
+		       self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y),
+		       self.ROBOT_ALIGN_THRESHOLD):
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
@@ -138,17 +137,20 @@ class Milestone2DefGrab(Strategy):
 	    angle += 2*pi
         if self.our_defender.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
-	    bbbbb
+	elif (abs(angle) > self.ROBOT_ALIGN_THRESHOLD):
+	    self.current_state = 'ROTATE_TO_BALL'
         else:
             moveStraight(self.robotCom, displacement)
 
     def grab(self):
         if self.our_defender.has_ball(self.ball):
             self.current_state = 'GRABBED'
+	    print 'FUCK FUCK FUCK FUCK'
+	    bbbbb
         else:
             self.our_defender.catcher = 'closed'
             grab(self.robotCom)
-
+	    
 
 # Defender robot - Move to center and pass the ball.
 class Milestone2DefPass(Strategy):
@@ -175,6 +177,7 @@ class Milestone2DefPass(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
+	bbbbbb
 
     def position(self):
         """

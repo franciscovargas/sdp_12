@@ -1,7 +1,7 @@
 from math import tan, pi, hypot, log, copysign
 from world import Robot
 
-BALL_ALIGN_THRESHOLD = 10
+BALL_ALIGN_THRESHOLD = 15
 ROBOT_ALIGN_THRESHOLD = pi/8
 
 POWER_SIDEWAYS = 80
@@ -56,42 +56,37 @@ def grab(robotCom):
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
 
-# rotate the robot until it is at the target alignment, with speed relative to
-# the difference between the robot and target alignments
-def align_robot(robotCom, robot_alignment, target_alignment, angle_threshold):
-    difference = normalize_angle(robot_alignment, target_alignment)
-    print "Difference: " + str(difference)
+# rotate the robot until it is at the target angle, with speed relative to
+# the difference between the robot and target angles
+def align_robot(robotCom, angle, angle_threshold):
+    #angle = normalize_angle(angle)
+    #print "Normalized angle: %f" % angle
 
-    if (difference > pi):
-        direction = 1
-        difference = 2*pi - difference
-    else:
-        direction = -1
 
-    print "Difference in align_robot: " + str(difference)
-
-    if(difference > angle_threshold):
+    if(abs(angle) > angle_threshold):
         print "Aligning..."
-        power = (POWER_ROTATE * 0.15 * difference) + 30
+        power = (POWER_ROTATE * 0.15 * angle) + copysign(27, angle)
         print "Power: " + str(power)
-        robotCom.rotate(direction * power)
+        robotCom.rotate(power)
         return False
     else:
-        robotCom.stopRotate(direction * -POWER_STOP_ROTATION)
+        robotCom.stopRotate(copysign(1, angle) * -POWER_STOP_ROTATION)
         return True
 
-# to find the angle between the robot's alignment and our target alignment,
-# makes the target angle 0/the origin, and returns the robot's alignment in terms of that
-def normalize_angle(robot_alignment, target_alignment):
-    robot_alignment -= target_alignment
+# to find the angle between the robot's angle and our target angle,
+# makes the target angle 0/the origin, and returns the robot's angle in terms of that
+def normalize_angle(angle):
 
-    if(robot_alignment >= 2*pi):
-        robot_alignment -= 2*pi
-    elif(robot_alignment < 0):
-        robot_alignment += 2*pi
+    if(angle >= 2*pi):
+        angle -= 2*pi
+    elif(angle < 0):
+        angle += 2*pi
 
-    return robot_alignment
+    return angle
 
+def align_robot_to_pitch(robotCom, robot_angle, alignment_angle):
+    absolute_angle = alignment_angle - robot_angle
+    return align_robot(robotCom, absolute_angle, ROBOT_ALIGN_THRESHOLD)
 
 
 # not using the below
