@@ -1,7 +1,8 @@
 from world import World
 from strategies import AttackerDefend, AttackerGrab, AttackerGrabCareful, AttackerDriveByTurn, AttackerDriveBy, \
     AttackerTurnScore, AttackerScoreDynamic, AttackerPositionCatch, AttackerCatch, Milestone2Def, Milestone2DefPass, \
-    Milestone2DefGrab, Milestone2AttGrab, Milestone2AttKick, DefenderDefence, DefenderGrab, DefenderBouncePass
+    Milestone2DefGrab, Milestone2AttGrab, Milestone2AttKick, DefenderDefence, DefenderGrab, DefenderBouncePass, \
+    Milestone2AttStandby
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
@@ -16,7 +17,7 @@ class Planner:
         self.robotCom = robotCom
         self.robotType = robotType
 
-        self._attacker_strategies = {'defending': [Milestone2AttGrab, AttackerDefend],
+        self._attacker_strategies = {'defending': [Milestone2AttStandby, AttackerDefend],
                                      'fetching': [Milestone2AttGrab, AttackerGrab, AttackerGrabCareful],
                                      'shooting': [Milestone2AttKick, AttackerDriveBy, AttackerTurnScore, AttackerScoreDynamic],
                                      'receiving': [AttackerPositionCatch, AttackerCatch]}
@@ -127,8 +128,11 @@ class Planner:
                     self.get_next_strategy()
                     print "Ball in our zone, switching from defending/receiving to fetching"
 
-            else:
+            elif self._state != 'defending':
                 self._state = 'defending'
                 self.get_next_strategy()
+        
+            else:
+                self._state = 'defending'
 
         return self._current_strategy.next_action()

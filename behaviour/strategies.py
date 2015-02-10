@@ -230,6 +230,29 @@ class Milestone2DefPass(Strategy):
 
         return (x, y)
 
+# When the ball is not in our zone, do nothing.
+class Milestone2AttStandby(Strategy):
+
+    STATES = ['STOP', 'DO_NOTHING']
+
+    def __init__(self, world, robotCom):
+        super(Milestone2AttStandby, self).__init__(world, self.STATES)
+
+        self.NEXT_ACTION_MAP = {
+            'STOP': self.stopRobot,
+            'DO_NOTHING': self.doNothing
+        }
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
+
+    # Stop the robot if he was moving before.
+    def stopRobot(self):
+        stop(self.robotCom)
+        self.current_state = 'DO_NOTHING'
+
+    def doNothing(self):
+        do_nothing()
 
 # Attacker robot - Rotate towards the goal and kick the ball
 class Milestone2AttKick(Strategy):

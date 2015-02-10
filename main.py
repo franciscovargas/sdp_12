@@ -76,7 +76,7 @@ class Controller:
             self.planner = Planner(our_side=our_side,
                                    pitch_num=self.pitch,
                                    robotCom=self.robotCom,
-                                   robotType='defender')
+                                   robotType='attacker')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
