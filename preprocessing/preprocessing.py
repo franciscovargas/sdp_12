@@ -49,6 +49,5 @@ class Preprocessing(object):
         Normalize an image based on its Saturation channel. Returns BGR version
         of the image.
         """
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        frame[:, :, 1] = cv2.equalizeHist(frame[:, :, 1])
-        return cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
+        frame[1, :, :] = cv2.equalizeHist(frame[1, :, :])
+        return frame
