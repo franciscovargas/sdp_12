@@ -11,7 +11,7 @@ from utilities import calculate_motor_speed, open_catcher, kick_ball, turn_shoot
 
 class Strategy(object):
 
-    PRECISE_BALL_ANGLE_THRESHOLD = pi / 15.0
+    PRECISE_BALL_ANGLE_THRESHOLD = pi / 8
     ROBOT_ALIGN_THRESHOLD = pi/6
     UP, DOWN = 'UP', 'DOWN'
 
@@ -68,7 +68,7 @@ class Milestone2Def(Strategy):
     def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
         type_of_movement = 'straight'
-        
+
         # If the robot somehew unaligned himself.
         if (abs(self.our_defender.angle - pi/2) > self.ROBOT_ALIGN_THRESHOLD):
             self.current_state = 'UNALIGNED'
@@ -92,11 +92,12 @@ class Milestone2Def(Strategy):
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
-    
+
         if type_of_movement == 'straight':
             moveStraight(self.robotCom, displacement)
         elif type_of_movement == 'sideways':
             moveSideways(self.robotCom, displacement)
+
 
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class Milestone2DefGrab(Strategy):
@@ -108,7 +109,7 @@ class Milestone2DefGrab(Strategy):
 
         self.NEXT_ACTION_MAP = {
             'ROTATE_TO_BALL': self.rotate,
-	    'MOVE_TO_BALL': self.position,
+            'MOVE_TO_BALL': self.position,
             'GRAB_BALL': self.grab,
             'GRABBED': do_nothing
         }
@@ -118,39 +119,41 @@ class Milestone2DefGrab(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
-    
+
     def rotate(self):
-	displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
-	
-	if angle < 0:
-	    angle += 2*pi
-	print 'Angle: ' + str(angle)
-	print 'Robot angle: ' + str(self.our_defender.angle)
-	if align_robot(self.robotCom,
-		       self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y),
-		       self.ROBOT_ALIGN_THRESHOLD):
+        displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
+
+        if angle < 0:
+            angle += 2*pi
+
+        print 'Angle: ' + str(angle)
+        print 'Robot angle: ' + str(self.our_defender.angle)
+
+        if align_robot(self.robotCom,
+                       self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y),
+                       self.ROBOT_ALIGN_THRESHOLD):
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
-	if angle < 0:
-	    angle += 2*pi
+        if angle > pi:
+            angle = 2*pi - angle
+
         if self.our_defender.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
-	elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
-	    self.current_state = 'ROTATE_TO_BALL'
+        elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'ROTATE_TO_BALL'
         else:
             moveStraight(self.robotCom, displacement)
 
     def grab(self):
         if self.our_defender.has_ball(self.ball):
             self.current_state = 'GRABBED'
-	    print 'FUCK FUCK FUCK FUCK'
-	    bbbbb
+            print 'FUCK FUCK FUCK FUCK'
         else:
             self.our_defender.catcher = 'closed'
             grab(self.robotCom)
-	    
+
 
 # Defender robot - Move to center and pass the ball.
 class Milestone2DefPass(Strategy):
@@ -177,7 +180,6 @@ class Milestone2DefPass(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
-	bbbbbb
 
     def position(self):
         """
@@ -228,6 +230,7 @@ class Milestone2DefPass(Strategy):
 
         return (x, y)
 
+
 # Attacker robot - Rotate towards the goal and kick the ball
 class Milestone2AttKick(Strategy):
 
@@ -248,7 +251,6 @@ class Milestone2AttKick(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
-
 
     def rotate(self):
         """
@@ -285,16 +287,18 @@ class Milestone2AttKick(Strategy):
 
         return (x, y)
 
+
 # Attacker robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class Milestone2AttGrab(Strategy):
 
-    STATES = ['GO_TO_BALL', 'GRAB_BALL', 'GRABBED']
+    STATES = ['ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
         super(Milestone2AttGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
-            'GO_TO_BALL': self.position,
+            'ROTATE_TO_BALL': self.rotate,
+            'MOVE_TO_BALL': self.position,
             'GRAB_BALL': self.grab,
             'GRABBED': do_nothing
         }
@@ -305,12 +309,32 @@ class Milestone2AttGrab(Strategy):
         # Used to communicate with the robot
         self.robotCom = robotCom
 
+    def rotate(self):
+        displacement, angle = self.our_attacker.get_direction_to_point(self.ball.x, self.ball.y)
+
+        if angle < 0:
+            angle += 2*pi
+
+        print 'Angle: ' + str(angle)
+        print 'Robot angle: ' + str(self.our_attacker.angle)
+
+        if align_robot(self.robotCom,
+                       self.our_attacker.get_rotation_to_point(self.ball.x, self.ball.y),
+                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'MOVE_TO_BALL'
+
     def position(self):
         displacement, angle = self.our_attacker.get_direction_to_point(self.ball.x, self.ball.y)
+
+        if angle > pi:
+            angle = 2*pi - angle
+
         if self.our_attacker.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
+        elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'ROTATE_TO_BALL'
         else:
-            moveFromTo(self.robotCom, displacement, self.our_defender.angle, angle)
+            moveStraight(self.robotCom, displacement)
 
     def grab(self):
         if self.our_attacker.has_ball(self.ball):
@@ -422,7 +446,7 @@ class AttackerDefend(Strategy):
         }
 
         zone = self.world._pitch._zones[self.world.our_attacker.zone]
-        min_x, max_x, min_y, max_y  = zone.boundingBox()
+        min_x, max_x, min_y, max_y = zone.boundingBox()
         self.center_x = (min_x + max_x)/2
         self.center_y = (min_y + max_y)/2
         self.our_attacker = self.world.our_attacker

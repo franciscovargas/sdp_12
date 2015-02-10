@@ -1,7 +1,7 @@
 from math import tan, pi, hypot, log, copysign
 from world import Robot
 
-BALL_ALIGN_THRESHOLD = 10
+BALL_APPROACH_THRESHOLD = 20
 ROBOT_ALIGN_THRESHOLD = pi/8
 
 POWER_SIDEWAYS = 80
@@ -18,23 +18,24 @@ def stop(robotCom):
 
 # Moving sideways
 def moveSideways(robotCom, displacement):
-    if abs(displacement) > BALL_ALIGN_THRESHOLD:
+    if abs(displacement) > BALL_APPROACH_THRESHOLD:
         power = copysign(POWER_SIDEWAYS, displacement)
         robotCom.moveSideways(power)
     else:
         robotCom.stop()
 
-# Move straight indefinitely trying to defend
-def moveStraight(robotCom, displacement):
-    if abs(displacement) > BALL_ALIGN_THRESHOLD:
-        power = copysign(POWER_STRAIGHT, displacement)
-        robotCom.moveStraight(power)
-    else:
-        robotCom.stopStraight(-POWER_STOP_STRAIGHT)
+# # Move straight indefinitely trying to defend
+# def moveStraight(robotCom, displacement):
+#     if abs(displacement) > BALL_APPROACH_THRESHOLD:
+#         power = copysign(POWER_STRAIGHT, displacement)
+#         robotCom.moveStraight(power)
+#     else:
+#         robotCom.stopStraight(-POWER_STOP_STRAIGHT)
 
 # Move straight, with speed relative to the distance left to cover
 def moveStraight(robotCom, displacement):
-    if abs(displacement) > BALL_ALIGN_THRESHOLD:
+    print "Absolute displacement to destination: %d" % displacement
+    if abs(displacement) > BALL_APPROACH_THRESHOLD:
         power = (POWER_STRAIGHT * 0.005 * displacement) + copysign(40, displacement)
         robotCom.moveStraight(power)
     else:
@@ -62,10 +63,9 @@ def align_robot(robotCom, angle, angle_threshold):
     #angle = normalize_angle(angle)
     #print "Normalized angle: %f" % angle
 
-
     if(abs(angle) > angle_threshold):
         print "Aligning..."
-        power = (POWER_ROTATE * 0.15 * angle) + copysign(25, angle)
+        power = (POWER_ROTATE * 0.12 * angle) + copysign(25, angle)
         print "Power: " + str(power)
         robotCom.rotate(power)
         return False
@@ -84,8 +84,8 @@ def normalize_angle(angle):
 
     return angle
 
-def align_robot_to_pitch(robotCom, robot_angle, alignment_angle):
-    absolute_angle = alignment_angle - robot_angle
+def align_robot_to_pitch(robotCom, robot_angle, pitch_alignment_angle):
+    absolute_angle = pitch_alignment_angle - robot_angle
     return align_robot(robotCom, absolute_angle, ROBOT_ALIGN_THRESHOLD)
 
 

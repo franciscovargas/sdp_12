@@ -80,15 +80,15 @@ class Planner:
 
             # We have the ball in our zone, so we fetching and passing:
             else:
-                # If the ball is still moving, keep defending
-                if ball.velocity >= BALL_MOVING:
-                    if self._state != 'defending':
-                        self._state = 'defending'
-                        self.get_next_strategy()
-                    print "Defending, ball in our zone but moving"
+                # # If the ball is still moving, keep defending
+                # if ball.velocity >= BALL_MOVING:
+                #     if self._state != 'defending':
+                #         self._state = 'defending'
+                #         self.get_next_strategy()
+                #     print "Defending, ball in our zone but moving"
 
                 # If we've grabbed the ball, switch to a passing strategy.
-                elif self._state == 'fetching' and self.strat_state == 'GRABBED':
+                if self._state == 'fetching' and self.strat_state == 'GRABBED':
                     self._state = 'passing'
                     self.get_next_strategy()
                     print "We've grabbed the ball"
@@ -104,10 +104,10 @@ class Planner:
                     self.get_next_strategy()
                     print "Passing the ball"
                 else:
-                    print "Doing nothing"
+                    print "Keeping same strategy"
 
         elif self.robotType == 'attacker':
-            # If ball is in our attacker zone, then fetch the ball and shoot:
+
             if self.in_zone(ball, our_attacker.zone):
 
                 # Check if we should switch from a fetching to a scoring strategy.
@@ -128,6 +128,7 @@ class Planner:
                     print "Ball in our zone, switching from defending/receiving to fetching"
 
             else:
-                print "Doing nothing"
+                self._state = 'defending'
+                self.get_next_strategy()
 
         return self._current_strategy.next_action()
