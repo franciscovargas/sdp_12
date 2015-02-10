@@ -101,8 +101,8 @@ class Planner:
                     print "Defending, fetching the ball"
 
                 elif self._state == 'passing' and self.strat_state == 'FINISHED':
-                    self._state = 'fetching'
-                    self.get_next_strategy()
+                    #self._state = 'fetching'
+                    #self.get_next_strategy()
                     print "Passing the ball"
                 else:
                     print "Keeping same strategy"
@@ -117,10 +117,11 @@ class Planner:
                     self.get_next_strategy()
                     print "Ball grabbed, shooting"
 
-                # Check if we managed to shoot the ball and swith to fetching strategy.
+                # Check if we managed to shoot the ball..
                 elif self._state == 'shooting' and self.strat_state == 'FINISHED':
-                    self._state = 'fetching'
-                    self.get_next_strategy()
+                    # Robot stops now and waits until the ball goes outside his zone.
+                        #self._state = 'fetching'
+                        #self.get_next_strategy()
                     print "Finished shooting, switching to fetching"
 
                 elif self._state == 'defending':
