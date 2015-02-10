@@ -1,7 +1,7 @@
 from math import tan, pi, hypot, log, copysign
 from world import Robot
 
-BALL_ALIGN_THRESHOLD = 15
+BALL_ALIGN_THRESHOLD = 10
 ROBOT_ALIGN_THRESHOLD = pi/8
 
 POWER_SIDEWAYS = 80
@@ -65,12 +65,12 @@ def align_robot(robotCom, angle, angle_threshold):
 
     if(abs(angle) > angle_threshold):
         print "Aligning..."
-        power = (POWER_ROTATE * 0.15 * angle) + copysign(27, angle)
+        power = (POWER_ROTATE * 0.15 * angle) + copysign(25, angle)
         print "Power: " + str(power)
         robotCom.rotate(power)
         return False
     else:
-        robotCom.stopRotate(copysign(1, angle) * -POWER_STOP_ROTATION)
+        robotCom.stop()
         return True
 
 # to find the angle between the robot's angle and our target angle,
