@@ -137,7 +137,7 @@ class Milestone2DefGrab(Strategy):
 	    angle += 2*pi
         if self.our_defender.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
-	elif (abs(angle) > self.ROBOT_ALIGN_THRESHOLD):
+	elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
 	    self.current_state = 'ROTATE_TO_BALL'
         else:
             moveStraight(self.robotCom, displacement)
