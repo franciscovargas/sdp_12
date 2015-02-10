@@ -6,9 +6,11 @@ BALL_APPROACH_THRESHOLD = 20
 ROBOT_ALIGN_THRESHOLD = pi/8
 
 POWER_SIDEWAYS = 80
-POWER_STRAIGHT = 70
+POWER_STRAIGHT_MAX = 80
+POWER_STRAIGHT_MIN = 50
 POWER_STOP_STRAIGHT = 70
-POWER_ROTATE = 40
+POWER_ROTATE_MAX = 40
+POWER_ROTATE_MIN = 30
 POWER_STOP_ROTATION = 30
 POWER_GRAB = 100
 POWER_KICK = 100
@@ -37,18 +39,10 @@ def moveSideways(robotCom, displacement):
 def moveStraight(robotCom, displacement):
     print "Absolute displacement to destination: %d" % displacement
     if abs(displacement) > BALL_APPROACH_THRESHOLD:
-        power = (POWER_STRAIGHT * 0.005 * displacement) + copysign(40, displacement)
+        power = (POWER_STRAIGHT_MAX * 0.005 * displacement) + copysign(POWER_STRAIGHT_MIN, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
-
-# Move from A to B
-def moveFromTo(robotCom, displacement, robot_angle, target_angle):
-    if align_robot(robotCom, robot_angle, target_angle, ROBOT_ALIGN_THRESHOLD):
-        if not (displacement is None):
-            moveStraight(robotCom, displacement)
-        else:
-            stop(robotCom)
 
 # Grab the ball
 def grab(robotCom):
@@ -68,7 +62,7 @@ def align_robot(robotCom, angle, angle_threshold):
 
     if(abs(angle) > angle_threshold):
         print "Aligning..."
-        power = (POWER_ROTATE * 0.12 * angle) + copysign(35, angle)
+        power = (POWER_ROTATE_MAX * 0.12 * angle) + copysign(POWER_ROTATE_MIN, angle)
         print "Power: " + str(power)
         robotCom.rotate(power)
         return False

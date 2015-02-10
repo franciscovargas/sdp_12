@@ -1,4 +1,4 @@
-from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, moveFromTo, has_matched, \
+from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab
 from math import pi, sin, cos
 from random import randint
