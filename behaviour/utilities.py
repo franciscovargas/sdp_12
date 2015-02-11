@@ -15,6 +15,8 @@ POWER_STOP_ROTATION = 25
 POWER_GRAB = 100
 POWER_KICK = 100
 
+BALL_MOVING = 3
+
 # Stop everything
 def stop(robotCom):
     robotCom.stop()
@@ -56,7 +58,7 @@ def kick(robotCom):
 
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
-def align_robot(robotCom, angle, angle_threshold):
+def align_robot(robotCom, angle, angle_threshold, grab=False):
     #angle = normalize_angle(angle)
     #print "Normalized angle: %f" % angle
 
@@ -64,11 +66,21 @@ def align_robot(robotCom, angle, angle_threshold):
         print "Aligning..."
         power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
         print "Power: " + str(power)
-        robotCom.rotate(power)
+        if grab:
+            print "Rotating and grabbing"
+            robotCom.rotateAndGrab(power, 100)
+        else:
+            print "Rotating without grabbing"
+            robotCom.rotate(power)
         return False
     else:
         robotCom.stop()
         return True
+
+def align_robot_to_pitch(robotCom, robot_angle, pitch_alignment_angle, grab=False):
+    absolute_angle = pitch_alignment_angle - robot_angle
+    return align_robot(robotCom, absolute_angle, ROBOT_ALIGN_THRESHOLD, grab)
+
 
 # to find the angle between the robot's angle and our target angle,
 # makes the target angle 0/the origin, and returns the robot's angle in terms of that
@@ -80,12 +92,6 @@ def normalize_angle(angle):
         angle += 2*pi
 
     return angle
-
-def align_robot_to_pitch(robotCom, robot_angle, pitch_alignment_angle):
-    absolute_angle = pitch_alignment_angle - robot_angle
-    return align_robot(robotCom, absolute_angle, ROBOT_ALIGN_THRESHOLD)
-
-
 # not using the below
 
 
@@ -99,7 +105,6 @@ ANGLE_MATCH_THRESHOLD = pi/10
 BALL_ANGLE_THRESHOLD = pi/20
 MAX_DISPLACEMENT_SPEED = 690
 MAX_ANGLE_SPEED = 50
-BALL_MOVING = 0.5
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''

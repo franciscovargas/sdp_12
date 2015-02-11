@@ -10,7 +10,7 @@ int LEFT_MOTOR = 1;
 int RIGHT_MOTOR = 2;
 int BACK_MOTOR = 3;
 int KICK_MOTOR = 4;
-float KICK_TIME = 0.25; // TEST for the time to open/close (at full power)
+float KICK_TIME = 0.75; // TEST for the time to open/close (at full power)
 // Will use this time to accomodate grabbing (depending on the power)
 
 void setup() {
@@ -30,7 +30,7 @@ void setup() {
     comm.addCommand("STOP_ROTATE", stop_rotating_wrapper);
     comm.addCommand("STOP", stop_all);
     comm.addCommand("ACTION", kg_wrapper);
-    comm.addCommand("RG", rg_wrapper);
+    comm.addCommand("ROTATE_GRAB", rg_wrapper);
 
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -139,7 +139,7 @@ void rg_wrapper() {
     rotate_and_grab(power_rotate, power_grab);
 }
 
-void rotate_and_grab(int power_rotate, int power_grab){
+void rotate_and_grab(int power_rotate, int power_grab) {
     //Rotate
     move_motor(LEFT_MOTOR, -1 * power_rotate);
     move_motor(RIGHT_MOTOR, power_rotate);

@@ -127,15 +127,18 @@ class Milestone2DefGrab(Strategy):
         self.current_state = 'ROTATE_TO_BALL'
 
     def rotate(self):
+        angle = self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y)
+
+        if angle > pi:
+            angle = 2*pi - angle
+
         if align_robot(self.robotCom,
-                       self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y),
+                       angle,
                        self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
-
-        print "Angle to ball: %f" % angle
 
         if angle > pi:
             angle = 2*pi - angle
@@ -162,7 +165,9 @@ class Milestone2DefGrab(Strategy):
 # Defender robot - Move to center and pass the ball.
 class Milestone2DefPass(Strategy):
 
-    STATES = ['ROTATE_TO_MIDDLE', 'GO_TO_MIDDLE', 'ROTATE_TO_GOAL', 'SHOOT', 'FINISHED']
+    STATES = ['ROTATE_TO_MIDDLE',
+              # 'GO_TO_MIDDLE', 'ROTATE_TO_GOAL',
+              'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
         super(Milestone2DefPass, self).__init__(world, self.STATES)
@@ -216,7 +221,8 @@ class Milestone2DefPass(Strategy):
 
         if align_robot_to_pitch(self.robotCom,
                                 self.our_defender.angle,
-                                0):
+                                0,
+                                grab=True):
             self.current_state = 'SHOOT'
 
     def shoot(self):
@@ -246,37 +252,12 @@ class Milestone2DefPass(Strategy):
         return (x, y)
 
 # When the ball is not in our zone, do nothing.
-class Milestone2DefStandby(Strategy):
+class Milestone2Standby(Strategy):
 
     STATES = ['STOP', 'DO_NOTHING']
 
     def __init__(self, world, robotCom):
-        super(Milestone2DefStandby, self).__init__(world, self.STATES)
-
-        self.NEXT_ACTION_MAP = {
-            'STOP': self.stopRobot,
-            'DO_NOTHING': self.doNothing
-        }
-
-        # Used to communicate with the robot
-        self.robotCom = robotCom
-
-    # Stop the robot if he was moving before.
-    def stopRobot(self):
-        stop(self.robotCom)
-        self.current_state = 'DO_NOTHING'
-
-    def doNothing(self):
-        do_nothing()
-
-
-# When the ball is not in our zone, do nothing.
-class Milestone2AttStandby(Strategy):
-
-    STATES = ['STOP', 'DO_NOTHING']
-
-    def __init__(self, world, robotCom):
-        super(Milestone2AttStandby, self).__init__(world, self.STATES)
+        super(Milestone2Standby, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'STOP': self.stopRobot,
@@ -319,9 +300,13 @@ class Milestone2AttKick(Strategy):
     def rotate(self):
         angle = self.our_attacker.get_rotation_to_point(self.world.their_goal.x, self.world.their_goal.y)
 
+        if angle > pi:
+            angle = 2*pi - angle
+
         if align_robot(self.robotCom,
                        angle,
-                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+                       self.PRECISE_BALL_ANGLE_THRESHOLD,
+                       grab=True):
             stop(self.robotCom)
             self.current_state = 'SHOOT'
 
@@ -378,8 +363,8 @@ class Milestone2AttGrab(Strategy):
     def rotate(self):
         angle = self.our_attacker.get_direction_to_point(self.ball.x, self.ball.y)
 
-        if angle < 0:
-            angle += 2*pi
+        if angle > pi:
+            angle = 2*pi - angle
 
         if align_robot(self.robotCom,
                        self.our_attacker.get_rotation_to_point(self.ball.x, self.ball.y),
