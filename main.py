@@ -29,7 +29,7 @@ class Controller:
     USE_REAL_ROBOT = True
 
     def __init__(self,
-                 pitch, 
+                 pitch,
                  color,
                  our_side,
                  video_port=0,
@@ -56,14 +56,14 @@ class Controller:
         self.pitch = pitch
         # Set up communications if thre are any
         try:
-            self.robotComs = RobotCommunications(debug=True)
+            self.robotComs = RobotCommunications(debug=False)
         except:
             print("arduino unplugged moving on to vision")
 
         # Set up robot communications to bet sent to planner.
         if self.USE_REAL_ROBOT:
             try:
-                self.robotCom = RobotCommunications(debug=True)
+                self.robotCom = RobotCommunications(debug=False)
             except:
                 self.robotCom = TestCommunications(debug=True)
                 print 'Not connected to the radio, using TestCommunications instead.'
@@ -76,7 +76,7 @@ class Controller:
             self.planner = Planner(our_side=our_side,
                                    pitch_num=self.pitch,
                                    robotCom=self.robotCom,
-                                   robotType='defender')
+                                   robotType='attacker')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)

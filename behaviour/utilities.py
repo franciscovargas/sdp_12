@@ -2,16 +2,16 @@ from math import tan, pi, hypot, log, copysign
 from world import Robot
 import time
 
-BALL_APPROACH_THRESHOLD = 20
+BALL_APPROACH_THRESHOLD = 30
 ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS = 80
-POWER_STRAIGHT_MAX = 80
-POWER_STRAIGHT_MIN = 50
+POWER_STRAIGHT_MODIFIER = 60
+POWER_STRAIGHT_BASE = 40
 POWER_STOP_STRAIGHT = 70
-POWER_ROTATE_MAX = 40
-POWER_ROTATE_MIN = 25
-POWER_STOP_ROTATION = 30
+POWER_ROTATE_MODIFIER = 3.5
+POWER_ROTATE_BASE = 25
+POWER_STOP_ROTATION = 25
 POWER_GRAB = 100
 POWER_KICK = 100
 
@@ -39,7 +39,7 @@ def moveSideways(robotCom, displacement):
 def moveStraight(robotCom, displacement):
     print "Absolute displacement to destination: %d" % displacement
     if abs(displacement) > BALL_APPROACH_THRESHOLD:
-        power = (POWER_STRAIGHT_MAX * 0.005 * displacement) + copysign(POWER_STRAIGHT_MIN, displacement)
+        power = (POWER_STRAIGHT_MODIFIER * 0.005 * displacement) + copysign(POWER_STRAIGHT_BASE, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
@@ -47,12 +47,12 @@ def moveStraight(robotCom, displacement):
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
-    # time.sleep(0.5)
+    time.sleep(0.5)
 
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
-    # time.sleep(0.5)
+    time.sleep(0.5)
 
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
@@ -62,7 +62,7 @@ def align_robot(robotCom, angle, angle_threshold):
 
     if(abs(angle) > angle_threshold):
         print "Aligning..."
-        power = (POWER_ROTATE_MAX * 0.1 * angle) + copysign(POWER_ROTATE_MIN, angle)
+        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
         print "Power: " + str(power)
         robotCom.rotate(power)
         return False
@@ -99,7 +99,7 @@ ANGLE_MATCH_THRESHOLD = pi/10
 BALL_ANGLE_THRESHOLD = pi/20
 MAX_DISPLACEMENT_SPEED = 690
 MAX_ANGLE_SPEED = 50
-BALL_MOVING = 3
+BALL_MOVING = 0.5
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''

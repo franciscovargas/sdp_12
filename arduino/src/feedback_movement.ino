@@ -10,9 +10,8 @@ int LEFT_MOTOR = 1;
 int RIGHT_MOTOR = 2;
 int BACK_MOTOR = 3;
 int KICK_MOTOR = 4;
-float KICK_TIME = 0.75; // TEST for the time to open/close (at full power)
+float KICK_TIME = 0.25; // TEST for the time to open/close (at full power)
 // Will use this time to accomodate grabbing (depending on the power)
-float GRAB_TIME = 0.5;
 
 void setup() {
     pinMode(13,OUTPUT);      // initialize pin 13 as digital output (LED)
@@ -224,13 +223,13 @@ void kick(int power) {
 // Grabber
 void grab(int power) {
     if (power != 100) {
-        float time_move = (200-power)/100 * GRAB_TIME;
+        float time_move = (200-power)/100 * KICK_TIME;
         move_motor(KICK_MOTOR, -power);
         delay(time_move*1000);
     }
     else {
         move_motor(KICK_MOTOR, -power);
-        delay(GRAB_TIME*1000);
+        delay(KICK_TIME*1000);
     }
 
     Serial.println("Grabbing");

@@ -109,7 +109,7 @@ class Robot(PitchObject):
     def __init__(self, zone, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
         self._zone = zone
-        self._catcher = 'OPEN'
+        self._catcher = 'open'
 
     @property
     def zone(self):
@@ -148,7 +148,7 @@ class Robot(PitchObject):
         '''
         Gets if the robot has possession of the ball
         '''
-        return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+        return (self._catcher == 'closed') and self.can_catch_ball(ball)
 
     def get_rotation_to_point(self, x, y):
         '''
