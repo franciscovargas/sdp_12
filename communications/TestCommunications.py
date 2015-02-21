@@ -10,7 +10,6 @@ class TestCommunications(Communications):
 
     def __init__(self, debug=False):
         pass
-        #super(TestCommunications, self).__init__(debug)
 
     # Stops all motors
     def stop(self):
@@ -41,8 +40,8 @@ class TestCommunications(Communications):
         print "ROTATE " + str(motorPower)
 
     # Rotate and Grab - 2 args: power_rotate, power_grab
-    def rotate_and_grab(self, motorPower_r, motorPower_g):
-        self.write("RG " + str(motorPower_r) + " " + str(motorPower_g))
+    def rotateAndGrab(self, motorPower_r, motorPower_g):
+        print "RG " + str(motorPower_r) + " " + str(motorPower_g)
 
     def stopRotate(self, motorPower):
         print "STOP_ROTATE " + str(motorPower)

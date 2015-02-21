@@ -275,10 +275,9 @@ class Milestone2Standby(Strategy):
     def doNothing(self):
         do_nothing()
 
-# not using the below
 
 
-# This might be a good strategy for later. However, our kicker is probably too weak.
+# This might be a good strategy for later.
 class DefenderBouncePass(Strategy):
     '''
     Once the defender grabs the ball, move to the center of the zone and shoot towards

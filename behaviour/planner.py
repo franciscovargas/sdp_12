@@ -8,8 +8,7 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender._receiving_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
-        self._world.our_attacker._receiving_area = {'width': 30, 'height': 30, 'front_offset': 14}
+        self._world.our_defender._receiving_area = {'width': 30, 'height': 30, 'front_offset': 12}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
@@ -36,15 +35,6 @@ class Planner:
     def strat_state(self):
         return self._current_strategy.current_state
 
-    @property
-    def state(self):
-        return self._state
-
-    @state.setter
-    def state(self, new_state):
-        assert new_state in ['defending', 'attack']
-        self._state = new_state
-
     def update_world(self, position_dictionary):
         self._world.update_positions(position_dictionary)
 
@@ -52,7 +42,6 @@ class Planner:
         return self._world.pitch.zones[zone].isInside(ball.x, ball.y)
 
     def plan(self):
-        print self.strat_state
 
         our_defender = self._world.our_defender
         our_attacker = self._world.our_attacker
