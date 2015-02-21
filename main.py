@@ -54,11 +54,6 @@ class Controller:
         assert our_side in ['left', 'right']
 
         self.pitch = pitch
-        # Set up communications if thre are any
-        try:
-            self.robotComs = RobotCommunications(debug=False)
-        except:
-            print("arduino unplugged moving on to vision")
 
         # Set up robot communications to bet sent to planner.
         if self.USE_REAL_ROBOT:
@@ -70,12 +65,10 @@ class Controller:
         else:
             self.robotCom = TestCommunications(debug=True)
 
-        # Set up main planner
-        if(self.robotCom is not None):
-            # currently we are assuming we are the defender
-            self.planner = Planner(our_side=our_side,
-                                   pitch_num=self.pitch,
-                                   robotCom=self.robotCom)
+        # Set up the planner.
+        self.planner = Planner(our_side=our_side,
+                                pitch_num=self.pitch,
+                                robotCom=self.robotCom)
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
@@ -131,6 +124,10 @@ class Controller:
 
                 # Update planner world beliefs
                 self.planner.update_world(model_positions)
+
+                # The core of robot's behaviour.
+                # Decides on which action to perform based on current world beliefs.
+                # Calls robotCommunications to perform the action.
                 self.planner.plan()
 
                 # Use 'y', 'b', 'r' to change color.
