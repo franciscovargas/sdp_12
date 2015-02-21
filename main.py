@@ -1,12 +1,18 @@
-from vision.vision import Vision, Camera, GUI
+from vision.vision import Vision
+from vision.camera import Camera
+from vision.GUI import GUI
+import vision.tools as tools
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
-import vision.tools as tools
+from communications import RobotCommunications
 from cv2 import waitKey
 import cv2
 import serial
 import warnings
 import time
+from behaviour.planner import Planner
+from communications.RobotCommunications import RobotCommunications
+from communications.TestCommunications import TestCommunications
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -16,8 +22,19 @@ class Controller:
     """
     This class aims to be the bridge in between vision and strategy/logic
     """
+    robotCom = None
 
-    def __init__(self, pitch, color, our_side, video_port=0, comm_port='/dev/ttyACM0', comms=1):
+    # Set to True if we want to use the real robot.
+    # Set to False if we want to print out commands to console only.
+    USE_REAL_ROBOT = True
+
+    def __init__(self,
+                 pitch,
+                 color,
+                 our_side,
+                 video_port=0,
+                 comm_port='/dev/ttyACM0',
+                 comms=1):
         """
         Entry point for the SDP system.
 
@@ -37,6 +54,29 @@ class Controller:
         assert our_side in ['left', 'right']
 
         self.pitch = pitch
+        # Set up communications if thre are any
+        try:
+            self.robotComs = RobotCommunications(debug=False)
+        except:
+            print("arduino unplugged moving on to vision")
+
+        # Set up robot communications to bet sent to planner.
+        if self.USE_REAL_ROBOT:
+            try:
+                self.robotCom = RobotCommunications(debug=False)
+            except:
+                self.robotCom = TestCommunications(debug=True)
+                print 'Not connected to the radio, using TestCommunications instead.'
+        else:
+            self.robotCom = TestCommunications(debug=True)
+
+        # Set up main planner
+        if(self.robotCom is not None):
+            # currently we are assuming we are the defender
+            self.planner = Planner(our_side=our_side,
+                                   pitch_num=self.pitch,
+                                   robotCom=self.robotCom,
+                                   robotType='defender')
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
@@ -46,15 +86,15 @@ class Controller:
         # Set up vision
         self.calibration = tools.get_colors(pitch)
         self.vision = Vision(
-            pitch=pitch, color=color, our_side=our_side,
-            frame_shape=frame.shape, frame_center=center_point,
+            pitch=pitch,
+            color=color,
+            our_side=our_side,
+            frame_shape=frame.shape,
+            frame_center=center_point,
             calibration=self.calibration)
 
         # Set up postprocessing for vision
         self.postprocessing = Postprocessing()
-
-        # Set up main planner
-        # self.planner = Planner(our_side=our_side, pitch_num=self.pitch)
 
         # Set up GUI
         self.GUI = GUI(calibration=self.calibration, pitch=self.pitch)
@@ -89,7 +129,10 @@ class Controller:
                 #  IMPORTANT
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
-                print model_positions
+
+                # Update planner world beliefs
+                self.planner.update_world(model_positions)
+                self.planner.plan()
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
@@ -104,9 +147,11 @@ class Controller:
                 counter += 1
 
         except:
+            # This exception is stupid TODO: refactor.
             print("TODO SOMETHING CLEVER HERE")
             raise
-
+        finally:
+            tools.save_colors(self.pitch, self.calibration)
 
 if __name__ == '__main__':
     import argparse
