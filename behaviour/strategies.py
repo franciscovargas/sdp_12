@@ -5,9 +5,7 @@ from random import randint
 # Up until here are the imports that we're using
 
 # Imports from their code that are needed to compile (and maybe later)
-from utilities import calculate_motor_speed, open_catcher, kick_ball, turn_shoot, grab_ball, is_shot_blocked, \
-    is_attacker_shot_blocked
-
+from utilities import calculate_motor_speed, kick_ball, turn_shoot, is_shot_blocked
 
 class Strategy(object):
 
