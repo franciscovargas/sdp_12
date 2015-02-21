@@ -8,8 +8,5 @@ TODO:
         self._world.our_defender._receiving_area = {'width': 30, 'height': 30, 'front_offset': 12} # 10
         self._world.our_attacker._receiving_area = {'width': 30, 'height': 30, 'front_offset': 14}
 
-    Possible issue, if the robot accidentally kicks the ball before grabbing it, he is screwed
-
-    Grabbing, kicking and passing was tested for both kicker and attacker using the testCommunications.
-    Need to test it properly with the robot.
+    Possible issue, if the robot accidentally pushes the ball before grabbing it, he is screwed.
 
