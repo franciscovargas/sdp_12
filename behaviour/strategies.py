@@ -273,6 +273,78 @@ class Milestone2Standby(Strategy):
     def doNothing(self):
         do_nothing()
 
+'''
+
+# Pass ball to point
+# Add to strategies?
+class PassToPoint(Strategy):
+
+    STATES = ['ROTATE_TO_POINT',
+              'SHOOT', 'FINISHED']
+
+    def __init__(self, world, robotCom):
+        super(PassToPoint, self).__init__(world, self.STATES)
+
+        # Map states into functions
+        self.NEXT_ACTION_MAP = {
+            'ROTATE_TO_POINT': self.rotate,
+            'SHOOT': self.shoot,
+            'FINISHED': do_nothing
+        }
+
+        self.our_defender = self.world.our_defender
+        self.ball = self.world.ball
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
+
+
+    # Rotate robot towards the point
+    def rotate(self, robot):
+	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal 
+	x,y = #calculate point to go to?
+        angle = self.our_defender.get_rotation_to_point(x,y)
+
+        if angle > pi:
+            angle = 2*pi - angle
+
+        if align_robot(self.robotCom,
+                       angle,
+                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'SHOOT'
+    
+    # Not sure about this whole bit
+    def shoot(self):
+        """
+        Kick.
+        """
+        if (abs(self.our_defender.angle - 0) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'ROTATE_TO_POINT'
+        self.current_state = 'FINISHED'
+
+        kick(self.robotCom)
+        self.our_defender.catcher = 'OPEN'
+
+    def _get_shooting_coordinates(self, robot):
+        """
+        Retrieve the coordinates to which we need to move before we set up the pass.
+        """
+        zone_index = robot.zone
+        zone_poly = self.world.pitch.zones[zone_index][0]
+
+        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
+        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
+
+        x = min_x + (max_x - min_x) / 2
+        y = self.world.pitch.height / 2
+
+        return (x, y)
+
+
+
+'''
+
+
 
 
 # This might be a good strategy for later.
