@@ -118,7 +118,7 @@ class GUI(object):
         # Extend image downwards and draw states.
         blank = np.zeros_like(frame)[:200, :, :]
         frame_with_blank = np.vstack((frame, blank))
-        # self.draw_states(frame_with_blank, aState, dState, (frame_width, frame_height))
+        self.draw_states(frame_with_blank, dState, (frame_width, frame_height))
 
         if model_positions and regular_positions:
             for key in ['ball', 'our_defender', 'our_attacker', 'their_defender', 'their_attacker']:
@@ -247,19 +247,17 @@ class GUI(object):
             end_point = (x + r * np.cos(angle), y - r * np.sin(angle))
             self.draw_line(frame, (start_point, end_point))
 
-    def draw_states(self, frame, aState, dState, frame_offset):
+    def draw_states(self, frame, dState, frame_offset):
+        # print frame, frame_offset, dState,'\n'
         frame_width, frame_height = frame_offset
         x_main = lambda zz: (frame_width/4)*zz
         x_offset = 20
         y_offset = frame_height+140
 
-        self.draw_text(frame, "Attacker State:", x_main(1) - x_offset, y_offset, size=0.6)
-        self.draw_text(frame, aState[0], x_main(1) - x_offset, y_offset + 15, size=0.6)
-        self.draw_text(frame, aState[1], x_main(1) - x_offset, y_offset + 30, size=0.6)
-
         self.draw_text(frame, "Defender State:", x_main(2) + x_offset, y_offset, size=0.6)
-        self.draw_text(frame, dState[0], x_main(2) + x_offset, y_offset + 15, size=0.6)
-        self.draw_text(frame, dState[1], x_main(2)+x_offset, y_offset + 30, size=0.6)
+        self.draw_text(frame, "   "+dState[0], x_main(2) + x_offset, y_offset + 15, size=0.6)
+        self.draw_text(frame, "Strategy State:", x_main(2) + x_offset, y_offset+33, size=0.6)
+        self.draw_text(frame, "   "+dState[1], x_main(2)+x_offset, y_offset + 50, size=0.6)
 
     def draw_actions(self, frame, action, x, y):
         self.draw_text(
