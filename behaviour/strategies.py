@@ -7,6 +7,7 @@ from random import randint
 # Imports from their code that are needed to compile (and maybe later)
 from utilities import calculate_motor_speed, kick_ball, turn_shoot, is_shot_blocked
 
+
 class Strategy(object):
 
     PRECISE_BALL_ANGLE_THRESHOLD = pi/8
@@ -37,12 +38,12 @@ class Strategy(object):
 
 
 # Defend against incoming ball
-class Milestone2Def(Strategy):
+class Defending(Strategy):
 
     STATES = ['UNALIGNED', 'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
-        super(Milestone2Def, self).__init__(world, self.STATES)
+        super(Defending, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
@@ -97,12 +98,12 @@ class Milestone2Def(Strategy):
 
 
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
-class Milestone2DefGrab(Strategy):
+class DefendingGrab(Strategy):
 
     STATES = ['OPEN_CATCHER', 'ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
-        super(Milestone2DefGrab, self).__init__(world, self.STATES)
+        super(DefendingGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'OPEN_CATCHER': self.openCatcher,
@@ -161,14 +162,14 @@ class Milestone2DefGrab(Strategy):
 
 
 # Defender robot - Move to center and pass the ball.
-class Milestone2DefPass(Strategy):
+class DefendingPass(Strategy):
 
     STATES = ['ROTATE_TO_MIDDLE',
               # 'GO_TO_MIDDLE', 'ROTATE_TO_GOAL',
               'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
-        super(Milestone2DefPass, self).__init__(world, self.STATES)
+        super(DefendingPass, self).__init__(world, self.STATES)
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
@@ -249,13 +250,14 @@ class Milestone2DefPass(Strategy):
 
         return (x, y)
 
+
 # When the ball is not in our zone, do nothing.
-class Milestone2Standby(Strategy):
+class Standby(Strategy):
 
     STATES = ['STOP', 'DO_NOTHING']
 
     def __init__(self, world, robotCom):
-        super(Milestone2Standby, self).__init__(world, self.STATES)
+        super(Standby, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'STOP': self.stopRobot,
@@ -301,7 +303,7 @@ class PassToPoint(Strategy):
 
     # Rotate robot towards the point
     def rotate(self, robot):
-	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal 
+	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal
 	x,y = #calculate point to go to?
         angle = self.our_defender.get_rotation_to_point(x,y)
 
@@ -312,7 +314,7 @@ class PassToPoint(Strategy):
                        angle,
                        self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'SHOOT'
-    
+
     # Not sure about this whole bit
     def shoot(self):
         """
