@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 CONTROL = ["Lower threshold for hue", "Upper threshold for hue", "Lower threshold for saturation", "Upper threshold for saturation", "Lower threshold for value", "Upper threshold for value", "Contrast", "Gaussian blur"]
 MAXBAR = {"Lower threshold for hue":360,
@@ -121,6 +122,8 @@ class CalibrationGUI(object):
                 type: numpy array
 
         """
+        # plt.imshow(frame)
+        # plt.show()
         blur = self.calibration[self.color]['blur']
         if blur > 1:
             if blur % 2 == 0:
