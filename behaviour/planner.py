@@ -1,6 +1,6 @@
 from world import World
-from strategies import Milestone2Def, Milestone2DefPass, Milestone2DefGrab, \
-    DefenderBouncePass, Milestone2Standby
+from strategies import Defending, DefendingGrab, DefendingPass, \
+    DefenderBouncePass, Standby
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
@@ -13,10 +13,10 @@ class Planner:
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
 
-        self._defender_strategies = {'defending': [Milestone2Def],
-                                     'fetching': [Milestone2DefGrab],
-                                     'passing': [Milestone2DefPass, DefenderBouncePass],
-                                     'waiting': [Milestone2Standby]}
+        self._defender_strategies = {'defending': [Defending],
+                                     'fetching': [DefendingGrab],
+                                     'passing': [DefendingPass, DefenderBouncePass],
+                                     'waiting': [Standby]}
 
         # for milestone 2, we need to wait for the ball to start moving before defending
         self._state = 'waiting'
@@ -97,6 +97,6 @@ class Planner:
             else:
                 print "Keeping same strategy"
 
-     
+
 
         return self._current_strategy.next_action()
