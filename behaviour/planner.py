@@ -1,5 +1,5 @@
 from world import World
-from strategies import Defending, DefendingGrab, DefendingPass, \
+from strategies import Defending, DefendingGrab, DefendingPass, PassToAttacker \
     DefenderBouncePass, Standby
 from utilities import calculate_motor_speed, BALL_MOVING
 
@@ -15,7 +15,7 @@ class Planner:
 
         self._defender_strategies = {'defending': [Defending],
                                      'fetching': [DefendingGrab],
-                                     'passing': [DefendingPass, DefenderBouncePass],
+                                     'passing': [PassToAttacker, DefenderBouncePass],
                                      'waiting': [Standby]}
 
         # for milestone 2, we need to wait for the ball to start moving before defending

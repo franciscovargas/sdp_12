@@ -275,17 +275,15 @@ class Standby(Strategy):
     def doNothing(self):
         do_nothing()
 
-'''
 
-# Pass ball to point
-# Add to strategies?
-class PassToPoint(Strategy):
+# Pass ball to attacker
+class PassToAttacker(Strategy):
 
     STATES = ['ROTATE_TO_POINT',
               'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
-        super(PassToPoint, self).__init__(world, self.STATES)
+        super(PassToAttacker, self).__init__(world, self.STATES)
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
@@ -295,6 +293,7 @@ class PassToPoint(Strategy):
         }
 
         self.our_defender = self.world.our_defender
+	self.our_attacker = self.world.our_attacker
         self.ball = self.world.ball
 
         # Used to communicate with the robot
@@ -304,8 +303,8 @@ class PassToPoint(Strategy):
     # Rotate robot towards the point
     def rotate(self, robot):
 	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal
-	x,y = #calculate point to go to?
-        angle = self.our_defender.get_rotation_to_point(x,y)
+
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
 
         if angle > pi:
             angle = 2*pi - angle
@@ -342,9 +341,6 @@ class PassToPoint(Strategy):
 
         return (x, y)
 
-
-
-'''
 
 
 
