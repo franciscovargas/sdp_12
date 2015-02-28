@@ -23,16 +23,18 @@ void setup() {
     Serial.begin(9600); // start the serial port at 9600 baud
 
     // Setup callbacks for SerialCommand commands
-    comm.addCommand("ON", LED_on);          // Turns LED on
-    comm.addCommand("OFF", LED_off);        // Turns LED off
 
-    comm.addCommand("MOVE", move_wrapper);
-    comm.addCommand("STOP_STRAIGHT", stop_straight_wrapper);
-    comm.addCommand("ROTATE", rotate_wrapper);
-    comm.addCommand("STOP_ROTATE", stop_rotating_wrapper);
-    comm.addCommand("STOP", stop_all);
-    comm.addCommand("ACTION", kg_wrapper);
-    comm.addCommand("ROTATE_GRAB", rg_wrapper);
+    comm.addCommand("B", move_straight);
+    comm.addCommand("C", move_sideways);
+    comm.addCommand("D", move_diagonal);
+    comm.addCommand("E", stop_straight_wrapper);
+    comm.addCommand("F", rotate_wrapper);
+    comm.addCommand("H", stop_rotating_wrapper);
+    comm.addCommand("A", stop_all);
+    comm.addCommand("I", grab);
+    comm.addCommand("J", grab_continuous);
+    comm.addCommand("K", kick);
+    comm.addCommand("G", rg_wrapper);
 
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -44,28 +46,6 @@ void setup() {
 void loop() {
     if (Serial.available()) {
         comm.readSerial(); // We don't do much, just process serial commands
-    }
-}
-
-
-// Parse the serial command and call the movement function
-// Direction depends on if POWER is positive or negative
-// Syntax: MOVE TYPE POWER
-void move_wrapper() {
-    char *type;
-    int power;
-
-    type = comm.next();
-    power = atoi(comm.next());
-
-    if (strcmp(type, "STRAIGHT") == 0) {
-        move_straight(power);
-    }
-    else if (strcmp(type, "SIDEWAYS") == 0) {
-        move_sideways(power);
-    }
-    else if (strcmp(type, "DIAGONAL") == 0) {
-        move_diagonal(power);
     }
 }
 
@@ -82,19 +62,28 @@ void move_motor(int motor_num, int power) {
 }
 
 // Move straight (Forwards / Backwards)
-void move_straight(int power) {
+void move_straight() {
+    int power;
+    power = atoi(comm.next());
+
     move_motor(LEFT_MOTOR, power);
     move_motor(RIGHT_MOTOR, power);
 }
 
 // Move sideways (Left / Right)
-void move_sideways(int power) {
+void move_sideways() {
+    int power;
+    power = atoi(comm.next());
+
     move_motor(BACK_MOTOR, power);
     // See how you can compensate the rotation with the front wheels
 }
 
 // Diagonal movement (Left / Right)
-void move_diagonal(int power) {
+void move_diagonal() {
+    int power;
+    power = atoi(comm.next());
+
     if(power < 0) { //LEFT
         move_motor(BACK_MOTOR, power);
         move_motor(LEFT_MOTOR, -power);
@@ -182,30 +171,11 @@ void stop_straight(int power) {
     stop_all();
 }
 
-// Kicker / Grabber wrapper function
-// Syntax: ACTION TYPE POWER
-void kg_wrapper() {
-    char *type;
-    int power;
-
-    type = comm.next();
-    power = atoi(comm.next());
-
-    if (strcmp(type, "KICK") == 0) {
-        kick(power);
-    }
-    else if (strcmp(type, "GRAB") == 0) {
-        grab(power);
-    }
-    else if (strcmp(type, "GRAB_CONT") == 0) {
-        grab_continuous(power);
-    }
-}
-
 
 // Kicker
-void kick(int power) {
-
+void kick() {
+    int power;
+    power = atoi(comm.next());
     // Move back and open grabber
     move_motor(KICK_MOTOR, 40);
     move_motor(GRAB_MOTOR, 50);
@@ -222,7 +192,9 @@ void kick(int power) {
 
 
 // Grabber
-void grab(int power) {
+void grab() {
+    int power;
+    power = atoi(comm.next());
 
     if (power != 100) {
         float time_move = (200-power)/100 * GRAB_TIME;
@@ -238,22 +210,15 @@ void grab(int power) {
     motorAllStop();
 }
 
-void grab_continuous(int power) {
+void grab_continuous() {
+    int power;
+    power = atoi(comm.next());
+
     move_motor(GRAB_MOTOR, -power);
     Serial.println("Graaaabing");
 }
 
 
-// LEDs
-void LED_on() {
-    Serial.println("LED on");
-    digitalWrite(13, HIGH);
-}
-
-void LED_off() {
-    Serial.println("LED off");
-    digitalWrite(13, LOW);
-}
 
 // This gets set as the default handler, and gets called when no other command matches.
 void unrecognized(const char *command) {
