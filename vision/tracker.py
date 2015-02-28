@@ -14,6 +14,15 @@ Center = namedtuple('Center', 'x y')
 
 
 class Tracker(object):
+    @staticmethod
+    def oddify(inte):
+        if inte == 0:
+            inte +=1
+        elif inte % 2 == 0:
+            inte -= 1
+        else:
+            pass 
+        return inte
 
     def get_contours(self, frame, crop, adjustments, o_type=None):
         """
@@ -26,7 +35,7 @@ class Tracker(object):
             if frame is None:
                 return None
             if adjustments['blur'] > 1:
-                blur = adjustments['blur']
+                blur = self.oddify(adjustments['blur'])
                 # print adjustments['blur']
                 # plt.imshow(frame)
                 # plt.show()
@@ -54,7 +63,7 @@ class Tracker(object):
             return (contours, hierarchy, frame_mask)
         except:
             # bbbbb
-            pass
+            raise
 
 
     def get_contour_extremes(self, cnt):
