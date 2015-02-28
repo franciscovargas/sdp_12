@@ -287,25 +287,59 @@ class PassToAttacker(Strategy):
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
-	    #'DETECT_AND_EVADE': self.
+	    'UNALIGNED': self.align,
+	    'DETECT_AND_EVADE': self.evade,
             'ROTATE_TO_POINT': self.rotate,
             'SHOOT': self.shoot,
-            'FINISHED': self.do_nothing
+            'FINISHED': do_nothing
         }
 
         self.our_defender = self.world.our_defender
 	self.our_attacker = self.world.our_attacker
+	self.their_attacker = self.world.their_attacker
         self.ball = self.world.ball
 
         # Used to communicate with the robot
         self.robotCom = robotCom
+    
+    # Align robot so it is 180 degrees from goal (i.e. facing forward)
+    def align(self):
+        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, pi):
+            self.current_state = 'DETECT_AND_EVADE'
 	
-	#if is_shot_blocked(
+    # Evade the other team's attacker
+    def evade(self):
+
+	# if the shot is blocked, evade
+	if is_shot_blocked(world, our_defender, their_attacker):
+	     # Specifies the type of defending. Can be 'straight' or 'sideways'
+	    type_of_movement = 'sideways'
+
+	    # If the robot somehew unaligned himself.
+	    if (abs(self.our_defender.angle - pi) > ROBOT_ALIGN_THRESHOLD):
+		self.current_state = 'UNALIGNED'
+
+	    # Try to be in same vertical position +- their_attacker.length as their_attacker
+	    y = self.their_attacker.y + self.their_attacker.length
+	    y = max([y, 70])
+            y = min([y, self.world._pitch.height - 70])
+
+	    displacement, angle = self.our_defender.get_direction_to_point(self.our_defender, y)
+	    if(self.our_defender.y > y):
+		displacement = -displacement
+
+     if type_of_movement == 'straight':
+            moveStraight(self.robotCom, displacement)
+     elif type_of_movement == 'sideways':
+            moveSideways(self.robotCom, displacement)
+
+	    
+    self.current_state = 'ROTATE_TO_POINT'
 
 
 
     # Rotate robot towards the point
-    def rotate(self, robot):
+    def rotate(self):
 	# our_defender rotates to our_attacker
 
         angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
