@@ -51,12 +51,12 @@ def moveStraight(robotCom, displacement):
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
-    #time.sleep(0.5)
+    time.sleep(0.5)
 
 # Open the grabber without kicking
 def openGrabber(robotCom):
     robotCom.grab(-POWER_GRAB)
-    #time.sleep(0.5)
+    time.sleep(0.5)
 
 # Kick the ball, full power
 def kick(robotCom):
