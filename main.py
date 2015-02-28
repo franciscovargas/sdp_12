@@ -26,7 +26,7 @@ class Controller:
 
     # Set to True if we want to use the real robot.
     # Set to False if we want to print out commands to console only.
-    USE_REAL_ROBOT = True
+    USE_REAL_ROBOT = False
 
     def __init__(self,
                  pitch,

@@ -17,6 +17,11 @@ POWER_KICK = 100
 
 BALL_MOVING = 3
 
+LEFT_DEFENDER_ZONE_THRESHOLD = 99
+RIGHT_DEFENDER_ZONE_THRESHOLD = 420
+# ha ha
+# BLAZE IT
+
 # Stop everything
 def stop(robotCom):
     robotCom.stop()
@@ -92,6 +97,28 @@ def normalize_angle(angle):
         angle += 2*pi
 
     return angle
+
+
+def back_off(robotCom, side, robot_angle, robot_x):
+    if side == 'left':
+        print 'on left side'
+        if robot_x > LEFT_DEFENDER_ZONE_THRESHOLD:
+            print 'over left threshold, aligning'
+            if align_robot_to_pitch(robotCom, robot_angle, pi):
+                print 'aligned'
+                moveStraight(robotCom, -20)
+                print 'finished moving'
+    if side == 'right':
+        print 'on right side'
+        if robot_x < RIGHT_DEFENDER_ZONE_THRESHOLD:
+            print 'over right threshold, aligning'
+            if align_robot_to_pitch(robotCom, robot_angle, pi):
+                print 'aligned'
+                moveStraight(robotCom, -20)
+                print 'finished moving'
+
+            # re-align robot towards goal
+            # move backwards until 20 (?) from threshold
 # not using the below
 
 

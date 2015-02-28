@@ -1,5 +1,5 @@
 from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, has_matched, \
-    stop, do_nothing, BALL_MOVING, kick, grab, ROBOT_ALIGN_THRESHOLD
+    stop, do_nothing, BALL_MOVING, kick, grab, ROBOT_ALIGN_THRESHOLD, back_off
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -165,7 +165,6 @@ class DefendingGrab(Strategy):
 class DefendingPass(Strategy):
 
     STATES = ['ROTATE_TO_MIDDLE',
-              # 'GO_TO_MIDDLE', 'ROTATE_TO_GOAL',
               'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
@@ -174,8 +173,6 @@ class DefendingPass(Strategy):
         # Map states into functions
         self.NEXT_ACTION_MAP = {
             'ROTATE_TO_MIDDLE': self.rotate,
-            # 'GO_TO_MIDDLE': self.position,
-            # 'ROTATE_TO_GOAL': self.rotate,
             'SHOOT': self.shoot,
             'FINISHED': do_nothing
         }
@@ -275,6 +272,23 @@ class Standby(Strategy):
     def doNothing(self):
         do_nothing()
 
+
+class TestStrategy(Strategy):
+
+    STATES = ['TEST']
+
+    def __init__(self, world, robotCom):
+        super(TestStrategy, self).__init__(world, self.STATES)
+
+        self.NEXT_ACTION_MAP = {
+            'TEST': self.test
+        }
+
+        self.robotCom = robotCom
+        self.our_defender = self.world.our_defender
+
+    def test(self):
+        back_off(self.robotCom, self.world._our_side, self.our_defender.angle, self.our_defender.x)
 '''
 
 # Pass ball to point

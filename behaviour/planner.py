@@ -1,6 +1,6 @@
 from world import World
 from strategies import Defending, DefendingGrab, DefendingPass, \
-    DefenderBouncePass, Standby
+    DefenderBouncePass, Standby  # , TestStrategy
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
@@ -8,7 +8,7 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender._receiving_area = {'width': 30, 'height': 30, 'front_offset': 12}
+        self._world.our_defender._receiving_area = {'width': 40, 'height': 40, 'front_offset': 0}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
@@ -51,7 +51,13 @@ class Planner:
 
         # If the ball is in not in our defender zone:
 
-        if self._state == 'waiting':
+        # once we have the ball, pass it to our teammate
+        if self._state == 'fetching' and self.strat_state == 'GRABBED':
+            self._state = 'passing'
+            self.get_next_strategy()
+            print "We've grabbed the ball, now switching to passing"
+
+        elif self._state == 'waiting':
             # (milestone 2) once the ball starts moving, we can start moving the defender
             # (there is a bug in the vision (?) code that sets the ball velocity to 304 for the first two frames or so)
             if ball.velocity > BALL_MOVING and ball.velocity < 300:
@@ -65,12 +71,6 @@ class Planner:
                     self._state = 'defending'
                     self.get_next_strategy()
                 print "Defending, ball moving and not in our zone"
-
-        # once we have the ball, pass it to our teammate
-        elif self._state == 'fetching' and self.strat_state == 'GRABBED':
-            self._state = 'passing'
-            self.get_next_strategy()
-            print "We've grabbed the ball, now switching to passing"
 
         # We have the ball in our zone, so we fetching and passing:
         else:
@@ -96,7 +96,5 @@ class Planner:
                 print "Passing the ball"
             else:
                 print "Keeping same strategy"
-
-
 
         return self._current_strategy.next_action()
