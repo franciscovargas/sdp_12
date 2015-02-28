@@ -12,7 +12,7 @@ POWER_STOP_STRAIGHT = 70
 POWER_ROTATE_MODIFIER = 3.5
 POWER_ROTATE_BASE = 25
 POWER_STOP_ROTATION = 25
-POWER_GRAB = 100
+POWER_GRAB = 30
 POWER_KICK = 100
 
 BALL_MOVING = 3
@@ -49,12 +49,17 @@ def moveStraight(robotCom, displacement):
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
-    time.sleep(0.5)
+    #time.sleep(0.5)
+
+# Open the grabber without kicking
+def openGrabber(robotCom):
+    robotCom.grab(-POWER_GRAB)
+    #time.sleep(0.5)
 
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles

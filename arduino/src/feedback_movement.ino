@@ -10,8 +10,10 @@ int LEFT_MOTOR = 1;
 int RIGHT_MOTOR = 2;
 int BACK_MOTOR = 3;
 int KICK_MOTOR = 4;
+int GRAB_MOTOR = 0;
 float KICK_TIME = 0.75; // TEST for the time to open/close (at full power)
-// Will use this time to accomodate grabbing (depending on the power)
+float GRAB_TIME = 0.75;
+// Will use this time to accommodate grabbing (depending on the power)
 
 void setup() {
     pinMode(13,OUTPUT);      // initialize pin 13 as digital output (LED)
@@ -145,7 +147,7 @@ void rotate_and_grab(int power_rotate, int power_grab) {
     move_motor(RIGHT_MOTOR, power_rotate);
     move_motor(BACK_MOTOR, -0.8 * power_rotate);
     // Grab
-    move_motor(KICK_MOTOR, -power_grab);
+    move_motor(GRAB_MOTOR, -power_grab);
 }
 
 void stop_rotating_wrapper() {
@@ -204,15 +206,14 @@ void kg_wrapper() {
 // Kicker
 void kick(int power) {
 
-    if (power != 100) {
-        float time_move = (200-power)/100 * KICK_TIME;
-        move_motor(KICK_MOTOR, power);
-        delay(time_move*1000);
-    }
-    else {
-        move_motor(KICK_MOTOR, power);
-        delay(KICK_TIME*1000);
-    }
+    // Move back and open grabber
+    move_motor(KICK_MOTOR, 40);
+    move_motor(GRAB_MOTOR, 50);
+    delay(200);
+
+    // Kick
+    move_motor(KICK_MOTOR, -power);
+    delay(KICK_TIME*1000);
 
     Serial.println("Kicking");
 
@@ -222,14 +223,15 @@ void kick(int power) {
 
 // Grabber
 void grab(int power) {
+
     if (power != 100) {
-        float time_move = (200-power)/100 * KICK_TIME;
-        move_motor(KICK_MOTOR, -power);
+        float time_move = (200-power)/100 * GRAB_TIME;
+        move_motor(GRAB_MOTOR, -power);
         delay(time_move*1000);
     }
     else {
-        move_motor(KICK_MOTOR, -power);
-        delay(KICK_TIME*1000);
+        move_motor(GRAB_MOTOR, -power);
+        delay(GRAB_TIME*1000);
     }
 
     Serial.println("Grabbing");
@@ -237,7 +239,7 @@ void grab(int power) {
 }
 
 void grab_continuous(int power) {
-    move_motor(KICK_MOTOR, -power);
+    move_motor(GRAB_MOTOR, -power);
     Serial.println("Graaaabing");
 }
 
