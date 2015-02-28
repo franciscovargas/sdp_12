@@ -127,8 +127,9 @@ class DefendingGrab(Strategy):
         self.robotCom = robotCom
 
     def openCatcher(self):
-        openGrabber(self.robotCom)
-        self.our_defender.catcher == 'OPEN'
+        if self.our_defender.catcher == 'CLOSED':
+            openGrabber(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
 
         self.current_state = 'ROTATE_TO_BALL'
 
@@ -150,6 +151,7 @@ class DefendingGrab(Strategy):
             angle = 2*pi - angle
         
         if self.our_defender.can_catch_ball(self.ball):
+            stop(self.robotCom)
             self.current_state = 'GRAB_BALL'
         elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_BALL'
@@ -345,7 +347,7 @@ class PassToAttacker(Strategy):
     def rotate(self):
 	# our_defender rotates to our_attacker
 
-        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
 
         if angle > pi:
             angle = 2*pi - angle
