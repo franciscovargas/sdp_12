@@ -2,7 +2,7 @@ from math import tan, pi, hypot, log, copysign
 from world import Robot
 import time
 
-BALL_APPROACH_THRESHOLD = 30
+BALL_APPROACH_THRESHOLD = 55
 ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS_MODIFIER = 60
@@ -18,9 +18,14 @@ POWER_KICK = 100
 
 BALL_MOVING = 3
 
+LEFT_DEFENDER_ZONE_THRESHOLD = 100
+RIGHT_DEFENDER_ZONE_THRESHOLD = 420
+
+
 # Stop everything
 def stop(robotCom):
     robotCom.stop()
+
 
 # Moving sideways
 def moveSideways(robotCom, displacement):
@@ -31,13 +36,6 @@ def moveSideways(robotCom, displacement):
     else:
         robotCom.stop()
 
-# # Move straight indefinitely trying to defend
-# def moveStraight(robotCom, displacement):
-#     if abs(displacement) > BALL_APPROACH_THRESHOLD:
-#         power = copysign(POWER_STRAIGHT, displacement)
-#         robotCom.moveStraight(power)
-#     else:
-#         robotCom.stopStraight(-POWER_STOP_STRAIGHT)
 
 # Move straight, with speed relative to the distance left to cover
 def moveStraight(robotCom, displacement):
@@ -48,28 +46,29 @@ def moveStraight(robotCom, displacement):
     else:
         robotCom.stop()
 
+
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
     time.sleep(0.5)
+
 
 # Open the grabber without kicking
 def openGrabber(robotCom):
     robotCom.grab(-POWER_GRAB)
     time.sleep(0.5)
 
+
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
     time.sleep(1)
 
+
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
-def align_robot(robotCom, angle, angle_threshold, grab=False):
-    #angle = normalize_angle(angle)
-    #print "Normalized angle: %f" % angle
-
-    if(abs(angle) > angle_threshold):
+def align_robot(robotCom, angle, grab=False):
+    if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
         print "Aligning..."
         power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
         print "Power: " + str(power)
@@ -84,21 +83,45 @@ def align_robot(robotCom, angle, angle_threshold, grab=False):
         robotCom.stop()
         return True
 
+
 def align_robot_to_pitch(robotCom, robot_angle, pitch_alignment_angle, grab=False):
-    absolute_angle = pitch_alignment_angle - robot_angle
-    return align_robot(robotCom, absolute_angle, ROBOT_ALIGN_THRESHOLD, grab)
+    absolute_angle = normalize_angle(robot_angle, pitch_alignment_angle)
+    return align_robot(robotCom, absolute_angle, grab)
 
 
 # to find the angle between the robot's angle and our target angle,
 # makes the target angle 0/the origin, and returns the robot's angle in terms of that
-def normalize_angle(angle):
+def normalize_angle(robot_angle, target_angle):
+    normalized_angle = target_angle - robot_angle
 
-    if(angle >= 2*pi):
-        angle -= 2*pi
-    elif(angle < 0):
-        angle += 2*pi
+    if(normalized_angle > pi):
+        normalized_angle -= 2*pi
+    elif(normalized_angle < -pi):
+        normalized_angle += 2*pi
 
-    return angle
+    return normalized_angle
+
+
+def back_off(robotCom, side, robot_angle, robot_x):
+    if side == 'left':
+        print 'on left side'
+        if robot_x > LEFT_DEFENDER_ZONE_THRESHOLD:
+            print 'over left threshold, aligning'
+            if align_robot_to_pitch(robotCom, robot_angle, pi):
+                print 'aligned'
+                moveStraight(robotCom, robot_x - 60)
+                print 'finished moving'
+    if side == 'right':
+        print 'on right side'
+        if robot_x < RIGHT_DEFENDER_ZONE_THRESHOLD:
+            print 'over right threshold, aligning'
+            if align_robot_to_pitch(robotCom, robot_angle, pi):
+                print 'aligned'
+                moveStraight(robotCom, 460 - robot_x)
+                print 'finished moving'
+
+            # re-align robot towards goal
+            # move backwards until 20 (?) from threshold
 # not using the below
 
 
@@ -125,7 +148,12 @@ def is_shot_blocked(world, our_robot, their_robot):
     print abs(predicted_y - their_robot.y) < their_robot.length
     return abs(predicted_y - their_robot.y) < their_robot.length
 
-def predict_y_intersection(world, predict_for_x, robot, full_width=False, bounce=False):
+
+def predict_y_intersection(world,
+                           predict_for_x,
+                           robot,
+                           full_width=False,
+                           bounce=False):
         '''
         Predicts the (x, y) coordinates of the ball shot by the robot
         Corrects them if it's out of the bottom_y - top_y range.
@@ -134,35 +162,41 @@ def predict_y_intersection(world, predict_for_x, robot, full_width=False, bounce
         '''
         x = robot.x
         y = robot.y
-        top_y = world._pitch.height - 60 if full_width else world.our_goal.y + (world.our_goal.width/2) - 30
-        bottom_y = 60 if full_width else world.our_goal.y - (world.our_goal.width/2) + 30
+
+        if full_width:
+            top_y = world._pitch.height - 60
+            bottom_y = 60
+        else:
+            top_y = world.our_goal.y + (world.our_goal.width/2) - 30
+            bottom_y = world.our_goal.y - (world.our_goal.width/2) + 30
+
         angle = robot.angle
-        if (robot.x < predict_for_x and not (pi/2 < angle < 3*pi/2)) or (robot.x > predict_for_x and (3*pi/2 > angle > pi/2)):
-            if bounce:
-                if not (0 <= (y + tan(angle) * (predict_for_x - x)) <= world._pitch.height):
-                    bounce_pos = 'top' if (y + tan(angle) * (predict_for_x - x)) > world._pitch.height else 'bottom'
-                    x += (world._pitch.height - y) / tan(angle) if bounce_pos == 'top' else (0 - y) / tan(angle)
-                    y = world._pitch.height if bounce_pos == 'top' else 0
-                    angle = (-angle) % (2*pi)
+
+        if (robot.x < predict_for_x and not (pi/2 < angle < 3*pi/2)) or \
+           (robot.x > predict_for_x and (3*pi/2 > angle > pi/2)):
+
+            # if bounce:
+            #     if not (0 <= (y + tan(angle) * (predict_for_x - x))
+            #             <= world._pitch.height):
+            #         bounce_pos = 'top' if (y + tan(angle) * (predict_for_x - x)) > world._pitch.height else 'bottom'
+
+            #         x += (world._pitch.height - y) / tan(angle) if bounce_pos == 'top' else (0 - y) / tan(angle)
+            #         y = world._pitch.height if bounce_pos == 'top' else 0
+
+            #         angle = (-angle) % (2*pi)
+
             predicted_y = (y + tan(angle) * (predict_for_x - x))
+
             # Correcting the y coordinate to the closest y coordinate on the goal line:
             if predicted_y > top_y:
                 return top_y
             elif predicted_y < bottom_y:
                 return bottom_y
-            return predicted_y
+            else:
+                return predicted_y
+
         else:
             return None
-
-def grab_ball():
-    return {'left_motor': 0, 'right_motor': 0, 'kicker': 0, 'catcher': 1, 'speed': 1000}
-
-
-def kick_ball():
-    return {'left_motor': 0, 'right_motor': 0, 'kicker': 1, 'catcher': 0, 'speed': 1000}
-
-def turn_shoot(orientation):
-    return {'turn_90': orientation, 'left_motor': 0, 'right_motor': 0, 'kicker': 1, 'catcher': 0, 'speed': 1000}
 
 
 def has_matched(robot, x=None, y=None, angle=None,
@@ -213,7 +247,6 @@ def calculate_motor_speed(displacement, angle, backwards_ok=False, careful=False
 
         else:
             return {'left_motor': 0, 'right_motor': 0, 'kicker': 0, 'catcher': 0, 'speed': general_speed}
-
 
 
 def do_nothing():

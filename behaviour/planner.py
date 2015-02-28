@@ -1,5 +1,6 @@
 from world import World
-from strategies import Defending, DefendingGrab, DefendingPass, PassToAttacker, DefenderBouncePass, Standby
+from strategies import Defending, DefendingGrab, PassToAttacker, \
+    DefenderBouncePass, Standby  # , TestStrategy
 from utilities import calculate_motor_speed, BALL_MOVING
 
 
@@ -7,7 +8,7 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender._receiving_area = {'width': 40, 'height': 40, 'front_offset': 12}
+        self._world.our_defender._receiving_area = {'width': 60, 'height': 45, 'front_offset': 0}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
@@ -48,46 +49,42 @@ class Planner:
         their_attacker = self._world.their_attacker
         ball = self._world.ball
 
-        # If the ball is in not in our defender zone:
-
-        if self._state == 'waiting':
-            # (milestone 2) once the ball starts moving, we can start moving the defender
-            # (there is a bug in the vision (?) code that sets the ball velocity to 304 for the first two frames or so)
-            if ball.velocity > BALL_MOVING and ball.velocity < 300:
-                self._state = 'defending'
-                self.get_next_strategy()
-                print "Ball has started moving, enabling movement for defender"
-
-        elif not self.in_zone(ball, our_defender.zone):
-                # If the ball is not in the defender's zone, the state should always be 'defend'.
-                if self._state != 'defending':
-                    self._state = 'defending'
-                    self.get_next_strategy()
-                print "Defending, ball moving and not in our zone"
-
-        # We have the ball in our zone, so we do fetching and passing:
-        # If we're defending or waiting with the ball in our zone, switch to a fetching strategy.
-        elif self._state == 'defending':
-            self._state = 'fetching'
-            self.get_next_strategy()
-            print "Defending, fetching the ball"
-
-        # Once we have the ball, pass it to our teammate
-        elif self._state == 'fetching' and self.strat_state == 'GRABBED':
+        # once we have the ball, pass it to our teammate
+        if self._state == 'fetching' and self.strat_state == 'GRABBED':
             self._state = 'passing'
             self.get_next_strategy()
             print "We've grabbed the ball, now switching to passing"
 
-        
+        # elif self._state == 'waiting':
+        #     # (milestone 2) once the ball starts moving, we can start moving the defender
+        #     # (there is a bug in the vision (?) code that sets the ball velocity to 304 for the first two frames or so)
+        #     if ball.velocity > BALL_MOVING and ball.velocity < 300:
+        #         self._state = 'defending'
+        #         self.get_next_strategy()
+        #         print "Ball has started moving, enabling movement for defender"
 
-        # If we've finished passing but the ball's still in our zone, defend
-        elif self._state == 'passing' and self.strat_state == 'FINISHED':
-            self._state = 'defending'
-            self.get_next_strategy()
-            print "Defending the ball"
+        elif not self.in_zone(ball, our_defender.zone):
+            # If the ball is not in the defender's zone, the state should always be 'defend'.
+            if self._state != 'defending':
+                self._state = 'defending'
+                self.get_next_strategy()
+            print "Defending, ball moving and not in our zone"
+
         else:
-            print "Keeping same strategy"
+            # We have the ball in our zone, so we can fetch and pass
 
+            # If we're defending or waiting with the ball in our zone, switch to a fetching strategy.
+            if self._state == 'defending' or self._state == 'waiting':
+                self._state = 'fetching'
+                self.get_next_strategy()
+                print "Defending, fetching the ball"
 
+            # If we've finished passing but the ball's still in our zone, fetch it
+            elif self._state == 'passing' and self.strat_state == 'FINISHED':
+                self._state = 'fetching'
+                self.get_next_strategy()
+                print "Finished passing, fetching ball since it's still in our zone"
+            else:
+                print "Keeping same strategy"
 
         return self._current_strategy.next_action()
