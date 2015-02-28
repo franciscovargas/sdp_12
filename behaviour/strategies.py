@@ -5,7 +5,7 @@ from random import randint
 # Up until here are the imports that we're using
 
 # Imports from their code that are needed to compile (and maybe later)
-from utilities import calculate_motor_speed, kick_ball, turn_shoot, is_shot_blocked
+from utilities import calculate_motor_speed, is_shot_blocked
 
 
 class Strategy(object):
@@ -28,7 +28,7 @@ class Strategy(object):
         self._current_state = new_state
 
     def reset_current_state(self):
-        self.current_state = self.states[0]
+        self._current_state = self.states[0]
 
     def is_last_state(self):
         return self._current_state == self.states[-1]
@@ -40,12 +40,13 @@ class Strategy(object):
 # Defend against incoming ball
 class Defending(Strategy):
 
-    STATES = ['UNALIGNED', 'DEFEND_GOAL']
+    STATES = ['CLOSE_CATCHER', 'UNALIGNED', 'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
         super(Defending, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
+            'CLOSE_CATCHER': self.close_catcher,
             'UNALIGNED': self.align,
             'DEFEND_GOAL': self.defend_goal
         }
@@ -56,6 +57,11 @@ class Defending(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
+
+    def close_catcher(self):
+        if self.our_defender.catcher == 'OPEN':
+            grab(self.robotCom)
+        self.current_state = 'UNALIGNED'
 
     # Align robot so that he is 90 degrees from facing to goal
     def align(self):
@@ -132,8 +138,7 @@ class DefendingGrab(Strategy):
             angle = 2*pi - angle
 
         if align_robot(self.robotCom,
-                       angle,
-                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+                       angle):
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
@@ -178,10 +183,11 @@ class DefendingPass(Strategy):
         }
 
         self.our_defender = self.world.our_defender
+        self.our_attacker = self.world.our_attacker
         self.ball = self.world.ball
 
-        # # Find the position to shoot from and cache it
-        # self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
+        # Find the position to shoot from and cache it
+        self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
 
         # Used to communicate with the robot
         self.robotCom = robotCom
@@ -213,24 +219,28 @@ class DefendingPass(Strategy):
 
     # Rotate robot towards their goal.
     def rotate(self):
-        # angle = self.our_defender.get_rotation_to_point(self.world.their_goal.x, self.world.their_goal.y)
+        # center_angle = 0 if self.world._our_side == 'left' else pi
 
-        if align_robot_to_pitch(self.robotCom,
-                                self.our_defender.angle,
-                                0,
-                                grab=True):
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
+
+        if align_robot(self.robotCom,
+                       angle,
+                       grab=True):
             self.current_state = 'SHOOT'
 
     def shoot(self):
         """
         Kick.
         """
-        if (abs(self.our_defender.angle - 0) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+        if (abs(self.our_defender.angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_MIDDLE'
         self.current_state = 'FINISHED'
 
         kick(self.robotCom)
         self.our_defender.catcher = 'OPEN'
+
+        grab(self.robotCom)
+        self.our_defender.catcher = 'CLOSED'
 
     def _get_shooting_coordinates(self, robot):
         """
