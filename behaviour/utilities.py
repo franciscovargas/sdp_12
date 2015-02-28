@@ -5,7 +5,8 @@ import time
 BALL_APPROACH_THRESHOLD = 30
 ROBOT_ALIGN_THRESHOLD = pi/10
 
-POWER_SIDEWAYS = 80
+POWER_SIDEWAYS_MODIFIER = 60
+POWER_SIDEWAYS_BASE = 40
 POWER_STRAIGHT_MODIFIER = 60
 POWER_STRAIGHT_BASE = 40
 POWER_STOP_STRAIGHT = 70
@@ -23,8 +24,9 @@ def stop(robotCom):
 
 # Moving sideways
 def moveSideways(robotCom, displacement):
+    print "Absolute displacement to destination: %d" % displacement
     if abs(displacement) > BALL_APPROACH_THRESHOLD:
-        power = copysign(POWER_SIDEWAYS, displacement)
+        power = (POWER_SIDEWAYS_MODIFIER * 0.005 * displacement) + copysign(POWER_SIDEWAYS_BASE, displacement)
         robotCom.moveSideways(power)
     else:
         robotCom.stop()
@@ -59,7 +61,7 @@ def openGrabber(robotCom):
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
-    #time.sleep(0.5)
+    time.sleep(1)
 
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles

@@ -40,13 +40,14 @@ class Strategy(object):
 # Defend against incoming ball
 class Defending(Strategy):
 
-    STATES = ['UNALIGNED', 'DEFEND_GOAL']
+    STATES = ['UNALIGNED', 'OPEN_CATCHER', 'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
         super(Defending, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
+            'OPEN_CATCHER': self.openCatcher,
             'DEFEND_GOAL': self.defend_goal
         }
 
@@ -57,18 +58,24 @@ class Defending(Strategy):
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-    # Align robot so that he is 90 degrees from facing to goal
+    # Align robot so that he is 180 degrees from facing to goal
     def align(self):
-        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, pi/2):
-            self.current_state = 'DEFEND_GOAL'
+        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, pi):
+            self.current_state = 'OPEN_CATCHER'
+
+    def openCatcher(self):
+        openGrabber(self.robotCom)
+        self.our_defender.catcher == 'OPEN'
+
+        self.current_state = 'DEFEND_GOAL'
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
-        type_of_movement = 'straight'
+        type_of_movement = 'sideways'
 
         # If the robot somehew unaligned himself.
-        if (abs(self.our_defender.angle - pi/2) > ROBOT_ALIGN_THRESHOLD):
+        if (abs(self.our_defender.angle - pi) > ROBOT_ALIGN_THRESHOLD):
             self.current_state = 'UNALIGNED'
 
         # Predict where they are aiming.
@@ -77,16 +84,16 @@ class Defending(Strategy):
             predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
         if predicted_y is not None:
             y = predicted_y - 7*sin(self.our_defender.angle)
-            y = max([y, 70])
-            y = min([y, self.world._pitch.height - 70])
+            y = max([y, 100])
+            y = min([y, self.world._pitch.height - 100])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
         else:
             # Try to be in same vertical position as the ball
             y = self.ball.y
-            y = max([y, 70])
-            y = min([y, self.world._pitch.height - 70])
+            y = max([y, 100])
+            y = min([y, self.world._pitch.height - 100])
             displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
@@ -94,7 +101,7 @@ class Defending(Strategy):
         if type_of_movement == 'straight':
             moveStraight(self.robotCom, displacement)
         elif type_of_movement == 'sideways':
-            moveSideways(self.robotCom, displacement)
+            moveSideways(self.robotCom, -displacement)
 
 
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
@@ -141,7 +148,7 @@ class DefendingGrab(Strategy):
 
         if angle > pi:
             angle = 2*pi - angle
-
+        
         if self.our_defender.can_catch_ball(self.ball):
             self.current_state = 'GRAB_BALL'
         elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
