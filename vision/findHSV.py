@@ -1,7 +1,16 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
-CONTROL = ["Lower threshold for hue", "Upper threshold for hue", "Lower threshold for saturation", "Upper threshold for saturation", "Lower threshold for value", "Upper threshold for value", "Contrast", "Gaussian blur"]
+CONTROL = ["Lower threshold for hue",
+           "Upper threshold for hue",
+           "Lower threshold for saturation",
+           "Upper threshold for saturation",
+           "Lower threshold for value",
+           "Upper threshold for value",
+           "Contrast", 
+           "Gaussian blur"]
+
 MAXBAR = {"Lower threshold for hue":360,
           "Upper threshold for hue":360,
           "Lower threshold for saturation":255,
@@ -47,8 +56,13 @@ class CalibrationGUI(object):
 
         cv2.namedWindow(self.maskWindowName)
 
-        createTrackbar = lambda setting, value: cv2.createTrackbar(setting, self.maskWindowName, int(value), \
-                MAXBAR[setting], nothing)
+        createTrackbar = lambda setting, \
+                                value: \
+                                    cv2.createTrackbar(
+                                        setting,
+                                        self.maskWindowName,
+                                        int(value),
+                                        MAXBAR[setting], nothing)
         createTrackbar('Lower threshold for hue',
                        self.calibration[self.color]['min'][0])
         createTrackbar('Upper threshold for hue',
@@ -90,8 +104,14 @@ class CalibrationGUI(object):
             values[setting] = float(getTrackbarPos(setting))
         values['Gaussian blur'] = int(values['Gaussian blur'])
 
-        self.calibration[self.color]['min'] = np.array([values['Lower threshold for hue'], values['Lower threshold for saturation'], values['Lower threshold for value']])
-        self.calibration[self.color]['max'] = np.array([values['Upper threshold for hue'], values['Upper threshold for saturation'], values['Upper threshold for value']])
+        self.calibration[self.color]['min'] = np.array(
+                                                [values['Lower threshold for hue'],
+                                                 values['Lower threshold for saturation'],
+                                                 values['Lower threshold for value']])
+        self.calibration[self.color]['max'] = np.array(
+                                                    [values['Upper threshold for hue'],
+                                                     values['Upper threshold for saturation'],
+                                                     values['Upper threshold for value']])
         self.calibration[self.color]['contrast'] = values['Contrast']
         self.calibration[self.color]['blur'] = values['Gaussian blur']
 
@@ -101,6 +121,7 @@ class CalibrationGUI(object):
     # Duplicated from tracker.py
     def get_mask(self, frame):
         """
+        NOTE THIS IS ONLY USED FOR DISLPAY PURPOSES
         GaussianBlur blur:
             G =     [[G11, ..., G1N],
                 1/L      ...,
@@ -121,6 +142,8 @@ class CalibrationGUI(object):
                 type: numpy array
 
         """
+        # plt.imshow(frame)
+        # plt.show()
         blur = self.calibration[self.color]['blur']
         if blur > 1:
             if blur % 2 == 0:
