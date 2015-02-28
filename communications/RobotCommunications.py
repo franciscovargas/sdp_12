@@ -2,60 +2,71 @@ from Communications import Communications
 
 
 class RobotCommunications(Communications):
+    """
+    STOP                A
+    MOVE STRAIGHT       B
+    STOP STRAIGHT       C
+    MOVE SIDEWAYS       D
+    MOVE DIAGONAL       E
+    ROTATE              F
+    ROTATE GRAB         G
+    STOP ROTATE         H
+    ACTION GRAB         I
+    ACTION GRAB_CONT    J
+    ACTION KICK         K
+    """
 
-    LEFT_WHEEL_MOTOR = 1
-    RIGHT_WHEEL_MOTOR = 2
-    BACK_WHEEL_MOTOR = 3
-    KICK_MOTOR = 4
+
+
 
     def __init__(self, debug=False):
         super(RobotCommunications, self).__init__(debug)
 
     # Stops all motors
     def stop(self):
-        self.write("STOP")
+        self.write("A")
 
     # Straight movement
     def moveStraight(self, motorPower):
-        self.write("MOVE STRAIGHT " + str(motorPower))
+        self.write("B " + str(motorPower))
 
     def stopStraight(self, motorPower):
-        self.write("STOP_STRAIGHT + " + str(motorPower))
+        self.write("C " + str(motorPower))
 
     # Sideways LEFT  = -motorPower
     # Sideways RIGHT = +motorPower
     def moveSideways(self, motorPower):
-        self.write("MOVE SIDEWAYS " + str(motorPower))
+        self.write("D " + str(motorPower))
 
     # Same as Sideways, it's just diagonal
     def moveDiagonalLeft(self, motorPower):
-        self.write("MOVE DIAGONAL " + str(motorPower))
+        self.write("E " + str(motorPower))
 
     def moveDiagonalRight(self, motorPower):
-        self.write("MOVE DIAGONAL " + str(motorPower))
+        self.write("E " + str(motorPower))
 
     # Rotate LEFT  = -motorPower
     # Rotate RIGHT = +motorPower
     def rotate(self, motorPower):
-        self.write("ROTATE " + str(motorPower))
+        self.write("F " + str(motorPower))
 
     # Rotate and Grab - 2 args: power_rotate, power_grab
     def rotateAndGrab(self, motorPower_r, motorPower_g):
-        self.write("ROTATE_GRAB " + str(motorPower_r) + " " + str(motorPower_g))
+        self.write("G " + str(motorPower_r) + " " + str(motorPower_g))
 
     def stopRotate(self, motorPower):
-        self.write("STOP_ROTATE " + str(motorPower))
+        self.write("H " + str(motorPower))
 
     # Grab and Kick take motorPower. The values should be predefined depending
     # on how far we need to kick or grab (it will probably be a constant)
     def grab(self, motorPower):
-        self.write("ACTION GRAB " + str(motorPower))
+        self.write("I " + str(motorPower))
 
     def grab_cont(self, motorPower):
-        self.write("ACTION GRAB_CONT " + str(motorPower))
+        self.write("J " + str(motorPower))
 
     def kick(self, motorPower):
-        self.write("ACTION KICK " + str(motorPower))
+        self.write("K " + str(motorPower))
 
     def test(self, argument):
         print 'I got your message: ' + str(argument)
