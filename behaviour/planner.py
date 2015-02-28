@@ -1,6 +1,5 @@
 from world import World
-from strategies import Defending, DefendingGrab, DefendingPass, PassToAttacker, \
-    DefenderBouncePass, Standby
+from strategies import Defending, DefendingGrab, DefendingPass, PassToAttacker, DefenderBouncePass, Standby
 from utilities import calculate_motor_speed, BALL_MOVING
 
 

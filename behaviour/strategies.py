@@ -287,9 +287,10 @@ class PassToAttacker(Strategy):
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
+	    #'DETECT_AND_EVADE': self.
             'ROTATE_TO_POINT': self.rotate,
             'SHOOT': self.shoot,
-            'FINISHED': do_nothing
+            'FINISHED': self.do_nothing
         }
 
         self.our_defender = self.world.our_defender
@@ -298,11 +299,14 @@ class PassToAttacker(Strategy):
 
         # Used to communicate with the robot
         self.robotCom = robotCom
+	
+	#if is_shot_blocked(
+
 
 
     # Rotate robot towards the point
     def rotate(self, robot):
-	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal
+	# our_defender rotates to our_attacker
 
         angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
 
@@ -314,7 +318,7 @@ class PassToAttacker(Strategy):
                        self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'SHOOT'
 
-    # Not sure about this whole bit
+    # Shoot
     def shoot(self):
         """
         Kick.
@@ -339,9 +343,7 @@ class PassToAttacker(Strategy):
         x = min_x + (max_x - min_x) / 2
         y = self.world.pitch.height / 2
 
-        return (x, y)
-
-
+        return (x, y)    
 
 
 
