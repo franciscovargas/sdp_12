@@ -2,7 +2,7 @@ from math import tan, pi, hypot, log, copysign
 from world import Robot
 import time
 
-BALL_APPROACH_THRESHOLD = 40
+BALL_APPROACH_THRESHOLD = 55
 ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS = 80
