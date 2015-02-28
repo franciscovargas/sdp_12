@@ -1,5 +1,5 @@
 from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, has_matched, \
-    stop, do_nothing, BALL_MOVING, kick, grab, ROBOT_ALIGN_THRESHOLD
+    stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
