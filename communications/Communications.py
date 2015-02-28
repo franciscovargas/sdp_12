@@ -3,7 +3,6 @@ import time
 
 
 class Communications(object):
-
     def __init__(self,
                  debug=False,
                  setConnectionOff=False,
@@ -22,4 +21,5 @@ class Communications(object):
     def write(self, command):
         self.port.write(command + '\r\n')
         if self.debug:
-            print self.port.readline()
+            print
+            self.port.readline()

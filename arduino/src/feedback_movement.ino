@@ -23,18 +23,18 @@ void setup() {
     Serial.begin(9600); // start the serial port at 9600 baud
 
     // Setup callbacks for SerialCommand commands
-
-    comm.addCommand("B", move_straight);
-    comm.addCommand("C", move_sideways);
-    comm.addCommand("D", move_diagonal);
-    comm.addCommand("E", stop_straight_wrapper);
-    comm.addCommand("F", rotate_wrapper);
-    comm.addCommand("H", stop_rotating_wrapper);
     comm.addCommand("A", stop_all);
+    comm.addCommand("B", move_straight);
+    comm.addCommand("C", stop_straight_wrapper);
+    comm.addCommand("D", move_sideways);
+    comm.addCommand("E", move_diagonal);
+    comm.addCommand("F", rotate_wrapper);
+    comm.addCommand("G", rg_wrapper);
+    comm.addCommand("H", stop_rotating_wrapper);
     comm.addCommand("I", grab);
     comm.addCommand("J", grab_continuous);
     comm.addCommand("K", kick);
-    comm.addCommand("G", rg_wrapper);
+
 
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
