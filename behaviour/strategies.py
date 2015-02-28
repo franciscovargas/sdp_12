@@ -7,6 +7,7 @@ from random import randint
 # Imports from their code that are needed to compile (and maybe later)
 from utilities import calculate_motor_speed, kick_ball, turn_shoot, is_shot_blocked
 
+
 class Strategy(object):
 
     PRECISE_BALL_ANGLE_THRESHOLD = pi/8
@@ -37,12 +38,12 @@ class Strategy(object):
 
 
 # Defend against incoming ball
-class Milestone2Def(Strategy):
+class Defending(Strategy):
 
     STATES = ['UNALIGNED', 'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
-        super(Milestone2Def, self).__init__(world, self.STATES)
+        super(Defending, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
@@ -97,12 +98,12 @@ class Milestone2Def(Strategy):
 
 
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
-class Milestone2DefGrab(Strategy):
+class DefendingGrab(Strategy):
 
     STATES = ['OPEN_CATCHER', 'ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
-        super(Milestone2DefGrab, self).__init__(world, self.STATES)
+        super(DefendingGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'OPEN_CATCHER': self.openCatcher,
@@ -161,14 +162,14 @@ class Milestone2DefGrab(Strategy):
 
 
 # Defender robot - Move to center and pass the ball.
-class Milestone2DefPass(Strategy):
+class DefendingPass(Strategy):
 
     STATES = ['ROTATE_TO_MIDDLE',
               # 'GO_TO_MIDDLE', 'ROTATE_TO_GOAL',
               'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
-        super(Milestone2DefPass, self).__init__(world, self.STATES)
+        super(DefendingPass, self).__init__(world, self.STATES)
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
@@ -249,13 +250,14 @@ class Milestone2DefPass(Strategy):
 
         return (x, y)
 
+
 # When the ball is not in our zone, do nothing.
-class Milestone2Standby(Strategy):
+class Standby(Strategy):
 
     STATES = ['STOP', 'DO_NOTHING']
 
     def __init__(self, world, robotCom):
-        super(Milestone2Standby, self).__init__(world, self.STATES)
+        super(Standby, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
             'STOP': self.stopRobot,
@@ -272,6 +274,74 @@ class Milestone2Standby(Strategy):
 
     def doNothing(self):
         do_nothing()
+
+
+# Pass ball to attacker
+class PassToAttacker(Strategy):
+
+    STATES = ['ROTATE_TO_POINT',
+              'SHOOT', 'FINISHED']
+
+    def __init__(self, world, robotCom):
+        super(PassToAttacker, self).__init__(world, self.STATES)
+
+        # Map states into functions
+        self.NEXT_ACTION_MAP = {
+            'ROTATE_TO_POINT': self.rotate,
+            'SHOOT': self.shoot,
+            'FINISHED': do_nothing
+        }
+
+        self.our_defender = self.world.our_defender
+	self.our_attacker = self.world.our_attacker
+        self.ball = self.world.ball
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
+
+
+    # Rotate robot towards the point
+    def rotate(self, robot):
+	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal
+
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
+
+        if angle > pi:
+            angle = 2*pi - angle
+
+        if align_robot(self.robotCom,
+                       angle,
+                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'SHOOT'
+
+    # Not sure about this whole bit
+    def shoot(self):
+        """
+        Kick.
+        """
+        if (abs(self.our_defender.angle - 0) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+            self.current_state = 'ROTATE_TO_POINT'
+        self.current_state = 'FINISHED'
+
+        kick(self.robotCom)
+        self.our_defender.catcher = 'OPEN'
+
+    def _get_shooting_coordinates(self, robot):
+        """
+        Retrieve the coordinates to which we need to move before we set up the pass.
+        """
+        zone_index = robot.zone
+        zone_poly = self.world.pitch.zones[zone_index][0]
+
+        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
+        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
+
+        x = min_x + (max_x - min_x) / 2
+        y = self.world.pitch.height / 2
+
+        return (x, y)
+
+
 
 
 

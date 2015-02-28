@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from collections import namedtuple
 import warnings
+import matplotlib.pyplot as plt
 
 # Turn off warnings for PolynomialFit
 warnings.simplefilter('ignore', np.RankWarning)
@@ -13,18 +14,33 @@ Center = namedtuple('Center', 'x y')
 
 
 class Tracker(object):
+    @staticmethod
+    def oddify(inte):
+        if inte == 0:
+            inte +=1
+        elif inte % 2 == 0:
+            inte -= 1
+        else:
+            pass 
+        return inte
 
-    def get_contours(self, frame, adjustments):
+    def get_contours(self, frame, crop, adjustments, o_type=None):
         """
         Adjust the given frame based on 'min', 'max', 'contrast' and 'blur'
         keys in adjustments dictionary.
         """
         try:
+            if o_type == 'BALL':
+                frame = frame[crop[2]:crop[3], crop[0]:crop[1]]
             if frame is None:
                 return None
             if adjustments['blur'] > 1:
-                frame = cv2.blur(frame,
-                                 (adjustments['blur'], adjustments['blur']))
+                blur = self.oddify(adjustments['blur'])
+                # print adjustments['blur']
+               
+                frame =  cv2.GaussianBlur(frame, (15, 15), 0)
+                # plt.imshow(frame)
+                # plt.show()
 
             if adjustments['contrast'] > 1.0:
                 frame = cv2.add(frame,
@@ -45,46 +61,11 @@ class Tracker(object):
                 cv2.CHAIN_APPROX_SIMPLE
             )
             # print contours
-            return contours
+            return (contours, hierarchy, frame_mask)
         except:
-            return None
+            # bbbbb
+            raise  BaseException('get_contours in tracker.py has failed')
 
-    # TODO: Used by Ball tracker - REFACTOR
-    def preprocess(self,
-                   frame,
-                   crop,
-                   min_color,
-                   max_color,
-                   contrast,
-                   blur):
-        # Crop frame
-        frame = frame[crop[2]:crop[3], crop[0]:crop[1]]
-
-        # Apply simple kernel blur
-        # Take a matrix given by second argument and calculate average of those pixels
-        if blur > 1:
-            frame = cv2.blur(frame, (blur, blur))
-
-        # Set Contrast
-        if contrast > 1.0:
-            frame = cv2.add(frame, np.array([float(contrast)]))
-
-        # Convert frame to HSV
-        frame_hsv = cv2.cvtColor(frame,
-                                 cv2.COLOR_BGR2HSV)
-
-        # Create a mask
-        frame_mask = cv2.inRange(frame_hsv,
-                                 min_color,
-                                 max_color)
-
-        # Find contours, they describe the masked image - our T
-        contours, hierarchy = cv2.findContours(
-            frame_mask,
-            cv2.RETR_TREE,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
-        return (contours, hierarchy, frame_mask)
 
     def get_contour_extremes(self, cnt):
         """
@@ -197,7 +178,7 @@ class RobotTracker(Tracker):
         """
         # Adjustments are colors and contrast/blur
         adjustments = self.calibration['plate']
-        contours = self.get_contours(frame.copy(), adjustments)
+        contours = self.get_contours(frame.copy(),self.crop, adjustments)[0]
         return self.get_contour_corners(self.join_contours(contours))
 
     def get_dot(self, frame, x_offset, y_offset):
@@ -240,7 +221,7 @@ class RobotTracker(Tracker):
                                     mask=mask_frame)
 
             adjustment = self.calibration['dot']
-            contours = self.get_contours(frame, adjustment)
+            contours = self.get_contours(frame,self.crop, adjustment)[0]
 
             if contours and len(contours) > 0:
                 # Take the largest contour
@@ -368,7 +349,7 @@ class RobotTracker(Tracker):
                 'direction': direction,
                 'front': front
             })
-            return
+    
 
         queue.put({
             'x': None, 'y': None,
@@ -379,7 +360,7 @@ class RobotTracker(Tracker):
             'direction': None,
             'front': None
         })
-        return
+        pass
 
 class BallTracker(Tracker):
     """
@@ -413,6 +394,7 @@ class BallTracker(Tracker):
 
     def find(self, frame, queue):
         for color in self.color:
+            """
             contours, hierarchy, mask = self.preprocess(
                 frame,
                 self.crop,
@@ -421,6 +403,12 @@ class BallTracker(Tracker):
                 color['contrast'],
                 color['blur']
             )
+            """
+            # adjustments = {'min':,'mz'}
+            contours, hierarchy, mask = self.get_contours(frame.copy(),
+                                                          self.crop,
+                                                          color,
+                                                          'BALL')
 
             if len(contours) <= 0:
                 # print 'No ball found.'
@@ -440,7 +428,5 @@ class BallTracker(Tracker):
                     'angle': None,
                     'velocity': None
                 })
-                return
-
         queue.put(None)
-        return
+        pass

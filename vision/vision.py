@@ -5,7 +5,7 @@ from multiprocessing import Process, Queue
 from colors import BGR_COMMON
 from collections import namedtuple
 import numpy as np
-from findHSV import CalibrationGUI
+# from findHSV import CalibrationGUI
 
 
 TEAM_COLORS = set(['yellow', 'blue'])
