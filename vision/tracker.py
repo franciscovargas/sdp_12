@@ -37,9 +37,10 @@ class Tracker(object):
             if adjustments['blur'] > 1:
                 blur = self.oddify(adjustments['blur'])
                 # print adjustments['blur']
+               
+                frame =  cv2.GaussianBlur(frame, (15, 15), 0)
                 # plt.imshow(frame)
                 # plt.show()
-                frame =  cv2.GaussianBlur(frame, (blur, blur), 0)
 
             if adjustments['contrast'] > 1.0:
                 frame = cv2.add(frame,
@@ -63,7 +64,7 @@ class Tracker(object):
             return (contours, hierarchy, frame_mask)
         except:
             # bbbbb
-            raise
+            raise  BaseException('get_contours in tracker.py has failed')
 
 
     def get_contour_extremes(self, cnt):
