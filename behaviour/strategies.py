@@ -139,8 +139,7 @@ class DefendingGrab(Strategy):
         if angle > pi:
             angle = 2*pi - angle
 
-        if align_robot(self.robotCom,
-                       angle):
+        if align_robot(self.robotCom, angle):
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
@@ -309,9 +308,7 @@ class PassToAttacker(Strategy):
         if angle > pi:
             angle = 2*pi - angle
 
-        if align_robot(self.robotCom,
-                       angle,
-                       self.PRECISE_BALL_ANGLE_THRESHOLD):
+        if align_robot(self.robotCom, angle):
             self.current_state = 'SHOOT'
 
     # Shoot
