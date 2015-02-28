@@ -169,7 +169,7 @@ class DefendingGrab(Strategy):
 # Defender robot - Move to center and pass the ball.
 class DefendingPass(Strategy):
 
-    STATES = ['ROTATE_TO_MIDDLE',
+    STATES = ['ROTATE_TO_ATTACKER',
               'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
@@ -177,7 +177,7 @@ class DefendingPass(Strategy):
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
-            'ROTATE_TO_MIDDLE': self.rotate,
+            'ROTATE_TO_ATTACKER': self.rotate,
             'SHOOT': self.shoot,
             'FINISHED': do_nothing
         }
@@ -186,76 +186,32 @@ class DefendingPass(Strategy):
         self.our_attacker = self.world.our_attacker
         self.ball = self.world.ball
 
-        # Find the position to shoot from and cache it
-        self.shooting_pos = self._get_shooting_coordinates(self.our_defender)
-
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-    # # Rotate robot towards the middle of our defending zone.
-    # def rotatePosition(self):
-    #     ideal_x, ideal_y = self.shooting_pos
-    #     angle = self.our_defender.get_rotation_to_point(ideal_x, ideal_y)
-
-    #     if align_robot(self.robotCom,
-    #                    angle,
-    #                    self.PRECISE_BALL_ANGLE_THRESHOLD):
-    #         stop(self.robotCom)
-    #         self.current_state = 'GO_TO_MIDDLE'
-
-    # def position(self):
-    #     """
-    #     Position the robot in the middle close to the goal. Angle does not matter.
-    #     Executed initially when we've grabbed the ball and want to move.
-    #     """
-    #     ideal_x, ideal_y = self.shooting_pos
-    #     distance, angle = self.our_defender.get_direction_to_point(ideal_x, ideal_y)
-
-    #     if has_matched(self.our_defender, x=ideal_x, y=ideal_y):
-    #         self.current_state = 'ROTATE_TO_GOAL'
-    #         stop(self.robotCom)
-    #     else:
-    #         moveStraight(self.robotCom, distance)
-
-    # Rotate robot towards their goal.
     def rotate(self):
-        # center_angle = 0 if self.world._our_side == 'left' else pi
-
         angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
 
-        if align_robot(self.robotCom,
-                       angle,
-                       grab=True):
+        if align_robot(self.robotCom, angle, grab=True):
             self.current_state = 'SHOOT'
 
     def shoot(self):
         """
         Kick.
         """
-        if (abs(self.our_defender.angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
-            self.current_state = 'ROTATE_TO_MIDDLE'
-        self.current_state = 'FINISHED'
 
-        kick(self.robotCom)
-        self.our_defender.catcher = 'OPEN'
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
 
-        grab(self.robotCom)
-        self.our_defender.catcher = 'CLOSED'
+        if align_robot(self.robotCom, angle, grab=True):
+            kick(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
 
-    def _get_shooting_coordinates(self, robot):
-        """
-        Retrieve the coordinates to which we need to move before we set up the pass.
-        """
-        zone_index = robot.zone
-        zone_poly = self.world.pitch.zones[zone_index][0]
+            grab(self.robotCom)
+            self.our_defender.catcher = 'CLOSED'
 
-        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
-        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
-
-        x = min_x + (max_x - min_x) / 2
-        y = self.world.pitch.height / 2
-
-        return (x, y)
+            self.current_state = 'FINISHED'
+        else:
+            self.current_state = 'ROTATE_TO_ATTACKER'
 
 
 # When the ball is not in our zone, do nothing.
@@ -283,94 +239,23 @@ class Standby(Strategy):
         do_nothing()
 
 
-class TestStrategy(Strategy):
+# A way to easily test individual functions
+# class TestStrategy(Strategy):
 
-    STATES = ['TEST']
+#     STATES = ['TEST']
 
-    def __init__(self, world, robotCom):
-        super(TestStrategy, self).__init__(world, self.STATES)
+#     def __init__(self, world, robotCom):
+#         super(TestStrategy, self).__init__(world, self.STATES)
 
-        self.NEXT_ACTION_MAP = {
-            'TEST': self.test
-        }
+#         self.NEXT_ACTION_MAP = {
+#             'TEST': self.test
+#         }
 
-        self.robotCom = robotCom
-        self.our_defender = self.world.our_defender
+#         self.robotCom = robotCom
+#         self.our_defender = self.world.our_defender
 
-    def test(self):
-        back_off(self.robotCom, self.world._our_side, self.our_defender.angle, self.our_defender.x)
-'''
-
-# Pass ball to point
-# Add to strategies?
-class PassToPoint(Strategy):
-
-    STATES = ['ROTATE_TO_POINT',
-              'SHOOT', 'FINISHED']
-
-    def __init__(self, world, robotCom):
-        super(PassToPoint, self).__init__(world, self.STATES)
-
-        # Map states into functions
-        self.NEXT_ACTION_MAP = {
-            'ROTATE_TO_POINT': self.rotate,
-            'SHOOT': self.shoot,
-            'FINISHED': do_nothing
-        }
-
-        self.our_defender = self.world.our_defender
-        self.ball = self.world.ball
-
-        # Used to communicate with the robot
-        self.robotCom = robotCom
-
-
-    # Rotate robot towards the point
-    def rotate(self, robot):
-	# our defender? Yes, only defender needs to pass, attacker only shoots to predefined goal
-	x,y = #calculate point to go to?
-        angle = self.our_defender.get_rotation_to_point(x,y)
-
-        if angle > pi:
-            angle = 2*pi - angle
-
-        if align_robot(self.robotCom,
-                       angle,
-                       self.PRECISE_BALL_ANGLE_THRESHOLD):
-            self.current_state = 'SHOOT'
-
-    # Not sure about this whole bit
-    def shoot(self):
-        """
-        Kick.
-        """
-        if (abs(self.our_defender.angle - 0) > self.PRECISE_BALL_ANGLE_THRESHOLD):
-            self.current_state = 'ROTATE_TO_POINT'
-        self.current_state = 'FINISHED'
-
-        kick(self.robotCom)
-        self.our_defender.catcher = 'OPEN'
-
-    def _get_shooting_coordinates(self, robot):
-        """
-        Retrieve the coordinates to which we need to move before we set up the pass.
-        """
-        zone_index = robot.zone
-        zone_poly = self.world.pitch.zones[zone_index][0]
-
-        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
-        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
-
-        x = min_x + (max_x - min_x) / 2
-        y = self.world.pitch.height / 2
-
-        return (x, y)
-
-
-
-'''
-
-
+#     def test(self):
+#         back_off(self.robotCom, self.world._our_side, self.our_defender.angle, self.our_defender.x)
 
 
 # This might be a good strategy for later.
