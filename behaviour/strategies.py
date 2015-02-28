@@ -1,5 +1,5 @@
 from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, has_matched, \
-    stop, do_nothing, BALL_MOVING, kick, grab, ROBOT_ALIGN_THRESHOLD
+    stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -120,7 +120,7 @@ class DefendingGrab(Strategy):
         self.robotCom = robotCom
 
     def openCatcher(self):
-        kick(self.robotCom)
+        openGrabber(self.robotCom)
         self.our_defender.catcher == 'OPEN'
 
         self.current_state = 'ROTATE_TO_BALL'
@@ -290,7 +290,7 @@ class PassToAttacker(Strategy):
 	    #'DETECT_AND_EVADE': self.
             'ROTATE_TO_POINT': self.rotate,
             'SHOOT': self.shoot,
-            'FINISHED': self.do_nothing
+            'FINISHED': do_nothing
         }
 
         self.our_defender = self.world.our_defender
@@ -305,7 +305,7 @@ class PassToAttacker(Strategy):
 
 
     # Rotate robot towards the point
-    def rotate(self, robot):
+    def rotate(self):
 	# our_defender rotates to our_attacker
 
         angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
