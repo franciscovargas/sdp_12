@@ -8,14 +8,14 @@ BALL_ALIGN_THRESHOLD = 20
 
 ROBOT_ALIGN_THRESHOLD = pi/10
 
-POWER_SIDEWAYS_MODIFIER = 60
+POWER_SIDEWAYS_MODIFIER = 0.3
 POWER_SIDEWAYS_BASE = 40
 
-POWER_STRAIGHT_MODIFIER = 60
+POWER_STRAIGHT_MODIFIER = 0.3
 POWER_STRAIGHT_BASE = 40
 
 POWER_ROTATE_MODIFIER = 3.5
-POWER_ROTATE_BASE = 28
+POWER_ROTATE_BASE = 27
 
 POWER_GRAB = 30
 POWER_KICK = 100
@@ -37,7 +37,7 @@ def moveSideways(robotCom, displacement, side):
     side_modifier = -1 if side == 'right' else 1
     if abs(displacement) > BALL_ALIGN_THRESHOLD:
         power = side_modifier * \
-            ((POWER_SIDEWAYS_MODIFIER * 0.005 * displacement) +
+            ((POWER_SIDEWAYS_MODIFIER * displacement) +
              copysign(POWER_SIDEWAYS_BASE, displacement))
         robotCom.moveSideways(power)
     else:
@@ -48,7 +48,8 @@ def moveSideways(robotCom, displacement, side):
 def moveStraight(robotCom, displacement):
     print "Absolute displacement to destination: %d" % displacement
     if abs(displacement) > BALL_APPROACH_THRESHOLD:
-        power = (POWER_STRAIGHT_MODIFIER * 0.005 * displacement) + copysign(POWER_STRAIGHT_BASE, displacement)
+        power = (POWER_STRAIGHT_MODIFIER * displacement) \
+            + copysign(POWER_STRAIGHT_BASE, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
@@ -57,7 +58,7 @@ def moveStraight(robotCom, displacement):
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
-    time.sleep(0.5)
+    # time.sleep(0.5)
 
 
 # Open the grabber without kicking
@@ -69,21 +70,17 @@ def openGrabber(robotCom):
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
-    time.sleep(1)
+    # time.sleep(1)
 
 
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
 def align_robot(robotCom, angle, grab=False):
     if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
-        print "Aligning..."
         power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
-        print "Power: " + str(power)
         if grab:
-            print "Rotating and grabbing"
             robotCom.rotateAndGrab(power, 100)
         else:
-            print "Rotating without grabbing"
             robotCom.rotate(power)
         return False
     else:
