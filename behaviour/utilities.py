@@ -3,16 +3,20 @@ from world import Robot
 import time
 
 BALL_APPROACH_THRESHOLD = 55
+
+BALL_ALIGN_THRESHOLD = 20
+
 ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS_MODIFIER = 60
 POWER_SIDEWAYS_BASE = 40
+
 POWER_STRAIGHT_MODIFIER = 60
 POWER_STRAIGHT_BASE = 40
-POWER_STOP_STRAIGHT = 70
+
 POWER_ROTATE_MODIFIER = 3.5
-POWER_ROTATE_BASE = 25
-POWER_STOP_ROTATION = 25
+POWER_ROTATE_BASE = 28
+
 POWER_GRAB = 30
 POWER_KICK = 100
 
@@ -28,10 +32,13 @@ def stop(robotCom):
 
 
 # Moving sideways
-def moveSideways(robotCom, displacement):
-    print "Absolute displacement to destination: %d" % displacement
-    if abs(displacement) > BALL_APPROACH_THRESHOLD:
-        power = (POWER_SIDEWAYS_MODIFIER * 0.005 * displacement) + copysign(POWER_SIDEWAYS_BASE, displacement)
+def moveSideways(robotCom, displacement, side):
+    # print "Absolute displacement to destination: %d" % displacement
+    side_modifier = -1 if side == 'right' else 1
+    if abs(displacement) > BALL_ALIGN_THRESHOLD:
+        power = side_modifier * \
+            ((POWER_SIDEWAYS_MODIFIER * 0.005 * displacement) +
+             copysign(POWER_SIDEWAYS_BASE, displacement))
         robotCom.moveSideways(power)
     else:
         robotCom.stop()
@@ -80,7 +87,7 @@ def align_robot(robotCom, angle, grab=False):
             robotCom.rotate(power)
         return False
     else:
-        robotCom.stop()
+        # robotCom.stop()
         return True
 
 
