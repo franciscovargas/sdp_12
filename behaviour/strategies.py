@@ -258,7 +258,7 @@ class PassToAttacker(Strategy):
         # Map states into functions
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
-            'DETECT_AND_EVADE': self.evade,
+            # 'DETECT_AND_EVADE': self.evade,
             'ROTATE_TO_POINT': self.rotate,
             'SHOOT': self.shoot,
             'FINISHED': do_nothing
@@ -275,7 +275,8 @@ class PassToAttacker(Strategy):
     # Align robot so it is 180 degrees from goal (i.e. facing forward)
     def align(self):
         if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, True):
-            self.current_state = 'DETECT_AND_EVADE'
+            # self.current_state = 'DETECT_AND_EVADE'
+            self.current_state = 'ROTATE_TO_POINT'
 
     # Evade the other team's attacker
     def evade(self):
@@ -308,10 +309,7 @@ class PassToAttacker(Strategy):
     def rotate(self):
         # our_defender rotates to our_attacker
 
-        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
-
-        if angle > pi:
-            angle = 2*pi - angle
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
 
         if align_robot(self.robotCom, angle):
             self.current_state = 'SHOOT'
@@ -321,7 +319,8 @@ class PassToAttacker(Strategy):
         """
         Kick.
         """
-        if (abs(self.our_defender.angle - 0) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
+        if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_POINT'
         self.current_state = 'FINISHED'
 
