@@ -9,7 +9,7 @@ BALL_ALIGN_THRESHOLD = 20
 ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS_MODIFIER = 0.3
-POWER_SIDEWAYS_BASE = 40
+POWER_SIDEWAYS_BASE = 4 0
 
 POWER_STRAIGHT_MODIFIER = 0.3
 POWER_STRAIGHT_BASE = 40
@@ -64,7 +64,7 @@ def grab(robotCom):
 # Open the grabber without kicking
 def openGrabber(robotCom):
     robotCom.grab(-POWER_GRAB)
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
 
 # Kick the ball, full power
