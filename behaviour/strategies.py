@@ -249,7 +249,7 @@ class Standby(Strategy):
 # Pass ball to attacker
 class PassToAttacker(Strategy):
 
-    STATES = ['UNALIGNED', 'DETECT_AND_EVADE',
+    STATES = ['CALCULATE', 'EVADE',
               'ROTATE_TO_POINT', 'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
@@ -257,8 +257,8 @@ class PassToAttacker(Strategy):
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
-            'UNALIGNED': self.align,
-            # 'DETECT_AND_EVADE': self.evade,
+            'CALCULATE': self.calculate,
+            'EVADE': self.evade,
             'ROTATE_TO_POINT': self.rotate,
             'SHOOT': self.shoot,
             'FINISHED': do_nothing
@@ -268,53 +268,54 @@ class PassToAttacker(Strategy):
         self.our_attacker = self.world.our_attacker
         self.their_attacker = self.world.their_attacker
         self.ball = self.world.ball
+	self.pitch = self.world.pitch
 
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-    # Align robot so it is 180 degrees from goal (i.e. facing forward)
-    def align(self):
-        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, True):
-            # self.current_state = 'DETECT_AND_EVADE'
-            self.current_state = 'ROTATE_TO_POINT'
 
-    # Evade the other team's attacker
+    def calculate(self):
+	# align Kevin to 180 deg from goal 
+	if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, True):    
+	    # if shot is possible, rotate to our_attacker
+	    if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+		current_state = 'ROTATE_TO_POINT'
+	    # else evade their_attacker
+	    else:
+		current_state = 'EVADE'
+
+
     def evade(self):
-        # if the shot is blocked, evade3
-        if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-            # Specifies the type of defending. Can be 'straight' or 'sideways'
-            type_of_movement = 'sideways'
+	if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+	    mid_y = self.pitch.height / 2.0	#either height or width- check
 
-            # If the robot somehew unaligned himself.
-            if (abs(self.our_defender.angle - pi) > ROBOT_ALIGN_THRESHOLD):
-                self.current_state = 'UNALIGNED'
+	    if their_attacker.y >= mid_y:
+		y = self.our_defender.y + 20
+	    else:
+		y = self.our_defender.y - 20
 
-            # Try to be in same vertical position +- their_attacker.length as their_attacker
-            y = self.their_attacker.y + self.their_attacker.length
-            y = max([y, 50])
-            y = min([y, self.world._pitch.height - 50])
+	    y = max([y, 50])
+	    y = min([y, self.world._pitch.height - 50])
+	    displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
 
-            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
-            if(self.our_defender.y > y):
-                displacement = -displacement
+	    # send correct movement type to comms
+	    moveSideways(self.robotCom, displacement, self.world._our_side)
+	    
+	else:
+	    self.current_state = 'ROTATE_TO_POINT'
+ 
 
-            if type_of_movement == 'straight':
-                    moveStraight(self.robotCom, displacement)
-            elif type_of_movement == 'sideways':
-                    moveSideways(self.robotCom, displacement, self.world._our_side)
-        else:
-            self.current_state = 'ROTATE_TO_POINT'
-
-    # Rotate robot towards the point
     def rotate(self):
-        # our_defender rotates to our_attacker
-
-        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
-
+	# rotate to shooting path to our_attacker
+	angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
         if align_robot(self.robotCom, angle):
-            self.current_state = 'SHOOT'
+	    # recheck that shot is possible, if it is shoot. Else begin again.
+	    if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+		self.current_state = 'SHOOT'
+	    else:
+		current_state = 'CALCULATE'
 
-    # Shoot
+
     def shoot(self):
         """
         Kick.
@@ -342,6 +343,36 @@ class PassToAttacker(Strategy):
 
         return (x, y)
 
+'''
+
+    # Evade the other team's attacker
+    def evade(self):
+        # if the shot is blocked, evade
+        if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+            # Specifies the type of defending. Can be 'straight' or 'sideways'
+            type_of_movement = 'sideways'
+
+            # If the robot somehew unaligned himself.
+            if (abs(self.our_defender.angle - pi) > ROBOT_ALIGN_THRESHOLD):
+                self.current_state = 'UNALIGNED'
+
+            # Try to be in same vertical position +- their_attacker.length as their_attacker
+            y = self.their_attacker.y + self.their_attacker.length
+            y = max([y, 50])
+            y = min([y, self.world._pitch.height - 50])
+
+            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+            if(self.our_defender.y > y):
+                displacement = -displacement
+
+            if type_of_movement == 'straight':
+                    moveStraight(self.robotCom, displacement)
+            elif type_of_movement == 'sideways':
+                    moveSideways(self.robotCom, displacement, self.world._our_side)
+        else:
+            self.current_state = 'ROTATE_TO_POINT'
+
+'''
 # A way to easily test individual functions
 # class TestStrategy(Strategy):
 

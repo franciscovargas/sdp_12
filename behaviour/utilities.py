@@ -126,19 +126,6 @@ def back_off(robotCom, side, robot_angle, robot_x):
 
             # re-align robot towards goal
             # move backwards until 20 (?) from threshold
-# not using the below
-
-
-
-
-
-
-# Variables used by old code.
-DISTANCE_MATCH_THRESHOLD = 20
-ANGLE_MATCH_THRESHOLD = pi/10
-BALL_ANGLE_THRESHOLD = pi/20
-MAX_DISPLACEMENT_SPEED = 690
-MAX_ANGLE_SPEED = 50
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''
@@ -201,6 +188,23 @@ def predict_y_intersection(world,
 
         else:
             return None
+
+
+# not using the below
+
+
+
+
+
+
+# Variables used by old code.
+DISTANCE_MATCH_THRESHOLD = 20
+ANGLE_MATCH_THRESHOLD = pi/10
+BALL_ANGLE_THRESHOLD = pi/20
+MAX_DISPLACEMENT_SPEED = 690
+MAX_ANGLE_SPEED = 50
+
+
 
 
 def has_matched(robot, x=None, y=None, angle=None,
