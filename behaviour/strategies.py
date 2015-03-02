@@ -42,7 +42,7 @@ class Strategy(object):
 class Defending(Strategy):
 
     STATES = ['UNALIGNED',
-              # 'OPEN_CATCHER',
+              'OPEN_CATCHER',
               'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
@@ -50,7 +50,7 @@ class Defending(Strategy):
 
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
-            # 'OPEN_CATCHER': self.openCatcher,
+            'OPEN_CATCHER': self.openCatcher,
             'DEFEND_GOAL': self.defend_goal
         }
 
@@ -64,13 +64,15 @@ class Defending(Strategy):
     # Align robot so that he is 180 degrees from facing to goal
     def align(self):
         if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre):
-            self.current_state = 'DEFEND_GOAL'
+            stop(self.robotCom)
+            self.current_state = 'OPEN_CATCHER'
 
     def openCatcher(self):
-        openGrabber(self.robotCom)
-        self.our_defender.catcher == 'OPEN'
+        if(self.our_defender.catcher == 'CLOSED'):
+            openGrabber(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
 
-        self.current_state = 'DEFEND_GOAL'
+        self.current_state = 'DEFEND_GOAL' 
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
