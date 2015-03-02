@@ -9,13 +9,15 @@ BALL_ALIGN_THRESHOLD = 20
 ROBOT_ALIGN_THRESHOLD = pi/10
 
 POWER_SIDEWAYS_MODIFIER = 0.3
-POWER_SIDEWAYS_BASE = 4 0
+POWER_SIDEWAYS_BASE = 40
 
 POWER_STRAIGHT_MODIFIER = 0.3
 POWER_STRAIGHT_BASE = 40
 
-POWER_ROTATE_MODIFIER = 3.5
-POWER_ROTATE_BASE = 27
+
+# DO NOT CHANGE !!!
+POWER_ROTATE_MODIFIER = 2.5
+POWER_ROTATE_BASE = 26
 
 POWER_GRAB = 30
 POWER_KICK = 100
@@ -61,7 +63,7 @@ def grab(robotCom):
     # time.sleep(0.5)
 
 
-# Open the grabber without kicking
+# Open the grabber without kickingROBOT_ALIGN_THRESHOLD
 def openGrabber(robotCom):
     robotCom.grab(-POWER_GRAB)
     #time.sleep(0.5)
@@ -77,9 +79,10 @@ def kick(robotCom):
 # the difference between the robot and target angles
 def align_robot(robotCom, angle, grab=False):
     if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
-        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
+        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle) 
         if grab:
-            robotCom.rotateAndGrab(power, 100)
+            power = power * 1.2
+            robotCom.rotateAndGrab(power, POWER_GRAB)
         else:
             robotCom.rotate(power)
         return False
@@ -132,7 +135,7 @@ def is_shot_blocked(world, our_robot, their_robot):
     Checks if our robot could shoot past their robot
     '''
     predicted_y = predict_y_intersection(
-        world, their_robot.x, our_robot, full_width=True, bounce=True)
+        world, their_robot.x, our_robot, full_width=True, bounce=False)
     if predicted_y is None:
         return True
     print '##########', predicted_y, their_robot.y, their_robot.length
@@ -158,8 +161,8 @@ def predict_y_intersection(world,
             top_y = world._pitch.height - 60
             bottom_y = 60
         else:
-            top_y = world.our_goal.y + (world.our_goal.width/2) - 30
-            bottom_y = world.our_goal.y - (world.our_goal.width/2) + 30
+            top_y = world.our_goal.y + (world.our_goal.width/2) - 60
+            bottom_y = world.our_goal.y - (world.our_goal.width/2) + 60
 
         angle = robot.angle
 

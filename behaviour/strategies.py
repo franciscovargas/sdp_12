@@ -68,9 +68,8 @@ class Defending(Strategy):
             self.current_state = 'OPEN_CATCHER'
 
     def openCatcher(self):
-        if(self.our_defender.catcher == 'CLOSED'):
-            openGrabber(self.robotCom)
-            self.our_defender.catcher = 'OPEN'
+        openGrabber(self.robotCom)
+        self.our_defender.catcher = 'OPEN'
 
         self.current_state = 'DEFEND_GOAL' 
 
@@ -97,11 +96,11 @@ class Defending(Strategy):
         #         displacement = -displacement
         # else:
             # Try to be in same vertical position as the ball
-            # y = self.ball.y
-            # y = max([y, 100])
-            # y = min([y, self.world._pitch.height - 100])
+        y = self.ball.y
+        y = max([y, 100])
+        y = min([y, self.world._pitch.height - 100])
             # displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
-        displacement = self.our_defender.y - self.ball.y
+        displacement = self.our_defender.y - y
         # if(self.our_defender.y > self.ball.y):
         #     displacement = -displacement
 
@@ -134,9 +133,8 @@ class DefendingGrab(Strategy):
         self.robotCom = robotCom
 
     def openCatcher(self):
-        if self.our_defender.catcher == 'CLOSED':
-            openGrabber(self.robotCom)
-            self.our_defender.catcher = 'OPEN'
+        openGrabber(self.robotCom)
+        self.our_defender.catcher = 'OPEN'
 
         self.current_state = 'ROTATE_TO_BALL'
 
@@ -147,6 +145,7 @@ class DefendingGrab(Strategy):
             angle = 2*pi - angle
 
         if align_robot(self.robotCom, angle):
+            stop(self.robotCom)
             self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
@@ -270,59 +269,63 @@ class PassToAttacker(Strategy):
         self.our_attacker = self.world.our_attacker
         self.their_attacker = self.world.their_attacker
         self.ball = self.world.ball
-	self.pitch = self.world.pitch
+        self.pitch = self.world.pitch
 
         # Used to communicate with the robot
         self.robotCom = robotCom
 
 
     def calculate(self):
-	# align Kevin to 180 deg from goal 
-	if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, True):    
-	    # if shot is possible, rotate to our_attacker
-	    if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-		current_state = 'ROTATE_TO_POINT'
-	    # else evade their_attacker
-	    else:
-		current_state = 'EVADE'
+        # align Kevin to 180 deg from goal 
+        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, True):    
+            # if shot is possible, rotate to our_attacker
+            if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+                self.current_state = 'SHOOT'
+                # else evade their_attacker
+            else:
+                self.current_state = 'EVADE'
 
 
     def evade(self):
-	if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-	    mid_y = self.pitch.height / 2.0	#either height or width- check
+        if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+            mid_y = self.pitch.height / 2.0	#either height or width- check
 
-	    if their_attacker.y >= mid_y:
-		y = self.our_defender.y + 20
-	    else:
-		y = self.our_defender.y - 20
+            if self.their_attacker.y >= mid_y:
+                y = self.our_defender.y - 50
+            else:
+                y = self.our_defender.y + 50
 
-	    y = max([y, 50])
-	    y = min([y, self.world._pitch.height - 50])
-	    displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+            y = max([y, 10])
+            y = min([y, self.world._pitch.height - 10])
+            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+            if(self.our_defender.y > y):
+                displacement = -displacement
 
-	    # send correct movement type to comms
-	    moveSideways(self.robotCom, displacement, self.world._our_side)
-	    
-	else:
-	    self.current_state = 'ROTATE_TO_POINT'
+            # send correct movement type to comms
+            moveSideways(self.robotCom, displacement, self.world._our_side)
+            
+        else:
+            stop(self.robotCom)
+            self.current_state = 'ROTATE_TO_POINT'
  
 
     def rotate(self):
-	# rotate to shooting path to our_attacker
-	angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
+        # rotate to shooting path to our_attacker
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
         if align_robot(self.robotCom, angle):
-	    # recheck that shot is possible, if it is shoot. Else begin again.
-	    if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-		self.current_state = 'SHOOT'
-	    else:
-		current_state = 'CALCULATE'
+            # recheck that shot is possible, if it is shoot. Else begin again.
+            if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+                stop(self.robotCom)
+                self.current_state = 'SHOOT'
+            else:
+                self.current_state = 'CALCULATE'
 
 
     def shoot(self):
         """
         Kick.
         """
-        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
+        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
         if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_POINT'
         self.current_state = 'FINISHED'
