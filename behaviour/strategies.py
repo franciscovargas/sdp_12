@@ -1,5 +1,5 @@
 from utilities import align_robot, align_robot_to_pitch, predict_y_intersection, moveStraight, moveSideways, has_matched, \
-    stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off
+    stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -10,7 +10,6 @@ from utilities import calculate_motor_speed, is_shot_blocked
 
 class Strategy(object):
 
-    PRECISE_BALL_ANGLE_THRESHOLD = pi/8
     UP, DOWN = 'UP', 'DOWN'
 
     def __init__(self, world, states):
@@ -71,7 +70,7 @@ class Defending(Strategy):
         openGrabber(self.robotCom)
         self.our_defender.catcher = 'OPEN'
 
-        self.current_state = 'DEFEND_GOAL' 
+        self.current_state = 'DEFEND_GOAL'
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
@@ -99,7 +98,7 @@ class Defending(Strategy):
         y = self.ball.y
         y = max([y, 100])
         y = min([y, self.world._pitch.height - 100])
-            # displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+        # displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
         displacement = self.our_defender.y - y
         # if(self.our_defender.y > self.ball.y):
         #     displacement = -displacement
@@ -157,7 +156,7 @@ class DefendingGrab(Strategy):
         if self.our_defender.can_catch_ball(self.ball):
             stop(self.robotCom)
             self.current_state = 'GRAB_BALL'
-        elif (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+        elif (abs(angle) > PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_BALL'
         else:
             moveStraight(self.robotCom, displacement)
@@ -250,17 +249,16 @@ class Standby(Strategy):
 # Pass ball to attacker
 class PassToAttacker(Strategy):
 
-    STATES = ['CALCULATE', 'EVADE',
-              'ROTATE_TO_POINT', 'SHOOT', 'FINISHED']
+    STATES = ['ALIGN', 'EVADE',
+              'SHOOT', 'FINISHED']
 
     def __init__(self, world, robotCom):
         super(PassToAttacker, self).__init__(world, self.STATES)
 
         # Map states into functions
         self.NEXT_ACTION_MAP = {
-            'CALCULATE': self.calculate,
+            'ALIGN': self.align,
             'EVADE': self.evade,
-            'ROTATE_TO_POINT': self.rotate,
             'SHOOT': self.shoot,
             'FINISHED': do_nothing
         }
@@ -274,21 +272,19 @@ class PassToAttacker(Strategy):
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-
-    def calculate(self):
-        # align Kevin to 180 deg from goal 
-        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, True):    
-            # if shot is possible, rotate to our_attacker
-            if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-                self.current_state = 'SHOOT'
-                # else evade their_attacker
-            else:
+    def align(self):
+        # align Kevin to 180 deg from goal
+        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
+            # if shot is possible, change to shooting
+            if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
                 self.current_state = 'EVADE'
-
+            else:
+                stop(self.robotCom)
+                self.current_state = 'SHOOT'
 
     def evade(self):
         if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-            mid_y = self.pitch.height / 2.0	#either height or width- check
+            mid_y = self.pitch.height / 2.0  # either height or width- check
 
             if self.their_attacker.y >= mid_y:
                 y = self.our_defender.y - 50
@@ -303,50 +299,22 @@ class PassToAttacker(Strategy):
 
             # send correct movement type to comms
             moveSideways(self.robotCom, displacement, self.world._our_side)
-            
+
         else:
             stop(self.robotCom)
-            self.current_state = 'ROTATE_TO_POINT'
- 
-
-    def rotate(self):
-        # rotate to shooting path to our_attacker
-        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
-        if align_robot(self.robotCom, angle):
-            # recheck that shot is possible, if it is shoot. Else begin again.
-            if not is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-                stop(self.robotCom)
-                self.current_state = 'SHOOT'
-            else:
-                self.current_state = 'CALCULATE'
-
+            self.current_state = 'SHOOT'
 
     def shoot(self):
         """
         Kick.
         """
-        angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
-        if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
-            self.current_state = 'ROTATE_TO_POINT'
-        self.current_state = 'FINISHED'
+        # angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
+        # if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
+        if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
+            kick(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
+            self.current_state = 'FINISHED'
 
-        kick(self.robotCom)
-        self.our_defender.catcher = 'OPEN'
-
-    def _get_shooting_coordinates(self, robot):
-        """
-        Retrieve the coordinates to which we need to move before we set up the pass.
-        """
-        zone_index = robot.zone
-        zone_poly = self.world.pitch.zones[zone_index][0]
-
-        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
-        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
-
-        x = min_x + (max_x - min_x) / 2
-        y = self.world.pitch.height / 2
-
-        return (x, y)
 
 '''
 

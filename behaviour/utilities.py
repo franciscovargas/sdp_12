@@ -8,16 +8,14 @@ BALL_ALIGN_THRESHOLD = 20
 
 ROBOT_ALIGN_THRESHOLD = pi/10
 
-POWER_SIDEWAYS_MODIFIER = 0.3
-POWER_SIDEWAYS_BASE = 40
+POWER_SIDEWAYS_MODIFIER = 0.5
+POWER_SIDEWAYS_BASE = 50
 
 POWER_STRAIGHT_MODIFIER = 0.3
-POWER_STRAIGHT_BASE = 40
+POWER_STRAIGHT_BASE = 30
 
-
-# DO NOT CHANGE !!!
-POWER_ROTATE_MODIFIER = 2.5
-POWER_ROTATE_BASE = 26
+POWER_ROTATE_MODIFIER = 1.5
+POWER_ROTATE_BASE = 25
 
 POWER_GRAB = 30
 POWER_KICK = 100
@@ -26,6 +24,8 @@ BALL_MOVING = 3
 
 LEFT_DEFENDER_ZONE_THRESHOLD = 100
 RIGHT_DEFENDER_ZONE_THRESHOLD = 420
+
+PRECISE_BALL_ANGLE_THRESHOLD = pi/8
 
 
 # Stop everything
@@ -79,9 +79,9 @@ def kick(robotCom):
 # the difference between the robot and target angles
 def align_robot(robotCom, angle, grab=False):
     if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
-        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle) 
+        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
         if grab:
-            power = power * 1.2
+            # power = power * 1.2
             robotCom.rotateAndGrab(power, POWER_GRAB)
         else:
             robotCom.rotate(power)
