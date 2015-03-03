@@ -278,8 +278,6 @@ class PassToAttacker(Strategy):
                 # raise BaseException
                 self.current_state = 'EVADE'
             else:
-                print "shooting"
-                stop(self.robotCom)
                 self.current_state = 'SHOOT'
 
     def evade(self):
@@ -320,6 +318,7 @@ class PassToAttacker(Strategy):
         # angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
         # if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
         if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
+            print "shooting"
             stop(self.robotCom)
             kick(self.robotCom)
             self.our_defender.catcher = 'OPEN'

@@ -9,7 +9,7 @@ BALL_ALIGN_THRESHOLD = 20
 ROBOT_ALIGN_THRESHOLD = pi/12
 
 POWER_SIDEWAYS_MODIFIER = 0.5
-POWER_SIDEWAYS_BASE = 50
+POWER_SIDEWAYS_BASE = 45
 
 POWER_STRAIGHT_MODIFIER = 0.3
 POWER_STRAIGHT_BASE = 30
@@ -142,8 +142,8 @@ def is_shot_blocked(world, our_robot, their_robot):
         world, their_robot.x, our_robot, full_width=True, bounce=False)
     if predicted_y is None:
         return True
-    print '##########', predicted_y, their_robot.y, their_robot.length
-    print abs(predicted_y - their_robot.y) < their_robot.length
+    print "Predicted y: " + str(predicted_y) + " Their robot's y: " + str(their_robot.y) + "Their robot's length: " + str(their_robot.length)
+    print "Shot blocked: ", abs(predicted_y - their_robot.y) < their_robot.length
     return abs(predicted_y - their_robot.y) < their_robot.length
 
 
@@ -163,8 +163,8 @@ def predict_y_intersection(world,
             top_y = world._pitch.height - 60
             bottom_y = 60
         else:
-            top_y = world.our_goal.y + (world.our_goal.width/2) - 60
-            bottom_y = world.our_goal.y - (world.our_goal.width/2) + 60
+            top_y = world.our_goal.y + (world.our_goal.width/2) - 70
+            bottom_y = world.our_goal.y - (world.our_goal.width/2) + 70
 
         angle = robot.angle
 
