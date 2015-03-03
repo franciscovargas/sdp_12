@@ -100,7 +100,7 @@ class Vision:
                     pitch=pitch,
                     name='Our Attacker',
                     calibration=calibration)
-            ] 
+            ]
 
             self.opponents = [
                 RobotTracker(
@@ -178,7 +178,7 @@ class Vision:
         """
         plane_height = 250.0
         # TWEAK
-        robot_height = 18.0
+        robot_height = 20.0
         coefficient = robot_height/plane_height
 
         x = point[0]

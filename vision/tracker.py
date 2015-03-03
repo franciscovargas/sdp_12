@@ -21,7 +21,7 @@ class Tracker(object):
         elif inte % 2 == 0:
             inte -= 1
         else:
-            pass 
+            pass
         return inte
 
     def get_contours(self, frame, crop, adjustments, o_type=None):
@@ -37,8 +37,8 @@ class Tracker(object):
             if adjustments['blur'] > 1:
                 blur = self.oddify(adjustments['blur'])
                 # print adjustments['blur']
-               
-                frame =  cv2.GaussianBlur(frame, (15, 15), 0)
+
+                frame =  cv2.GaussianBlur(frame, (blur, blur), 0)
                 # plt.imshow(frame)
                 # plt.show()
 
@@ -349,7 +349,7 @@ class RobotTracker(Tracker):
                 'direction': direction,
                 'front': front
             })
-    
+
 
         queue.put({
             'x': None, 'y': None,

@@ -67,8 +67,9 @@ class Defending(Strategy):
             self.current_state = 'OPEN_CATCHER'
 
     def openCatcher(self):
-        openGrabber(self.robotCom)
-        self.our_defender.catcher = 'OPEN'
+        if self.our_defender.catcher == 'CLOSED':
+            openGrabber(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
 
         self.current_state = 'DEFEND_GOAL'
 
@@ -132,8 +133,9 @@ class DefendingGrab(Strategy):
         self.robotCom = robotCom
 
     def openCatcher(self):
-        openGrabber(self.robotCom)
-        self.our_defender.catcher = 'OPEN'
+        if self.our_defender.catcher == 'CLOSED':
+            openGrabber(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
 
         self.current_state = 'ROTATE_TO_BALL'
 
@@ -162,12 +164,6 @@ class DefendingGrab(Strategy):
             moveStraight(self.robotCom, displacement)
 
     def grab(self):
-        # if self.our_defender.has_ball(self.ball):
-        #     self.current_state = 'GRABBED'
-        # else:
-        #     self.our_defender.catcher = 'CLOSED'
-        #     self.robotCom.grabCont(100)
-
         grab(self.robotCom)
         self.current_state = 'GRABBED'
         self.our_defender.catcher = 'CLOSED'
@@ -277,30 +273,44 @@ class PassToAttacker(Strategy):
         if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
             # if shot is possible, change to shooting
             if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+                print "SHOT IS BLOCKED"
+                print "######### Evading align ############"
+                # raise BaseException
                 self.current_state = 'EVADE'
             else:
+                print "shooting"
                 stop(self.robotCom)
                 self.current_state = 'SHOOT'
 
     def evade(self):
         if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
-            mid_y = self.pitch.height / 2.0  # either height or width- check
+            # find the mid-point of the pitch
+            mid_y = self.pitch.height / 2.0
+            print mid_y
 
             if self.their_attacker.y >= mid_y:
+                # if the robot is in the upper half of the pitch, move down
                 y = self.our_defender.y - 50
             else:
+                # otherwise, move up
                 y = self.our_defender.y + 50
 
+            # stop the robot from going to the extremities of the pitch
             y = max([y, 10])
             y = min([y, self.world._pitch.height - 10])
-            displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+
+            displacement = self.our_defender.get_displacement_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
                 displacement = -displacement
-
+                print "-displacement"
+            print "displacement"
+            # raise BaseException
             # send correct movement type to comms
             moveSideways(self.robotCom, displacement, self.world._our_side)
-
+            print("DRAMA evade")
         else:
+            # raise BaseException("DRAMA kick after evade")
+            print("shoooooot shooooot SHOOOOt")
             stop(self.robotCom)
             self.current_state = 'SHOOT'
 
@@ -311,6 +321,7 @@ class PassToAttacker(Strategy):
         # angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
         # if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
         if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
+            stop(self.robotCom)
             kick(self.robotCom)
             self.our_defender.catcher = 'OPEN'
             self.current_state = 'FINISHED'
