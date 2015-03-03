@@ -307,7 +307,6 @@ class PassToAttacker(Strategy):
             # raise BaseException
             # send correct movement type to comms
             moveSideways(self.robotCom, displacement, self.world._our_side)
-            print("DRAMA evade")
         else:
             # raise BaseException("DRAMA kick after evade")
             print("shoooooot shooooot SHOOOOt")
