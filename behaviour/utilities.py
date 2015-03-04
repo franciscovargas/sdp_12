@@ -4,16 +4,19 @@ import time
 
 BALL_APPROACH_THRESHOLD = 55
 
+BACK_OFF_THRESHOLD = 25
+
 BALL_ALIGN_THRESHOLD = 20
 
 ROBOT_ALIGN_THRESHOLD = pi/12
+
+PRECISE_BALL_ANGLE_THRESHOLD = pi/8
 
 POWER_SIDEWAYS_MODIFIER = 0.5
 POWER_SIDEWAYS_BASE = 45
 
 POWER_STRAIGHT_MODIFIER = 0.3
 POWER_STRAIGHT_BASE = 30
-
 
 # POWER_ROTATE_MODIFIER = 1.5
 # POWER_ROTATE_BASE = 25
@@ -26,9 +29,7 @@ POWER_KICK = 100
 BALL_MOVING = 3
 
 LEFT_DEFENDER_ZONE_THRESHOLD = 100
-RIGHT_DEFENDER_ZONE_THRESHOLD = 420
-
-PRECISE_BALL_ANGLE_THRESHOLD = pi/8
+RIGHT_DEFENDER_ZONE_THRESHOLD = 500
 
 
 # Stop everything
@@ -50,9 +51,9 @@ def moveSideways(robotCom, displacement, side):
 
 
 # Move straight, with speed relative to the distance left to cover
-def moveStraight(robotCom, displacement):
+def moveStraight(robotCom, displacement, threshold=BALL_APPROACH_THRESHOLD):
     print "Absolute displacement to destination: %d" % displacement
-    if abs(displacement) > BALL_APPROACH_THRESHOLD:
+    if abs(displacement) > threshold:
         power = (POWER_STRAIGHT_MODIFIER * displacement) \
             + copysign(POWER_STRAIGHT_BASE, displacement)
         robotCom.moveStraight(power)
@@ -119,32 +120,40 @@ def back_off(robotCom, side, robot_angle, robot_x):
             print 'over left threshold, aligning'
             if align_robot_to_pitch(robotCom, robot_angle, pi):
                 print 'aligned'
-                moveStraight(robotCom, robot_x - 60)
-                print 'finished moving'
+                moveStraight(robotCom, -30, BACK_OFF_THRESHOLD)
+                return False
+        else:
+            stop(robotCom)
+            return True
     if side == 'right':
         print 'on right side'
         if robot_x < RIGHT_DEFENDER_ZONE_THRESHOLD:
             print 'over right threshold, aligning'
             if align_robot_to_pitch(robotCom, robot_angle, pi):
                 print 'aligned'
-                moveStraight(robotCom, 460 - robot_x)
-                print 'finished moving'
+                moveStraight(robotCom, -30, BACK_OFF_THRESHOLD)
+                return False
+        else:
+            stop(robotCom)
+            return True
 
             # re-align robot towards goal
             # move backwards until 20 (?) from threshold
+
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''
     Checks if our robot could shoot past their robot
     returns true if robot is facing the wrong direction
     '''
-    predicted_y = predict_y_intersection(
-        world, their_robot.x, our_robot, full_width=True, bounce=False)
-    if predicted_y is None:
-        return True
-    print "Predicted y: " + str(predicted_y) + " Their robot's y: " + str(their_robot.y) + "Their robot's length: " + str(their_robot.length)
-    print "Shot blocked: ", abs(predicted_y - their_robot.y) < their_robot.length
-    return abs(predicted_y - their_robot.y) < their_robot.length
+    # predicted_y = predict_y_intersection(
+    #     world, their_robot.x, our_robot, full_width=True, bounce=False)
+    # if predicted_y is None:
+    #     return True
+    # print "Predicted y: " + str(predicted_y) + " Their robot's y: " + str(their_robot.y) + "Their robot's length: " + str(their_robot.length)
+    # print "Shot blocked: ", abs(predicted_y - their_robot.y) < their_robot.length
+    # return abs(predicted_y - their_robot.y) < their_robot.length
+    return abs(their_robot.y - our_robot.y) < 40
 
 
 def predict_y_intersection(world,

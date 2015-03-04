@@ -16,7 +16,8 @@ class Strategy(object):
         self.world = world
         self.states = states
         self._current_state = states[0]
-        self.pitch_centre = pi if self.world._our_side == 'right' else 0
+        self.our_side = self.world._our_side
+        self.pitch_centre = pi if self.our_side == 'right' else 0
 
     @property
     def current_state(self):
@@ -41,6 +42,7 @@ class Strategy(object):
 class Defending(Strategy):
 
     STATES = ['UNALIGNED',
+              'MOVE_BACK',
               'OPEN_CATCHER',
               'DEFEND_GOAL']
 
@@ -49,6 +51,7 @@ class Defending(Strategy):
 
         self.NEXT_ACTION_MAP = {
             'UNALIGNED': self.align,
+            'MOVE_BACK': self.move_back,
             'OPEN_CATCHER': self.openCatcher,
             'DEFEND_GOAL': self.defend_goal
         }
@@ -64,6 +67,10 @@ class Defending(Strategy):
     def align(self):
         if align_robot_to_pitch(self.robotCom, self.our_defender.angle, self.pitch_centre):
             stop(self.robotCom)
+            self.current_state = 'MOVE_BACK'
+
+    def move_back(self):
+        if back_off(self.robotCom, self.our_side, self.our_defender.angle, self.our_defender.x):
             self.current_state = 'OPEN_CATCHER'
 
     def openCatcher(self):
