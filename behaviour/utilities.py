@@ -28,7 +28,7 @@ POWER_KICK = 100
 
 BALL_MOVING = 3
 
-LEFT_DEFENDER_ZONE_THRESHOLD = 100
+LEFT_DEFENDER_ZONE_THRESHOLD = 115
 RIGHT_DEFENDER_ZONE_THRESHOLD = 500
 
 
@@ -118,7 +118,7 @@ def back_off(robotCom, side, robot_angle, robot_x):
         print 'on left side'
         if robot_x > LEFT_DEFENDER_ZONE_THRESHOLD:
             print 'over left threshold, aligning'
-            if align_robot_to_pitch(robotCom, robot_angle, pi):
+            if align_robot_to_pitch(robotCom, robot_angle, 0):
                 print 'aligned'
                 moveStraight(robotCom, -30, BACK_OFF_THRESHOLD)
                 return False
