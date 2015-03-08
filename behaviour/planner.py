@@ -85,9 +85,9 @@ class Planner:
 
             # If we've finished passing but the ball's still in our zone, fetch it
             elif self._state == 'passing' and self.strat_state == 'FINISHED':
-                self._state = 'fetching'
+                self._state = 'defending'
                 self.get_next_strategy()
-                print "Finished passing, fetching ball since it's still in our zone"
+                print "Finished passing, now back to defending"
             else:
                 print "Keeping same strategy"
 
