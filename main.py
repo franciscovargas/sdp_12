@@ -85,6 +85,7 @@ class Controller:
 
         # Set up vision
         self.calibration = tools.get_colors(pitch)
+        print self.calibration
         self.vision = Vision(
             pitch=pitch,
             color=color,
