@@ -67,6 +67,12 @@ class Tracker(object):
                 frame_mask = cv2.dilate(frame_mask,
                                         kernel,
                                         iterations=adjustments['close'])
+
+            if adjustments['erode'] >= 1:
+                kernel = np.ones((2,2),np.uint8)
+                frame_mask = cv2.dilate(frame_mask,
+                                        kernel,
+                                        iterations=adjustments['erode'])
             
             contours, hierarchy = cv2.findContours(
                 frame_mask,

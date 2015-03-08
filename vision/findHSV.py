@@ -11,7 +11,8 @@ CONTROL = ["Lower threshold for hue",
            "Contrast", 
            "Gaussian blur",
            "Open",
-           "Close"]
+           "Dilation",
+           "Erode"]
 
 MAXBAR = {"Lower threshold for hue":360,
           "Upper threshold for hue":360,
@@ -22,7 +23,8 @@ MAXBAR = {"Lower threshold for hue":360,
           "Contrast":100,
           "Gaussian blur":100,
           "Open": 100,
-          "Close": 100
+          "Dilation": 100,
+          "Erode":100
         }
 
 INDEX = {"Lower threshold for hue":0,
@@ -85,8 +87,10 @@ class CalibrationGUI(object):
                        self.calibration[self.color]['blur'])
         createTrackbar('Open',
                        self.calibration[self.color]['open'])
-        createTrackbar('Close',
+        createTrackbar('Dilation',
                        self.calibration[self.color]['close'])
+        createTrackbar('Erode',
+                       self.calibration[self.color]['erode'])
 
     def change_color(self, color):
         """
@@ -123,7 +127,8 @@ class CalibrationGUI(object):
         self.calibration[self.color]['contrast'] = values['Contrast']
         self.calibration[self.color]['blur'] = values['Gaussian blur']
         self.calibration[self.color]['open'] = values['Open']
-        self.calibration[self.color]['close'] = values['Close']
+        self.calibration[self.color]['close'] = values['Dilation']
+        self.calibration[self.color]['erode'] = values['Erode']
 
         mask = self.get_mask(frame)
         cv2.imshow(self.maskWindowName, mask)
@@ -180,5 +185,11 @@ class CalibrationGUI(object):
                 frame_mask = cv2.dilate(frame_mask,
                                         kernel,
                                         iterations=self.calibration[self.color]['close'])
+        if self.calibration[self.color]['erode'] >= 1:
+                kernel = np.ones((2,2 ),np.uint8)
+                frame_mask = cv2.erode(frame_mask,
+                                        kernel,
+                                        iterations=self.calibration[self.color]['erode'])
+
 
         return frame_mask
