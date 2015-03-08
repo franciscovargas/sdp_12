@@ -28,8 +28,9 @@ POWER_KICK = 100
 
 BALL_MOVING = 3
 
-LEFT_DEFENDER_ZONE_THRESHOLD = 115
-RIGHT_DEFENDER_ZONE_THRESHOLD = 500
+LEFT_DEFENDER_ZONE_THRESHOLD = 110
+# RIGHT_DEFENDER_ZONE_THRESHOLD = 500
+RIGHT_DEFENDER_ZONE_THRESHOLD = 480
 
 
 # Stop everything
@@ -139,6 +140,16 @@ def back_off(robotCom, side, robot_angle, robot_x):
 
             # re-align robot towards goal
             # move backwards until 20 (?) from threshold
+
+
+def ball_moving_to_us(ball, our_side):
+    if ball.velocity > BALL_MOVING:
+        if our_side == 'left':
+            return (3*pi/4) < ball.angle < (5*pi/4)
+        elif our_side == 'right':
+            return (pi/4) < ball.angle < (7*pi/4)
+    else:
+        return False
 
 
 def is_shot_blocked(world, our_robot, their_robot):
