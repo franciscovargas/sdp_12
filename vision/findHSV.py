@@ -10,7 +10,8 @@ CONTROL = ["Lower threshold for hue",
            "Upper threshold for value",
            "Contrast", 
            "Gaussian blur",
-           "Open"]
+           "Open",
+           "Close"]
 
 MAXBAR = {"Lower threshold for hue":360,
           "Upper threshold for hue":360,
@@ -20,7 +21,8 @@ MAXBAR = {"Lower threshold for hue":360,
           "Upper threshold for value":255,
           "Contrast":100,
           "Gaussian blur":100,
-          "Open": 100
+          "Open": 100,
+          "Close": 100
         }
 
 INDEX = {"Lower threshold for hue":0,
@@ -83,6 +85,8 @@ class CalibrationGUI(object):
                        self.calibration[self.color]['blur'])
         createTrackbar('Open',
                        self.calibration[self.color]['open'])
+        createTrackbar('Close',
+                       self.calibration[self.color]['close'])
 
     def change_color(self, color):
         """
@@ -119,6 +123,7 @@ class CalibrationGUI(object):
         self.calibration[self.color]['contrast'] = values['Contrast']
         self.calibration[self.color]['blur'] = values['Gaussian blur']
         self.calibration[self.color]['open'] = values['Open']
+        self.calibration[self.color]['close'] = values['Close']
 
         mask = self.get_mask(frame)
         cv2.imshow(self.maskWindowName, mask)
@@ -165,10 +170,15 @@ class CalibrationGUI(object):
         max_color = self.calibration[self.color]['max']
         frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
         if self.calibration[self.color]['open'] >= 1:
-                kernel = np.ones((2,2),np.uint8)
+                kernel = np.ones((2,2 ),np.uint8)
                 frame_mask = cv2.morphologyEx(frame_mask,
                                               cv2.MORPH_OPEN,
                                               kernel,
                                               iterations=self.calibration[self.color]['open'])
+        if self.calibration[self.color]['close'] >= 1:
+                kernel = np.ones((2,2 ),np.uint8)
+                frame_mask = cv2.dilate(frame_mask,
+                                        kernel,
+                                        iterations=self.calibration[self.color]['close'])
 
         return frame_mask

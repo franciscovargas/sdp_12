@@ -61,6 +61,12 @@ class Tracker(object):
                                               cv2.MORPH_OPEN,
                                               kernel,
                                               iterations=adjustments['open'])
+
+            if adjustments['close'] >= 1:
+                kernel = np.ones((2,2),np.uint8)
+                frame_mask = cv2.dilate(frame_mask,
+                                        kernel,
+                                        iterations=adjustments['close'])
             
             contours, hierarchy = cv2.findContours(
                 frame_mask,
@@ -227,7 +233,7 @@ class RobotTracker(Tracker):
                           -1)
             cv2.circle(mask_frame,
                        (width / 2, height / 2),
-                       16,
+                       13,
                        (255, 255, 255),
                        -1)
 
