@@ -58,7 +58,7 @@ class Planner:
         elif self._state == 'passing' and self.strat_state != 'FINISHED':
             # self._state = 'passing'
             # self.get_next_strategy()
-            print "EVADE AVOID Defending"
+            print "Still passing the ball"
         # elif self._state == 'waiting':
         #     # (milestone 2) once the ball starts moving, we can start moving the defender
         #     # (there is a bug in the vision (?) code that sets the ball velocity to 304 for the first two frames or so)
