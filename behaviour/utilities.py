@@ -65,19 +65,16 @@ def moveStraight(robotCom, displacement, threshold=BALL_APPROACH_THRESHOLD):
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
-    # time.sleep(0.5)
 
 
-# Open the grabber without kickingROBOT_ALIGN_THRESHOLD
+# Open the grabber without kicking
 def openGrabber(robotCom):
     robotCom.grab(-POWER_GRAB)
-    #time.sleep(0.5)
 
 
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
-    # time.sleep(1)
 
 
 # rotate the robot until it is at the target angle, with speed relative to
@@ -124,22 +121,25 @@ def normalize_angle(robot_angle, target_angle):
 
 def back_off(robotCom, side, robot_angle, robot_x):
     if align_robot_to_y_axis(robotCom, robot_angle):
-        print "Finished aligning"
+        # print "Finished aligning"
+
+        rotation_modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
 
         if side == 'left' and robot_x > LEFT_DEFENDER_ZONE_THRESHOLD:
-            print "Moving sideways"
-            moveSideways(robotCom, 30, side, threshold=BACK_OFF_THRESHOLD)
-            print "Finished sending sideways movement command, returning false"
+
+            # print "Moving sideways"
+            moveSideways(robotCom, -30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            # print "Finished sending sideways movement command, returning false"
             return False
 
         elif side == 'right' and robot_x < RIGHT_DEFENDER_ZONE_THRESHOLD:
-            print "Moving sideways"
-            moveSideways(robotCom, 30, side, threshold=BACK_OFF_THRESHOLD)
-            print "Finished sending sideways movement command, returning false"
+            # print "Moving sideways"
+            moveSideways(robotCom, -30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            # print "Finished sending sideways movement command, returning false"
             return False
 
         else:
-            print "Backed off, stopping robot, returning True"
+            # print "Backed off, stopping robot, returning True"
             stop(robotCom)
             return True
 
