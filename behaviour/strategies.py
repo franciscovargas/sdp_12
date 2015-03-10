@@ -1,6 +1,7 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
-    ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_zone
+    ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_goal, \
+    robot_within_zone, back_off_from_goal
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -45,6 +46,7 @@ class Defending(Strategy):
     STATES = ['UNALIGNED',
               'CLOSE_GRABBER',
               'MOVE_BACK',
+              'MOVE_FORWARD',
               'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
@@ -54,6 +56,7 @@ class Defending(Strategy):
             'UNALIGNED': self.align,
             'CLOSE_GRABBER': self.close_grabber,
             'MOVE_BACK': self.move_back,
+            'MOVE_FORWARD': self.move_forward,
             'DEFEND_GOAL': self.defend_goal
         }
 
@@ -89,6 +92,14 @@ class Defending(Strategy):
             back_off(self.robotCom, self.our_side, self.our_defender.angle,
                      self.our_defender.x, self.world.pitch.zone_boundaries())
 
+    def move_forward(self):
+        if robot_within_goal(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
+            back_off_from_goal(self.robotCom, self.our_side, self.our_defender.angle,
+                               self.our_defender.x, self.world.pitch.zone_boundaries())
+        else:
+            stop(self.robotCom)
+            self.current_state = 'DEFEND_GOAL'
+
     # Calculate ideal defending position and move there.
     def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
@@ -99,6 +110,8 @@ class Defending(Strategy):
             self.current_state = 'UNALIGNED'
         elif not robot_within_zone(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
             self.current_state = 'MOVE_BACK'
+        elif robot_within_goal(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
+            self.current_state = 'MOVE_FORWARD'
         else:
 
             # Predict where they are aiming.

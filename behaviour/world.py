@@ -261,7 +261,10 @@ class Pitch(object):
 
         bottom_boundary = self._zones[0].boundingBox()[2]  # lowest y of the left zone
         top_boundary = self._zones[0].boundingBox()[3]  # highest y of the left zone
-        return (left_boundary, right_boundary, top_boundary, bottom_boundary)
+
+        left_goal = self._zones[0].boundingBox()[0]  # rightmost x of the left zone
+        right_goal = self._zones[3].boundingBox()[1]  # leftmost x of the right zone
+        return (left_boundary, right_boundary, bottom_boundary, top_boundary, left_goal, right_goal)
 
     def __repr__(self):
         return str(self._zones)

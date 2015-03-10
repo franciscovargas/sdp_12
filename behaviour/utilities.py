@@ -131,6 +131,7 @@ def normalize_angle(robot_angle, target_angle):
 
 
 def robot_within_zone(side, robot_x, zone_boundaries):
+    print zone_boundaries
     return side == 'left' and robot_x <= zone_boundaries[0] - 30 \
         or side == 'right' and robot_x >= zone_boundaries[1] + 30
 
@@ -154,6 +155,32 @@ def back_off(robotCom, side, robot_angle, robot_x, zone_boundaries):
 
         else:
             # print "Backed off, stopping robot, returning True"
+            stop(robotCom)
+
+
+def robot_within_goal(side, robot_x, zone_boundaries):
+    return side == 'left' and robot_x <= zone_boundaries[4] + 20 \
+        or side == 'right' and robot_x >= zone_boundaries[5] - 20
+
+
+def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
+    if robot_is_aligned_to_y_axis(robot_angle):
+
+        rotation_modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
+
+        if side == 'left' and robot_x > zone_boundaries[4] + 10:
+
+            print "Moving sideways"
+            moveSideways(robotCom, 30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            print "Finished sending sideways movement command, returning false"
+
+        elif side == 'right' and robot_x < zone_boundaries[5] - 10:
+            print "Moving sideways"
+            moveSideways(robotCom, 30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            print "Finished sending sideways movement command, returning false"
+
+        else:
+            print "Backed off, stopping robot, returning True"
             stop(robotCom)
 
 
