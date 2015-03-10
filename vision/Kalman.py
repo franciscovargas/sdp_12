@@ -1,5 +1,5 @@
 import numpy as np
-
+from numpy import dot
 
 class Kalman:
     # Timestep in between frames
@@ -40,22 +40,64 @@ class Kalman:
                                   [0, 0, 0.1, 0],
                                   [0, 0, 0, 0.1]])
 
+    #  Estimated coovariance for Kalman gain
+    P = np.zeros((4,4))
+
+    #Identity Matrix
+    I = np.identity(4)
+
     # Vectors:
     control_vector = np.array([0, 0, 0, 0])
-
+    prediction = np.array([0, 0, 0, 0])
     def __init__(self,
-                 measurement_vector,
                  TransitionMatrix=TransitionMatrix,
                  InputControl=InputControl,
                  MeasurementMatrix=MeasurementMatrix,
                  ActionUncertainty=ActionUncertainty,
                  SensorUncertainty=SensorUncertainty,
                  control_vector=control_vector):
+        """
+        Constructor for Kalman filter object sets up Matrices for
+        state changes and evaluations before hand yet allows them
+        to be passed as parameters
+        """
         self.InputControl = InputControl
         self.MeasurementMatrix = MeasurementMatrix
         self.ActionUncertainty = ActionUncertainty
         self.SensorUncertainty = SensorUncertainty
 
+    def prediction_step(self, measurement_vec):
+        measurement_vec = np.array(measurement_vec)
+        # Transitioning to the next state
+        self.prediction = dot(self.TransitionMatrix, measurement_vec) + \
+            dot(self.InputControl, self.control_vector)
+        # Evaluating a priori estimate error covariance
+        self.P = dot(self.TransitionMatrix,dot(self.P,self.TransitionMatrix.T)) + \
+            self.ActionUncertainty
+        return self.prediction
+
+    def correction_step(self, measurement_vec):
+        self.prediction_step(measurement_vec)
+        S = dot(self.MeasurementMatrix,
+                dot(self.P,
+                    self.MeasurementMatrix.T)) + \
+            self.SensorUncertainty
+        S_inv = np.linalg.inv(S)
+        K = dot(self.P,
+                dot(self.MeasurementMatrix.T,
+                    S_inv))
+        y = measurement_vec - dot(self.MeasurementMatrix,
+                                  self.prediction)
+        self.prediction = self.prediction + dot(K,y)
+        self.P = dot((self.I - dot(K,
+                               self.MeasurementMatrix)),
+                     self.P)
+        return self.prediction
+
+
+
 if __name__ == '__main__':
-    a = Kalman(1)
-    print Kalman.TransitionMatrix
+    a = Kalman()
+    # print a.P
+    print a.correction_step([1,1,2000,2000])
+    # print a.P
