@@ -56,8 +56,7 @@ class Planner:
             print "We've grabbed the ball, now switching to passing"
 
         elif self._state == 'passing' and self.strat_state != 'FINISHED':
-            # self._state = 'passing'
-            # self.get_next_strategy()
+            # keep passing
             print "Still passing the ball"
         # elif self._state == 'waiting':
         #     # (milestone 2) once the ball starts moving, we can start moving the defender
