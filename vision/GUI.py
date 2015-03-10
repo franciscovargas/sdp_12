@@ -75,7 +75,7 @@ class GUI(object):
         return x == 1
 
     def draw(self, frame, model_positions, actions, regular_positions, fps,
-             aState, dState, a_action, d_action, grabbers, our_color, our_side,
+             aState, dState, kalman, d_action, grabbers, our_color, our_side,
              key=None, preprocess=None):
         """
         Draw information onto the GUI given positions from the vision and post processing.
@@ -97,6 +97,9 @@ class GUI(object):
             [our_color, their_color]*2)
 
         self.draw_ball(frame, regular_positions['ball'])
+        # print 'kalman' + str(kalman)
+        if kalman is not None:
+            self.draw_kal(frame, kalman)
 
         for key, color in key_color_pairs:
             self.draw_robot(frame, regular_positions[key], color)
@@ -146,12 +149,22 @@ class GUI(object):
             cv2.line(frame, (zone[1], 0), (zone[1], height), BGR_COMMON['orange'], 1)
 
     def draw_ball(self, frame, position_dict):
+        # print 'ballio' + str(position_dict)
         if position_dict and position_dict['x'] and position_dict['y']:
             frame_height, frame_width, _ = frame.shape
             self.draw_line(
                 frame, ((int(position_dict['x']), 0), (int(position_dict['x']), frame_height)), 1)
             self.draw_line(
                 frame, ((0, int(position_dict['y'])), (frame_width, int(position_dict['y']))), 1)
+
+    def draw_kal(self, frame, position_dict):
+        # print position_dict
+        if position_dict[0] and position_dict[1]:
+            frame_height, frame_width, _ = frame.shape
+            self.draw_line_b(
+                frame, ((int(position_dict[0]), 0), (int(position_dict[0]), frame_height)), 1)
+            self.draw_line_b(
+                frame, ((0, frame_height - int(position_dict[1])), (frame_width,frame_height - int(position_dict[1]))), 1)
 
     def draw_dot(self, frame, location):
         if location is not None:
@@ -181,6 +194,10 @@ class GUI(object):
     def draw_line(self, frame, points, thickness=2):
         if points is not None:
             cv2.line(frame, points[0], points[1], BGR_COMMON['red'], thickness)
+
+    def draw_line_b(self, frame, points, thickness=2):
+        if points is not None:
+            cv2.line(frame, points[0], points[1], BGR_COMMON['blue'], thickness)
 
     def data_text(self, frame, frame_offset, our_side, text, x, y, angle, velocity):
 

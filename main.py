@@ -2,6 +2,7 @@ from vision.vision import Vision
 from vision.camera import Camera
 from vision.GUI import GUI
 import vision.tools as tools
+from vision.Kalman import Kalman
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
 from communications import RobotCommunications
@@ -95,6 +96,7 @@ class Controller:
         self.side = our_side
 
         self.preprocessing = Preprocessing()
+        self.K = Kalman()
 
 
     def main(self):
@@ -117,11 +119,19 @@ class Controller:
                     cv2.imshow('bg sub', preprocessed['background_sub'])
                 # Find object positions
                 # model_positions have their y coordinate inverted
-
                 #  IMPORTANT
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
-
+                if counter > 1:
+                    dx = model_positions['ball'].x - cache_ball.x 
+                    dy = model_positions['ball'].y - cache_ball.y
+                    predicted = self.K.n_frames(6, [model_positions['ball'].x,
+                                                    model_positions['ball'].y,
+                                                    dx,
+                                                    dy])
+                    # print model_positions['ball']
+                    # print predicted
+                cache_ball = model_positions['ball']
                 # Update planner world beliefs
                 self.planner.update_world(model_positions)
 
@@ -137,11 +147,16 @@ class Controller:
                 # Draw vision content and actions
                 # attackerState = (self.planner.attacker_state, self.planner.attacker_strat_state)
                 defenderState = (self.planner._state, self.planner._current_strategy._current_state)
-
-                self.GUI.draw(
-                    frame, model_positions, actions, regular_positions, fps, None,
-                    defenderState, None, None, False,
-                    our_color=self.color, our_side=self.side, key=c, preprocess=pre_options)
+                if counter > 1:
+                    self.GUI.draw(
+                        frame, model_positions, actions, regular_positions, fps, None,
+                        defenderState, predicted, None, False,
+                        our_color=self.color, our_side=self.side, key=c, preprocess=pre_options)
+                else:
+                    self.GUI.draw(
+                        frame, model_positions, actions, regular_positions, fps, None,
+                        defenderState, None, None, False,
+                        our_color=self.color, our_side=self.side, key=c, preprocess=pre_options)
                 counter += 1
 
         except:
