@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import dot
 
+
 class Kalman:
     # Timestep in between frames
     t = 0.0416
@@ -41,14 +42,15 @@ class Kalman:
                                   [0, 0, 0, 0.1]])
 
     #  Estimated coovariance for Kalman gain
-    P = np.zeros((4,4))
+    P = np.zeros((4, 4))
 
-    #Identity Matrix
+    # Identity Matrix
     I = np.identity(4)
 
     # Vectors:
     control_vector = np.array([0, 0, 0, 0])
     prediction = np.array([0, 0, 0, 0])
+
     def __init__(self,
                  TransitionMatrix=TransitionMatrix,
                  InputControl=InputControl,
@@ -72,7 +74,7 @@ class Kalman:
         self.prediction = dot(self.TransitionMatrix, measurement_vec) + \
             dot(self.InputControl, self.control_vector)
         # Evaluating a priori estimate error covariance
-        self.P = dot(self.TransitionMatrix,dot(self.P,self.TransitionMatrix.T)) + \
+        self.P = dot(self.TransitionMatrix, dot(self.P, self.TransitionMatrix.T)) + \
             self.ActionUncertainty
         return self.prediction
 
@@ -88,16 +90,21 @@ class Kalman:
                     S_inv))
         y = measurement_vec - dot(self.MeasurementMatrix,
                                   self.prediction)
-        self.prediction = self.prediction + dot(K,y)
+        self.prediction = self.prediction + dot(K, y)
         self.P = dot((self.I - dot(K,
-                               self.MeasurementMatrix)),
+                                   self.MeasurementMatrix)),
                      self.P)
         return self.prediction
 
+    def n_frames(self, n, measurement_vec):
+        mes1 = self.correction_step(measurement_vec)
+        for i in range(n - 1):
+            mes1 = self.correction_step(mes1)
+        return mes1
 
 
 if __name__ == '__main__':
     a = Kalman()
     # print a.P
-    print a.correction_step([1,1,2000,2000])
+    print a.n_frames(6,[1, 1, 2000, 2000])
     # print a.P
