@@ -9,7 +9,10 @@ CONTROL = ["Lower threshold for hue",
            "Lower threshold for value",
            "Upper threshold for value",
            "Contrast", 
-           "Gaussian blur"]
+           "Gaussian blur",
+           "Open",
+           "Dilation",
+           "Erode"]
 
 MAXBAR = {"Lower threshold for hue":360,
           "Upper threshold for hue":360,
@@ -18,7 +21,10 @@ MAXBAR = {"Lower threshold for hue":360,
           "Lower threshold for value":255,
           "Upper threshold for value":255,
           "Contrast":100,
-          "Gaussian blur":100
+          "Gaussian blur":100,
+          "Open": 100,
+          "Dilation": 100,
+          "Erode":100
         }
 
 INDEX = {"Lower threshold for hue":0,
@@ -55,7 +61,7 @@ class CalibrationGUI(object):
     def setWindow(self):
 
         cv2.namedWindow(self.maskWindowName)
-
+        # print self.calibration
         createTrackbar = lambda setting, \
                                 value: \
                                     cv2.createTrackbar(
@@ -79,6 +85,12 @@ class CalibrationGUI(object):
                        self.calibration[self.color]['contrast'])
         createTrackbar('Gaussian blur',
                        self.calibration[self.color]['blur'])
+        createTrackbar('Open',
+                       self.calibration[self.color]['open'])
+        createTrackbar('Dilation',
+                       self.calibration[self.color]['close'])
+        createTrackbar('Erode',
+                       self.calibration[self.color]['erode'])
 
     def change_color(self, color):
         """
@@ -114,6 +126,9 @@ class CalibrationGUI(object):
                                                      values['Upper threshold for value']])
         self.calibration[self.color]['contrast'] = values['Contrast']
         self.calibration[self.color]['blur'] = values['Gaussian blur']
+        self.calibration[self.color]['open'] = values['Open']
+        self.calibration[self.color]['close'] = values['Dilation']
+        self.calibration[self.color]['erode'] = values['Erode']
 
         mask = self.get_mask(frame)
         cv2.imshow(self.maskWindowName, mask)
@@ -145,13 +160,13 @@ class CalibrationGUI(object):
         # plt.imshow(frame)
         # plt.show()
         blur = self.calibration[self.color]['blur']
-        if blur > 1:
+        if blur >= 1:
             if blur % 2 == 0:
                 blur += 1
             frame = cv2.GaussianBlur(frame, (blur, blur), 0)
 
         contrast = self.calibration[self.color]['contrast']
-        if contrast > 1.0:
+        if contrast >= 1.0:
             frame = cv2.add(frame, np.array([contrast]))
 
         frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -159,5 +174,22 @@ class CalibrationGUI(object):
         min_color = self.calibration[self.color]['min']
         max_color = self.calibration[self.color]['max']
         frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
+        if self.calibration[self.color]['open'] >= 1:
+                kernel = np.ones((2,2 ),np.uint8)
+                frame_mask = cv2.morphologyEx(frame_mask,
+                                              cv2.MORPH_OPEN,
+                                              kernel,
+                                              iterations=self.calibration[self.color]['open'])
+        if self.calibration[self.color]['close'] >= 1:
+                kernel = np.ones((2,2 ),np.uint8)
+                frame_mask = cv2.dilate(frame_mask,
+                                        kernel,
+                                        iterations=self.calibration[self.color]['close'])
+        if self.calibration[self.color]['erode'] >= 1:
+                kernel = np.ones((2,2 ),np.uint8)
+                frame_mask = cv2.erode(frame_mask,
+                                        kernel,
+                                        iterations=self.calibration[self.color]['erode'])
+
 
         return frame_mask

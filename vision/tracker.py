@@ -34,7 +34,7 @@ class Tracker(object):
                 frame = frame[crop[2]:crop[3], crop[0]:crop[1]]
             if frame is None:
                 return None
-            if adjustments['blur'] > 1:
+            if adjustments['blur'] >= 1:
                 blur = self.oddify(adjustments['blur'])
                 # print adjustments['blur']
 
@@ -42,7 +42,7 @@ class Tracker(object):
                 # plt.imshow(frame)
                 # plt.show()
 
-            if adjustments['contrast'] > 1.0:
+            if adjustments['contrast'] >= 1.0:
                 frame = cv2.add(frame,
                                 np.array([float(adjustments['contrast'])]))
 
@@ -53,18 +53,37 @@ class Tracker(object):
             frame_mask = cv2.inRange(frame_hsv,
                                      adjustments['min'],
                                      adjustments['max'])
-
+            
             # Find contours
+            if adjustments['open'] >= 1:
+                kernel = np.ones((2,2),np.uint8)
+                frame_mask = cv2.morphologyEx(frame_mask,
+                                              cv2.MORPH_OPEN,
+                                              kernel,
+                                              iterations=adjustments['open'])
+
+            if adjustments['close'] >= 1:
+                kernel = np.ones((2,2),np.uint8)
+                frame_mask = cv2.dilate(frame_mask,
+                                        kernel,
+                                        iterations=adjustments['close'])
+
+            if adjustments['erode'] >= 1:
+                kernel = np.ones((2,2),np.uint8)
+                frame_mask = cv2.dilate(frame_mask,
+                                        kernel,
+                                        iterations=adjustments['erode'])
+            
             contours, hierarchy = cv2.findContours(
                 frame_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE
             )
-            # print contours
+
             return (contours, hierarchy, frame_mask)
         except:
             # bbbbb
-            raise  BaseException('get_contours in tracker.py has failed')
+            raise 
 
 
     def get_contour_extremes(self, cnt):
@@ -119,6 +138,17 @@ class Tracker(object):
         """
         areas = [cv2.contourArea(c) for c in contours]
         return contours[np.argmax(areas)]
+
+    def get_smallest_contour(self, contours):
+        """
+        Find the smallest of all contours.
+        """
+        areas = [cv2.contourArea(c) for c in contours]
+        ind = np.argsort(areas)
+        # for i in range(len(ind)):
+        #     if areas[ind[i]] > 5:
+        #         return areas[ind[i]]
+        return contours[np.argmin(areas)]
 
     def get_contour_centre(self, contour):
         """
@@ -209,7 +239,7 @@ class RobotTracker(Tracker):
                           -1)
             cv2.circle(mask_frame,
                        (width / 2, height / 2),
-                       9,
+                       13,
                        (255, 255, 255),
                        -1)
 
@@ -219,13 +249,11 @@ class RobotTracker(Tracker):
             frame = cv2.bitwise_and(frame,
                                     frame,
                                     mask=mask_frame)
-
             adjustment = self.calibration['dot']
-            contours = self.get_contours(frame,self.crop, adjustment)[0]
-
+            contours = self.get_contours(frame,self.crop, adjustment,'dot')[0]
             if contours and len(contours) > 0:
                 # Take the largest contour
-                contour = self.get_largest_contour(contours)
+                contour = self.get_smallest_contour(contours)
                 (x, y), radius = self.get_contour_centre(contour)
                 return Center(x + x_offset, y + y_offset)
 
@@ -254,7 +282,8 @@ class RobotTracker(Tracker):
         dot = front = None
 
         # Trim the image to only consist of one zone
-        frame = frame[self.crop[2]:self.crop[3], self.crop[0]:self.crop[1]]
+        frame = frame[self.crop[2]:self.crop[3],
+                      self.crop[0]:self.crop[1]]
 
         # (1) Find the plates
         plate_corners = self.get_plate(frame)
@@ -267,15 +296,19 @@ class RobotTracker(Tracker):
             x = plate_bound_box.x + plate_bound_box.width / 2
             y = plate_bound_box.y + plate_bound_box.height / 2
 
-            if plate_bound_box.width > 0 and plate_bound_box.height > 0:
+            if (plate_bound_box.width > 0
+                and plate_bound_box.height > 0):
                 # (2) Trim to create a smaller frame
                 plate_frame = frame.copy()[
-                    plate_bound_box.y:plate_bound_box.y + plate_bound_box.height,
-                    plate_bound_box.x:plate_bound_box.x + plate_bound_box.width
+                    plate_bound_box.y:plate_bound_box.y \
+                        + plate_bound_box.height,
+                    plate_bound_box.x:plate_bound_box.x + \
+                        plate_bound_box.width
                 ]
 
                 # (3) Search for the dot
-                dot = self.get_dot(plate_frame, plate_bound_box.x + self.offset,
+                dot = self.get_dot(plate_frame, plate_bound_box.x \
+                                        + self.offset,
                                    plate_bound_box.y)
 
                 if dot is not None:
@@ -286,12 +319,14 @@ class RobotTracker(Tracker):
 
                     distances = [
                         (
-                            (dot_temp.x - p[0])**2 + (dot_temp.y - p[1])**2,  # distance
+                            (dot_temp.x - p[0])**2 + \
+                                (dot_temp.y - p[1])**2,  # distance
                             p[0],                                   # x coord
                             p[1]                                    # y coord
                         ) for p in plate_corners]
 
-                    distances.sort(key=lambda x: x[0], reverse=True)
+                    distances.sort(key=lambda x: x[0],
+                                   reverse=True)
 
                     # Front of the kicker should be the first two points in distances
                     front = distances[:2]
