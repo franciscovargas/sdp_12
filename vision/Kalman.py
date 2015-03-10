@@ -30,8 +30,8 @@ class Kalman:
 
     # Covariance Matrix for the measurements
     # quantifies the error in the state transition
-    ActionUncertainty = np.array([[1, 0, 0,   0],
-                                  [0, 1, 0,   0],
+    ActionUncertainty = np.array([[0, 0, 0,   0],
+                                  [0, 0, 0,   0],
                                   [0, 0, 0.1, 0],
                                   [0, 0, 0, 0.1]])
 
@@ -76,6 +76,7 @@ class Kalman:
         # Evaluating a priori estimate error covariance
         self.P = dot(self.TransitionMatrix, dot(self.P, self.TransitionMatrix.T)) + \
             self.ActionUncertainty
+        print self.prediction
         return self.prediction
 
     def correction_step(self, measurement_vec):
@@ -106,5 +107,5 @@ class Kalman:
 if __name__ == '__main__':
     a = Kalman()
     # print a.P
-    print a.n_frames(1,[1, 1, 20, 20])
+    print a.n_frames(2,[1, 1, 20, 20])
     # print a.P
