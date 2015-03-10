@@ -13,14 +13,15 @@ ROBOT_ALIGN_THRESHOLD = pi/12
 PRECISE_BALL_ANGLE_THRESHOLD = pi/8
 
 POWER_SIDEWAYS_MODIFIER = 0.5
-POWER_SIDEWAYS_BASE = 45
+POWER_SIDEWAYS_BASE = 40
 
-POWER_STRAIGHT_MODIFIER = 0.3
-POWER_STRAIGHT_BASE = 30
+POWER_STRAIGHT_MODIFIER = 0.15
+POWER_STRAIGHT_BASE = 60
 
-# POWER_ROTATE_MODIFIER = 1.5
-# POWER_ROTATE_BASE = 25
-POWER_ROTATE_MODIFIER = 1.2
+POWER_STRAIGHT_FETCH_MODIFIER = 0.3
+POWER_STRAIGHT_FETCH_BASE = 25
+
+POWER_ROTATE_MODIFIER = 1.1
 POWER_ROTATE_BASE = 23
 
 POWER_GRAB = 30
@@ -28,8 +29,7 @@ POWER_KICK = 100
 
 BALL_MOVING = 3
 
-LEFT_DEFENDER_ZONE_THRESHOLD = 110
-RIGHT_DEFENDER_ZONE_THRESHOLD = 450
+DEFENDING_PITCH_EDGE = 100
 
 
 # Stop everything
@@ -44,7 +44,6 @@ def moveSideways(robotCom, displacement, side, threshold=BALL_ALIGN_THRESHOLD):
         power = side_modifier * \
             ((POWER_SIDEWAYS_MODIFIER * displacement) +
              copysign(POWER_SIDEWAYS_BASE, displacement))
-        print "Moving sideways at " + str(power)
         robotCom.moveSideways(power)
     else:
         print "Finished moving sideways"
@@ -52,11 +51,14 @@ def moveSideways(robotCom, displacement, side, threshold=BALL_ALIGN_THRESHOLD):
 
 
 # Move straight, with speed relative to the distance left to cover
-def moveStraight(robotCom, displacement, threshold=BALL_APPROACH_THRESHOLD):
-    # print "Absolute displacement to destination: %d" % displacement
+def moveStraight(robotCom, displacement, state='defending', threshold=BALL_APPROACH_THRESHOLD):
+
+    base = POWER_STRAIGHT_BASE if state == 'defending' else POWER_STRAIGHT_FETCH_BASE
+    modifier = POWER_STRAIGHT_MODIFIER if state == 'defending' else POWER_STRAIGHT_FETCH_MODIFIER
+
     if abs(displacement) > threshold:
-        power = (POWER_STRAIGHT_MODIFIER * displacement) \
-            + copysign(POWER_STRAIGHT_BASE, displacement)
+        power = (modifier * displacement) \
+            + copysign(base, displacement)
         robotCom.moveStraight(power)
     else:
         robotCom.stop()
@@ -77,6 +79,16 @@ def kick(robotCom):
     robotCom.kick(POWER_KICK)
 
 
+def robot_is_aligned(robot_angle, target_angle):
+    absolute_angle = normalize_angle(robot_angle, target_angle)
+    return abs(absolute_angle) <= ROBOT_ALIGN_THRESHOLD
+
+
+def robot_is_aligned_to_y_axis(robot_angle):
+    return abs(robot_angle - 3*pi/2) <= ROBOT_ALIGN_THRESHOLD \
+        or abs(robot_angle - pi/2) <= ROBOT_ALIGN_THRESHOLD
+
+
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
 def rotate_robot(robotCom, angle, grab=False):
@@ -87,15 +99,13 @@ def rotate_robot(robotCom, angle, grab=False):
             robotCom.rotateAndGrab(power, POWER_GRAB)
         else:
             robotCom.rotate(power)
-        return False
     else:
-        # robotCom.stop()
-        return True
+        robotCom.stop()
 
 
 def align_robot(robotCom, robot_angle, pitch_alignment_angle, grab=False):
     absolute_angle = normalize_angle(robot_angle, pitch_alignment_angle)
-    return rotate_robot(robotCom, absolute_angle, grab)
+    rotate_robot(robotCom, absolute_angle, grab)
 
 
 def align_robot_to_y_axis(robotCom, robot_angle):
@@ -104,7 +114,8 @@ def align_robot_to_y_axis(robotCom, robot_angle):
     else:
         pitch_angle = pi/2
 
-    return align_robot(robotCom, robot_angle, pitch_angle)
+    align_robot(robotCom, robot_angle, pitch_angle)
+
 
 # to find the angle between the robot's angle and our target angle,
 # makes the target angle 0/the origin, and returns the robot's angle in terms of that
@@ -119,29 +130,31 @@ def normalize_angle(robot_angle, target_angle):
     return normalized_angle
 
 
-def back_off(robotCom, side, robot_angle, robot_x):
-    if align_robot_to_y_axis(robotCom, robot_angle):
+def robot_within_zone(side, robot_x, zone_boundaries):
+    return side == 'left' and robot_x <= zone_boundaries[0] - 30 \
+        or side == 'right' and robot_x >= zone_boundaries[1] + 30
+
+
+def back_off(robotCom, side, robot_angle, robot_x, zone_boundaries):
+    if robot_is_aligned_to_y_axis(robot_angle):
         # print "Finished aligning"
 
         rotation_modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
 
-        if side == 'left' and robot_x > LEFT_DEFENDER_ZONE_THRESHOLD:
+        if side == 'left' and robot_x > zone_boundaries[0] - 30:
 
             # print "Moving sideways"
             moveSideways(robotCom, -30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             # print "Finished sending sideways movement command, returning false"
-            return False
 
-        elif side == 'right' and robot_x < RIGHT_DEFENDER_ZONE_THRESHOLD:
+        elif side == 'right' and robot_x < zone_boundaries[1] + 30:
             # print "Moving sideways"
             moveSideways(robotCom, -30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             # print "Finished sending sideways movement command, returning false"
-            return False
 
         else:
             # print "Backed off, stopping robot, returning True"
             stop(robotCom)
-            return True
 
 
 def ball_moving_to_us(ball, our_side):

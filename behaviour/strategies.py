@@ -1,6 +1,6 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
-    ball_moving_to_us, BALL_ALIGN_THRESHOLD
+    ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_zone
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -43,8 +43,8 @@ class Strategy(object):
 class Defending(Strategy):
 
     STATES = ['UNALIGNED',
-              'MOVE_BACK',
               'CLOSE_GRABBER',
+              'MOVE_BACK',
               'DEFEND_GOAL']
 
     def __init__(self, world, robotCom):
@@ -66,12 +66,14 @@ class Defending(Strategy):
 
     # Align robot so that he is 180 degrees from facing to goal
     def align(self):
-        if align_robot_to_y_axis(self.robotCom, self.our_defender.angle):
+        if robot_is_aligned_to_y_axis(self.our_defender.angle):
             stop(self.robotCom)
             self.current_state = 'CLOSE_GRABBER'
+        else:
+            align_robot_to_y_axis(self.robotCom, self.our_defender.angle)
 
     def close_grabber(self):
-        if align_robot_to_y_axis(self.robotCom, self.our_defender.angle):
+        if robot_is_aligned_to_y_axis(self.our_defender.angle):
             if self.our_defender.catcher == 'OPEN':
                 grab(self.robotCom)
                 self.our_defender.catcher = 'CLOSED'
@@ -80,60 +82,67 @@ class Defending(Strategy):
             self.current_state = 'UNALIGNED'
 
     def move_back(self):
-        if back_off(self.robotCom, self.our_side, self.our_defender.angle, self.our_defender.x):
+        if robot_within_zone(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
+            stop(self.robotCom)
             self.current_state = 'DEFEND_GOAL'
+        else:
+            back_off(self.robotCom, self.our_side, self.our_defender.angle,
+                     self.our_defender.x, self.world.pitch.zone_boundaries())
 
     # Calculate ideal defending position and move there.
     def defend_goal(self):
         # Specifies the type of defending. Can be 'straight' or 'sideways'
         type_of_movement = 'straight'
 
-        # If the robot somehew unaligned himself.
-        if not align_robot_to_y_axis(self.robotCom, self.our_defender.angle):
+        # If the robot somehow unaligned himself.
+        if not robot_is_aligned_to_y_axis(self.our_defender.angle):
             self.current_state = 'UNALIGNED'
-
-        # Predict where they are aiming.
-        # predicted_y = None
-        # if self.ball.velocity > BALL_MOVING:
-        #     predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
-
-        # if predicted_y is not None:
-        #     y = predicted_y - 7*sin(self.our_defender.angle)
-        #     y = max([y, 100])
-        #     y = min([y, self.world._pitch.height - 100])
-        #     displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
-        #     if(self.our_defender.y > y):
-        #         displacement = -displacement
-        # else:
-            # Try to be in same vertical position as the ball
-        y = self.ball.y
-        y = max([y, 50])
-        y = min([y, self.world._pitch.height - 50])
-        # displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
-        displacement = self.our_defender.y - y
-        # if(self.our_defender.y > self.ball.y):
-        #     displacement = -displacement
-
-        # if ball_moving_to_us(self.ball, self.our_side):
-
-        #     if self.our_defender.catcher == 'CLOSED':
-        #         print "Opening grabber"
-        #         openGrabber(self.robotCom)
-        #         self.our_defender.catcher = 'OPEN'
-        # else:
-        #     if self.our_defender.catcher == 'OPEN':
-        #         print "Closing grabber"
-        #         grab(self.robotCom)
-        #         self.our_defender.catcher = 'CLOSED'
-        if abs(self.our_defender.angle - 3*pi/2) > (self.our_defender.angle - pi/2):
-            rotation_modifier = -1
+        elif not robot_within_zone(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
+            self.current_state = 'MOVE_BACK'
         else:
-            rotation_modifier = 1
 
-        if type_of_movement == 'straight':
-            moveStraight(self.robotCom, displacement * rotation_modifier, threshold=BALL_ALIGN_THRESHOLD)
-        elif type_of_movement == 'sideways':
-            moveSideways(self.robotCom, -displacement, self.world._our_side)
+            # Predict where they are aiming.
+            # predicted_y = None
+            # if self.ball.velocity > BALL_MOVING:
+            #     predicted_y = predict_y_intersection(self.world, self.our_defender.x, self.ball, bounce=False)
+
+            # if predicted_y is not None:
+            #     y = predicted_y - 7*sin(self.our_defender.angle)
+            #     y = max([y, 100])
+            #     y = min([y, self.world._pitch.height - 100])
+            #     displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+            #     if(self.our_defender.y > y):
+            #         displacement = -displacement
+            # else:
+                # Try to be in same vertical position as the ball
+            y = self.ball.y
+            y = max([y, DEFENDING_PITCH_EDGE])
+            y = min([y, self.world._pitch.height - DEFENDING_PITCH_EDGE])
+            # displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+            displacement = self.our_defender.y - y
+            # if(self.our_defender.y > self.ball.y):
+            #     displacement = -displacement
+
+            # if ball_moving_to_us(self.ball, self.our_side):
+
+            #     if self.our_defender.catcher == 'CLOSED':
+            #         print "Opening grabber"
+            #         openGrabber(self.robotCom)
+            #         self.our_defender.catcher = 'OPEN'
+            # else:
+            #     if self.our_defender.catcher == 'OPEN':
+            #         print "Closing grabber"
+            #         grab(self.robotCom)
+            #         self.our_defender.catcher = 'CLOSED'
+            if abs(self.our_defender.angle - 3*pi/2) > (self.our_defender.angle - pi/2):
+                rotation_modifier = -1
+            else:
+                rotation_modifier = 1
+
+            if type_of_movement == 'straight':
+                moveStraight(self.robotCom, displacement * rotation_modifier, threshold=BALL_ALIGN_THRESHOLD)
+            elif type_of_movement == 'sideways':
+                moveSideways(self.robotCom, -displacement, self.world._our_side)
 
 
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
@@ -171,9 +180,11 @@ class DefendingGrab(Strategy):
         if angle > pi:
             angle = 2*pi - angle
 
-        if rotate_robot(self.robotCom, angle):
+        if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
             stop(self.robotCom)
             self.current_state = 'MOVE_TO_BALL'
+        else:
+            rotate_robot(self.robotCom, angle)
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
@@ -187,7 +198,7 @@ class DefendingGrab(Strategy):
         elif (abs(angle) > PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_BALL'
         else:
-            moveStraight(self.robotCom, displacement)
+            moveStraight(self.robotCom, displacement, state='fetching')
 
     def grab(self):
         grab(self.robotCom)
@@ -296,7 +307,8 @@ class PassToAttacker(Strategy):
 
     def align(self):
         # align Kevin to 180 deg from goal
-        if align_robot(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
+        if robot_is_aligned(self.our_defender.angle, self.pitch_centre):
+            stop(self.robotCom)
             # if shot is possible, change to shooting
             if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
                 print "SHOT IS BLOCKED"
@@ -305,6 +317,8 @@ class PassToAttacker(Strategy):
                 self.current_state = 'EVADE'
             else:
                 self.current_state = 'SHOOT'
+        else:
+            align_robot(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True)
 
     def evade(self):
         if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
@@ -333,7 +347,6 @@ class PassToAttacker(Strategy):
             moveSideways(self.robotCom, displacement, self.world._our_side)
         else:
             # raise BaseException("DRAMA kick after evade")
-            print("shoooooot shooooot SHOOOOt")
             stop(self.robotCom)
             self.current_state = 'SHOOT'
 
@@ -343,12 +356,13 @@ class PassToAttacker(Strategy):
         """
         # angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
         # if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
-        if align_robot(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True):
-            print "shooting"
-            stop(self.robotCom)
-            kick(self.robotCom)
-            self.current_state = 'FINISHED'
-            self.our_defender.catcher = 'OPEN'
+        # if robot_is_aligned(self.our_defender.angle, self.pitch_centre):
+        stop(self.robotCom)
+        kick(self.robotCom)
+        self.current_state = 'FINISHED'
+        self.our_defender.catcher = 'OPEN'
+        # else:
+        #     self.current_state = 'ALIGN'
 
 
 '''
