@@ -4,13 +4,13 @@ from numpy import dot
 
 class Kalman:
     # Timestep in between frames
-    t = 0.0416
+    dt = 0.0416
 
     # Matrices:
 
     # Produces transition to next state
-    TransitionMatrix = np.array([[1, 0, t, 0],
-                                 [0, 1, 0, t],
+    TransitionMatrix = np.array([[1, 0, 1, 0],
+                                 [0, 1, 0, 1],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1]])
 
@@ -106,5 +106,5 @@ class Kalman:
 if __name__ == '__main__':
     a = Kalman()
     # print a.P
-    print a.n_frames(6,[1, 1, 2000, 2000])
+    print a.n_frames(1,[1, 1, 20, 20])
     # print a.P
