@@ -129,9 +129,12 @@ class Controller:
                                                     model_positions['ball'].y,
                                                     dx,
                                                     dy])
-                    # print model_positions['ball']
-                    # print predicted
-                cache_ball = model_positions['ball']
+                    # Add Kalman prediction to model postions
+                    model_positions['kalman_ball'] = {'x': predicted[0],
+                                                      'y': predicted[1],
+                                                      'dx': predicted[2],
+                                                      'dy': predicted[3]}
+                cache_ball = model_positions['ball']    
                 # Update planner world beliefs
                 self.planner.update_world(model_positions)
 

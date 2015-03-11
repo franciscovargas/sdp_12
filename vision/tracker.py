@@ -142,13 +142,11 @@ class Tracker(object):
 
     def get_smallest_contour(self, contours):
         """
+        NOT IN USE
         Find the smallest of all contours.
         """
         areas = [cv2.contourArea(c) for c in contours]
         ind = np.argsort(areas)
-        # for i in range(len(ind)):
-        #     if areas[ind[i]] > 5:
-        #         return areas[ind[i]]
         return contours[np.argmin(areas)]
 
     def get_contour_centre(self, contour):
