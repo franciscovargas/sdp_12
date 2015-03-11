@@ -131,7 +131,6 @@ def normalize_angle(robot_angle, target_angle):
 
 
 def robot_within_zone(side, robot_x, zone_boundaries):
-    print zone_boundaries
     return side == 'left' and robot_x <= zone_boundaries[0] - 30 \
         or side == 'right' and robot_x >= zone_boundaries[1] + 30
 
