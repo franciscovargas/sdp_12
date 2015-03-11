@@ -278,6 +278,7 @@ class Vision:
                 x = args['x']
                 y = args['y']
                 if y is not None:
+                    # print height
                     y = height - y
 
             if 'angle' in args:
