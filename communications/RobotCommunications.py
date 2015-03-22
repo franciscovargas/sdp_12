@@ -68,5 +68,8 @@ class RobotCommunications(Communications):
     def kick(self, motorPower):
         self.write("K " + str(motorPower))
 
+    def speed_kick(self, motorPower):
+        self.write("K " + str(motorPower))
+
     def test(self, argument):
         print 'I got your message: ' + str(argument)

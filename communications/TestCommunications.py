@@ -56,3 +56,6 @@ class TestCommunications(Communications):
 
     def kick(self, motorPower):
         print "ACTION KICK " + str(motorPower)
+
+    def speed_kick(self, motorPower):
+        print "SPEED KICK" + str(motorPower)
