@@ -72,7 +72,7 @@ class RobotCommunications(Communications):
     # sidePower - power of evading to the side, also determines the direction.
     # backPower - power of moving back with one wheel, to get a slight change in robot's angle.
     def speed_kick(self, kickPower, sidePower, backPower):
-        self.write("S " + str(kickPower) + str(sidePower)+ str(backPower))
+        self.write("S " + str(kickPower) + " " + str(sidePower) + " " + str(backPower))
 
     def test(self, argument):
         print 'I got your message: ' + str(argument)
