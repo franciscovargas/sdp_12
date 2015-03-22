@@ -1,7 +1,7 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
     ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_goal, \
-    robot_within_zone, back_off_from_goal
+    robot_within_zone, back_off_from_goal, speed_kick
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -383,6 +383,7 @@ class PassToAttacker(Strategy):
 # 1 - Position yourself to the middle of your zone.
 # 2 - Align towards enemies goal
 # 3 - If we have a clear shot, shoot. Else evade and shoot rapidly.
+# The speed boost is gained but performing the evasion and kicking on the arduino level, getting rid of vision delay.
 class SpeedPass(Strategy):
 
     STATES = ['POSITION', 'ALIGN', 'SHOOT',
@@ -407,7 +408,7 @@ class SpeedPass(Strategy):
         self.pitch = self.world.pitch
 
         # Counter used to stop sending commands to arduino while the robot is kicking
-        self.counter = 50;
+        self.counter = 30;
 
         # Used to communicate with the robot
         self.robotCom = robotCom
@@ -445,17 +446,9 @@ class SpeedPass(Strategy):
     # This should be impossible for the opponents to catch.
     def speed_shoot(self):
         print "COUNTER "+str(self.counter)
-        if(self.counter == 50):
-            # Choose direction at random
-            direction = randint(0,1);
+        if(self.counter == 30):
             
-            # go left and shoot
-            if(direction > 0):
-                # TODO call arduino function that evades and shoots
-                pass
-            else: # go right and shoot
-                # TODO call arduino function that evades and shoots
-                pass
+            speed_kick(self.robotCom)
             
             self.counter -= 1
         elif(self.counter > 0):

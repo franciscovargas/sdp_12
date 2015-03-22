@@ -57,5 +57,8 @@ class TestCommunications(Communications):
     def kick(self, motorPower):
         print "ACTION KICK " + str(motorPower)
 
-    def speed_kick(self, motorPower):
-        print "SPEED KICK" + str(motorPower)
+    # kickPower - power of the kicker.
+    # sidePower - power of evading to the side, also determines the direction.
+    # backPower - power of moving back with one wheel, to get a slight change in robot's angle.
+    def speed_kick(self, kickPower, sidePower, backPower):
+        print "SPEED KICK" + str(kickPower) +" "+ str(sidePower) +" "+ str(backPower)

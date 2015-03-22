@@ -1,6 +1,7 @@
 from math import tan, pi, hypot, log, copysign
 from world import Robot
 import time
+from random import randint
 
 BALL_APPROACH_THRESHOLD = 55
 
@@ -26,6 +27,10 @@ POWER_ROTATE_BASE = 23
 
 POWER_GRAB = 30
 POWER_KICK = 100
+
+POWER_SPEEDKICK_KICK = 100
+POWER_SPEEDKICK_SIDE = 60
+POWER_SPEEDKICK_BACK = 30
 
 BALL_MOVING = 3
 
@@ -77,6 +82,19 @@ def openGrabber(robotCom):
 # Kick the ball, full power
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
+
+def speed_kick(robotCom):
+
+    # Choose direction at random
+    direction = randint(0,1);
+            
+    # go left and shoot
+    if(direction > 0):
+        # call arduino function that evades and shoots
+        robotCom.speed_kick(POWER_SPEEDKICK_KICK, POWER_SPEEDKICK_SIDE, POWER_SPEEDKICK_BACK)
+    else: # go right and shoot
+        # call arduino function that evades and shoots
+        robotCom.speed_kick(POWER_SPEEDKICK_KICK, -POWER_SPEEDKICK_SIDE, POWER_SPEEDKICK_BACK)
 
 
 def robot_is_aligned(robot_angle, target_angle):
