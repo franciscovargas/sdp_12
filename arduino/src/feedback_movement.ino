@@ -34,7 +34,7 @@ void setup() {
     comm.addCommand("I", grab);
     comm.addCommand("J", grab_continuous);
     comm.addCommand("K", kick);
-
+    comm.addCommand("S", speed_kick);
 
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
@@ -136,7 +136,7 @@ void rotate_and_grab(int power_rotate, int power_grab) {
     move_motor(RIGHT_MOTOR, power_rotate);
     move_motor(BACK_MOTOR, -0.8 * power_rotate);
     // Grab
-    move_motor(GRAB_MOTOR, -power_grab);
+    move_motor(GRAB_MOTOR, power_grab);
 }
 
 void stop_rotating_wrapper() {
@@ -178,7 +178,41 @@ void kick() {
     power = atoi(comm.next());
     // Move back and open grabber
     move_motor(KICK_MOTOR, 40);
-    move_motor(GRAB_MOTOR, 50);
+    move_motor(GRAB_MOTOR, -50);
+    delay(200);
+
+    // Kick
+    move_motor(KICK_MOTOR, -power);
+    delay(KICK_TIME*1000);
+
+    Serial.println("Kicking");
+
+    motorAllStop();
+}
+
+// Evade and kick
+void speed_kick() {
+    int power;
+    kick_power = atoi(comm.next());
+    moveside_power = atoi(comm.next());
+    moveback_power = atoi(comm.next());
+    
+    // Evade
+    move_motor(GRAB_MOTOR, 30);
+    move_motor(BACK_MOTOR, moveside_power);
+    if(moveside_power > 0) {
+        move_motor(LEFT_MOTOR, moveback_power);
+        move_motor(RIGHT_MOTOR, -moveback_power);
+    }
+    else {
+        move_motor(LEFT_MOTOR, -moveback_power);
+        move_motor(RIGHT_MOTOR, moveback_power);
+    }
+    delay(400)   
+    
+    // Move back and open grabber
+    move_motor(KICK_MOTOR, 40);
+    move_motor(GRAB_MOTOR, -50);
     delay(200);
 
     // Kick
@@ -194,7 +228,7 @@ void kick() {
 // Grabber
 void grab() {
     int power;
-    power = atoi(comm.next());
+    power = -atoi(comm.next());
 
     if (power != 100) {
         float time_move = (200-power)/100 * GRAB_TIME;
@@ -214,7 +248,7 @@ void grab_continuous() {
     int power;
     power = atoi(comm.next());
 
-    move_motor(GRAB_MOTOR, -power);
+    move_motor(GRAB_MOTOR, power);
     Serial.println("Graaaabing");
 }
 
