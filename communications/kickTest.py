@@ -2,5 +2,5 @@ from RobotCommunications import RobotCommunications
 import time
 
 r = RobotCommunications(debug=False)
-r.kick(100)
+r.speed_kick(100, 100, -35)
 r.stop()

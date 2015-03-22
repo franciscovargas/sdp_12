@@ -207,7 +207,7 @@ void speed_kick() {
         move_motor(LEFT_MOTOR, -moveback_power);
         move_motor(RIGHT_MOTOR, moveback_power);
     }
-    delay(600);
+    delay(800);
     motorAllStop();
     move_motor(GRAB_MOTOR, 50);
     delay(200);

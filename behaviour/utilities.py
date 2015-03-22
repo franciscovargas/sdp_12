@@ -1,15 +1,15 @@
-from math import tan, pi, hypot, log, copysign
+from math import tan, pi, hypot, log, copysign, pow, sqrt
 from world import Robot
 import time
 from random import randint
 
-BALL_APPROACH_THRESHOLD = 55
+BALL_APPROACH_THRESHOLD = 45
 
 BACK_OFF_THRESHOLD = 25
 
 BALL_ALIGN_THRESHOLD = 20
 
-ROBOT_ALIGN_THRESHOLD = pi/12
+ROBOT_ALIGN_THRESHOLD = pi/16
 
 PRECISE_BALL_ANGLE_THRESHOLD = pi/8
 
@@ -20,21 +20,21 @@ POWER_STRAIGHT_MODIFIER = 0.15
 POWER_STRAIGHT_BASE = 60
 
 POWER_STRAIGHT_FETCH_MODIFIER = 0.3
-POWER_STRAIGHT_FETCH_BASE = 25
+POWER_STRAIGHT_FETCH_BASE = 27
 
 POWER_ROTATE_MODIFIER = 1.1
-POWER_ROTATE_BASE = 23
+POWER_ROTATE_BASE = 28
 
 POWER_GRAB = 30
 POWER_KICK = 100
 
 POWER_SPEEDKICK_KICK = 100
-POWER_SPEEDKICK_SIDE = 60
-POWER_SPEEDKICK_BACK = 30
+POWER_SPEEDKICK_SIDE = 100
+POWER_SPEEDKICK_BACK = -35
 
 BALL_MOVING = 3
 
-DEFENDING_PITCH_EDGE = 100
+DEFENDING_PITCH_EDGE = 130
 
 
 # Stop everything
@@ -83,20 +83,15 @@ def openGrabber(robotCom):
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
 
-def speed_kick(robotCom):
+def speed_kick(robotCom, angle):
 
-    # Choose direction at random
-    direction = randint(0,1);
-            
-    # go left and shoot
-    if(direction > 0):
+    if(angle > pi):# go left and shoot
         # call arduino function that evades and shoots
         robotCom.speed_kick(POWER_SPEEDKICK_KICK, POWER_SPEEDKICK_SIDE, POWER_SPEEDKICK_BACK)
-    else: # go right and shoot
+    else: # go left and shoot
         # call arduino function that evades and shoots
         robotCom.speed_kick(POWER_SPEEDKICK_KICK, -POWER_SPEEDKICK_SIDE, POWER_SPEEDKICK_BACK)
-
-
+        
 def robot_is_aligned(robot_angle, target_angle):
     absolute_angle = normalize_angle(robot_angle, target_angle)
     return abs(absolute_angle) <= ROBOT_ALIGN_THRESHOLD
@@ -209,7 +204,6 @@ def ball_moving_to_us(ball, our_side):
             return (pi/4) < ball.angle < (7*pi/4)
     else:
         return False
-
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''
