@@ -192,11 +192,10 @@ void kick() {
 
 // Evade and kick
 void speed_kick() {
-    int power;
-    kick_power = atoi(comm.next());
-    moveside_power = atoi(comm.next());
-    moveback_power = atoi(comm.next());
-    
+    int kick_power = atoi(comm.next());
+    int moveside_power = atoi(comm.next());
+    int moveback_power = atoi(comm.next());
+
     // Evade
     move_motor(GRAB_MOTOR, 30);
     move_motor(BACK_MOTOR, moveside_power);
@@ -208,15 +207,18 @@ void speed_kick() {
         move_motor(LEFT_MOTOR, -moveback_power);
         move_motor(RIGHT_MOTOR, moveback_power);
     }
-    delay(400)   
-    
+    delay(600);
+    motorAllStop();
+    move_motor(GRAB_MOTOR, 50);
+    delay(200);
+
     // Move back and open grabber
     move_motor(KICK_MOTOR, 40);
     move_motor(GRAB_MOTOR, -50);
     delay(200);
 
     // Kick
-    move_motor(KICK_MOTOR, -power);
+    move_motor(KICK_MOTOR, -kick_power);
     delay(KICK_TIME*1000);
 
     Serial.println("Kicking");
