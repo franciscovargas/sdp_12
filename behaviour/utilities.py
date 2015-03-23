@@ -3,7 +3,7 @@ from world import Robot
 import time
 from random import randint
 
-BALL_APPROACH_THRESHOLD = 45
+BALL_APPROACH_THRESHOLD = 38
 
 BACK_OFF_THRESHOLD = 25
 
@@ -22,8 +22,9 @@ POWER_STRAIGHT_BASE = 60
 POWER_STRAIGHT_FETCH_MODIFIER = 0.3
 POWER_STRAIGHT_FETCH_BASE = 27
 
-POWER_ROTATE_MODIFIER = 1.1
+POWER_ROTATE_MODIFIER = 1
 POWER_ROTATE_BASE = 28
+POWER_ROTATE_STOP = 25
 
 POWER_GRAB = 30
 POWER_KICK = 100
@@ -105,15 +106,15 @@ def robot_is_aligned_to_y_axis(robot_angle):
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
 def rotate_robot(robotCom, angle, grab=False):
+    power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
     if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
-        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
         if grab:
             # power = power * 1.2
             robotCom.rotateAndGrab(power, POWER_GRAB)
         else:
             robotCom.rotate(power)
     else:
-        robotCom.stop()
+        robotCom.stopRotate(copysign(POWER_ROTATE_STOP, (-power)))
 
 
 def align_robot(robotCom, robot_angle, pitch_alignment_angle, grab=False):

@@ -159,14 +159,14 @@ class Defending(Strategy):
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class DefendingGrab(Strategy):
 
-    STATES = ['ROTATE_TO_BALL', 'OPEN_CATCHER', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
+    STATES = ['OPEN_CATCHER', 'ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
         super(DefendingGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
-            'ROTATE_TO_BALL': self.rotate,
             'OPEN_CATCHER': self.openCatcher,
+            'ROTATE_TO_BALL': self.rotate,
             'MOVE_TO_BALL': self.position,
             'GRAB_BALL': self.grab,
             'GRABBED': do_nothing
@@ -178,10 +178,11 @@ class DefendingGrab(Strategy):
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-        # Make sure we try to open the grabber at least once.
-        # Usefull in case when one of the filthy referees "accidentaly" closes our grabber at some point.
-        # If the grabber was already open and we open it once again, we do not loose much.
-        self.our_defender.catcher = 'CLOSED'
+    def openCatcher(self):
+        openGrabber(self.robotCom)
+        self.our_defender.catcher = 'OPEN'
+
+        self.current_state = 'ROTATE_TO_BALL'
 
     def rotate(self):
         angle = self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y)
@@ -189,20 +190,10 @@ class DefendingGrab(Strategy):
         if angle > pi:
             angle = 2*pi - angle
 
+        rotate_robot(self.robotCom, angle)
+
         if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
-            stop(self.robotCom)
-            if(self.our_defender.catcher == 'OPEN'):
-                self.current_state = 'MOVE_TO_BALL'
-            else:
-                self.current_state = 'OPEN_CATCHER'
-        else:
-            rotate_robot(self.robotCom, angle)
-
-    def openCatcher(self):
-        openGrabber(self.robotCom)
-        self.our_defender.catcher = 'OPEN'
-
-        self.current_state = 'MOVE_TO_BALL'
+            self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
@@ -473,7 +464,6 @@ class SpeedPass(Strategy):
     # Taking advantage of the vision delay, we tell Kevin to evade and shoot rapidly, without interaction with the vision.
     # This should be impossible for the opponents to catch.
     def speed_shoot(self):
-        print "COUNTER "+str(self.counter)
         if(self.counter == self.max_counter):
             
             speed_kick(self.robotCom, self.our_defender.angle)
@@ -488,13 +478,15 @@ class SpeedPass(Strategy):
 
     # Just shoot straight.
     def shoot(self):
-        """
-        Kick.
-        """
-        stop(self.robotCom)
-        kick(self.robotCom)
-        self.current_state = 'FINISHED'
-        self.our_defender.catcher = 'OPEN'
+        if(self.counter == self.max_counter):
+            kick(self.robotCom)
+            self.counter -= 1
+        elif(self.counter > 0):
+            self.counter -= 1
+        else:
+            stop(self.robotCom)
+            self.current_state = 'FINISHED'
+            self.our_defender.catcher = 'OPEN'
 
     def _get_shooting_coordinates(self, robot):
         """
