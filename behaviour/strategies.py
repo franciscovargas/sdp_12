@@ -190,6 +190,7 @@ class DefendingGrab(Strategy):
         if angle > pi:
             angle = 2*pi - angle
 
+        # If we are already aligned, this function will call stopRotate.
         rotate_robot(self.robotCom, angle)
 
         if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
