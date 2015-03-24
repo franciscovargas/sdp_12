@@ -2,9 +2,9 @@ from math import tan, pi, hypot, log, copysign
 from world import Robot
 import time
 
-BALL_APPROACH_THRESHOLD = 55
+BALL_APPROACH_THRESHOLD = 28
 
-BACK_OFF_THRESHOLD = 25
+BACK_OFF_THRESHOLD = 20
 
 BALL_ALIGN_THRESHOLD = 20
 
@@ -21,7 +21,7 @@ POWER_STRAIGHT_BASE = 60
 POWER_STRAIGHT_FETCH_MODIFIER = 0.3
 POWER_STRAIGHT_FETCH_BASE = 25
 
-POWER_ROTATE_MODIFIER = 1.1
+POWER_ROTATE_MODIFIER = 1.2
 POWER_ROTATE_BASE = 23
 
 POWER_GRAB = 30
@@ -159,8 +159,8 @@ def back_off(robotCom, side, robot_angle, robot_x, zone_boundaries):
 
 
 def robot_within_goal(side, robot_x, zone_boundaries):
-    return side == 'left' and robot_x <= zone_boundaries[4] + 20 \
-        or side == 'right' and robot_x >= zone_boundaries[5] - 20
+    return side == 'left' and robot_x <= zone_boundaries[4] + 30 \
+        or side == 'right' and robot_x >= zone_boundaries[5] - 30
 
 
 def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
@@ -168,13 +168,13 @@ def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
 
         rotation_modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
 
-        if side == 'left' and robot_x > zone_boundaries[4] + 10:
+        if side == 'left' and robot_x <= zone_boundaries[4] + 30:
 
             print "Moving sideways"
             moveSideways(robotCom, 30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             print "Finished sending sideways movement command, returning false"
 
-        elif side == 'right' and robot_x < zone_boundaries[5] - 10:
+        elif side == 'right' and robot_x >= zone_boundaries[5] - 30:
             print "Moving sideways"
             moveSideways(robotCom, 30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             print "Finished sending sideways movement command, returning false"
