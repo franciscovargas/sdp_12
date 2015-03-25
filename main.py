@@ -11,6 +11,7 @@ import cv2
 import serial
 import warnings
 import time
+import argparse
 from behaviour.planner import Planner
 from communications.RobotCommunications import RobotCommunications
 from communications.TestCommunications import TestCommunications
@@ -35,7 +36,8 @@ class Controller:
                  our_side,
                  video_port=0,
                  comm_port='/dev/ttyACM0',
-                 comms=1):
+                 comms=True,
+                 penalty=False):
         """
         Entry point for the SDP system.
 
@@ -69,7 +71,8 @@ class Controller:
         # Set up the planner.
         self.planner = Planner(our_side=our_side,
                                pitch_num=self.pitch,
-                               robotCom=self.robotCom)
+                               robotCom=self.robotCom,
+                               penalty=penalty)
 
         # Set up camera for frames
         self.camera = Camera(port=video_port, pitch=self.pitch)
@@ -123,7 +126,7 @@ class Controller:
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
                 if counter > 1:
-                    dx = model_positions['ball'].x - cache_ball.x 
+                    dx = model_positions['ball'].x - cache_ball.x
                     dy = model_positions['ball'].y - cache_ball.y
                     predicted = self.K.n_frames(6, [model_positions['ball'].x,
                                                     model_positions['ball'].y,
@@ -134,7 +137,7 @@ class Controller:
                                                       'y': predicted[1],
                                                       'dx': predicted[2],
                                                       'dy': predicted[3]}
-                cache_ball = model_positions['ball']    
+                cache_ball = model_positions['ball']
                 # Update planner world beliefs
                 self.planner.update_world(model_positions)
 
@@ -170,18 +173,20 @@ class Controller:
             tools.save_colors(self.pitch, self.calibration)
 
 if __name__ == '__main__':
-    import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("pitch", help="[0] Main pitch, [1] Secondary pitch")
     parser.add_argument("side", help="The side of our defender ['left', 'right'] allowed.")
     parser.add_argument("color", help="The color of our team - ['yellow', 'blue'] allowed.")
     parser.add_argument(
         "-n", "--nocomms", help="Disables sending commands to the robot.", action="store_true")
+    parser.add_argument(
+        "-p", "--penalty", help="Enables penalty state.", action="store_true")
 
     args = parser.parse_args()
-    if args.nocomms:
-        c = Controller(
-            pitch=int(args.pitch), color=args.color, our_side=args.side, comms=0).main()
-    else:
-        c = Controller(
-            pitch=int(args.pitch), color=args.color, our_side=args.side).main()
+
+    comms = False if args.nocomms else True
+    penalty = True if args.penalty else False
+
+    c = Controller(
+        pitch=int(args.pitch), color=args.color, our_side=args.side, comms=(not args.nocomms), penalty=args.penalty).main()
