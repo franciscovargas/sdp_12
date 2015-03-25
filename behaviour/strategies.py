@@ -158,6 +158,88 @@ class Defending(Strategy):
                 moveSideways(self.robotCom, -displacement, self.world._our_side)
 
 
+# Defend against incoming ball
+class PenaltyDefend(Strategy):
+
+    STATES = ['UNALIGNED',
+              # 'CLOSE_GRABBER',
+              'DEFEND_GOAL']
+
+    def __init__(self, world, robotCom):
+        super(Defending, self).__init__(world, self.STATES)
+
+        self.NEXT_ACTION_MAP = {
+            'UNALIGNED': self.align,
+            # 'CLOSE_GRABBER': self.close_grabber,
+            'DEFEND_GOAL': self.defend_goal
+        }
+
+        self.our_defender = self.world.our_defender
+        self.ball = self.world.ball
+        self.our_goal = self.world.our_goal
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
+
+    # Align robot so that he is 180 degrees from facing to goal
+    def align(self):
+        if robot_is_aligned_to_y_axis(self.our_defender.angle):
+            stop(self.robotCom)
+            # self.current_state = 'CLOSE_GRABBER'
+            self.current_state = 'DEFEND_GOAL'
+        else:
+            align_robot_to_y_axis(self.robotCom, self.our_defender.angle)
+
+    # def close_grabber(self):
+    #     if robot_is_aligned_to_y_axis(self.our_defender.angle):
+    #         if self.our_defender.catcher == 'OPEN':
+    #             grab(self.robotCom)
+    #             self.our_defender.catcher = 'CLOSED'
+    #         self.current_state = 'MOVE_BACK'
+    #     else:
+    #         self.current_state = 'UNALIGNED'
+
+    # Calculate ideal defending position and move there.
+    def defend_goal(self):
+        # Specifies the type of defending. Can be 'straight' or 'sideways'
+        type_of_movement = 'straight'
+
+        # If the robot somehow unaligned himself.
+        if not robot_is_aligned_to_y_axis(self.our_defender.angle):
+            self.current_state = 'UNALIGNED'
+        else:
+
+            y = self.ball.y
+            y = max([y, DEFENDING_PITCH_EDGE])
+            y = min([y, self.world._pitch.height - DEFENDING_PITCH_EDGE])
+            # displacement, angle = self.our_defender.get_direction_to_point(self.our_defender.x, y)
+            displacement = self.our_defender.y - y
+            # if(self.our_defender.y > self.ball.y):
+            #     displacement = -displacement
+
+            # if ball_moving_to_us(self.ball, self.our_side):
+
+            #     if self.our_defender.catcher == 'CLOSED':
+            #         print "Opening grabber"
+            #         openGrabber(self.robotCom)
+            #         self.our_defender.catcher = 'OPEN'
+            # else:
+            #     if self.our_defender.catcher == 'OPEN':
+            #         print "Closing grabber"
+            #         grab(self.robotCom)
+            #         self.our_defender.catcher = 'CLOSED'
+            if abs(self.our_defender.angle - 3*pi/2) > (self.our_defender.angle - pi/2):
+                rotation_modifier = -1
+            else:
+                rotation_modifier = 1
+
+            if type_of_movement == 'straight':
+                moveStraight(self.robotCom, displacement * rotation_modifier, threshold=BALL_ALIGN_THRESHOLD)
+            elif type_of_movement == 'sideways':
+                moveSideways(self.robotCom, -displacement, self.world._our_side)
+
+
+
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class DefendingGrab(Strategy):
 
