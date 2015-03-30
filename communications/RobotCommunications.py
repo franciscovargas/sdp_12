@@ -45,8 +45,8 @@ class RobotCommunications(Communications):
     def moveDiagonalRight(self, motorPower):
         self.write("E " + str(motorPower))
 
-    # Rotate LEFT  = -motorPower
-    # Rotate RIGHT = +motorPower
+    # Rotate LEFT  = +motorPower
+    # Rotate RIGHT = -motorPower
     def rotate(self, motorPower):
         self.write("F " + str(motorPower))
 

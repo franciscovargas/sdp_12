@@ -4,20 +4,21 @@
 #include <SDPArduino.h>
 #include <string.h>
 
-SerialCommand comm;   // We create a SerialCommand object
+# define EVENT_BUFFER_SIZE 50
 
-int EVENT_BUFFER_SIZE = 50;
+SerialCommand comm;   // We create a SerialCommand object
 
 String grabber_position = "closed";
 boolean kicker_running = false;
+boolean stopping = false;
 
 int LEFT_MOTOR = 1;
 int RIGHT_MOTOR = 2;
 int BACK_MOTOR = 3;
 int KICK_MOTOR = 4;
 int GRAB_MOTOR = 0;
-float KICK_TIME = 0.75; // TEST for the time to open/close (at full power)
-float GRAB_TIME = 0.75;
+float KICK_TIME = 0.4;
+float GRAB_TIME = 0.5;
 // Will use this time to accommodate grabbing (depending on the power)
 
 // Stores commands to be executed.
@@ -111,6 +112,13 @@ void loop() {
     }
     
     event_loop::process_list();
+    
+    // Empyt the buffer if stop_all() was called.
+    if (stopping == true) {
+        event_loop::initialise_buffer();
+        
+        stopping = false;
+    }
 }
 
 
@@ -134,7 +142,7 @@ void move_straight() {
     event_loop::add_command_head(RIGHT_MOTOR, power, millis());
 }
 
-void stop_straight(int power) {
+void stop_straight() {
     int power;
     power = atoi(comm.next());
     
@@ -176,8 +184,7 @@ void stop_all() {
     event_loop::add_command_head(RIGHT_MOTOR, 0, millis());
     event_loop::add_command_head(BACK_MOTOR, 0, millis());
     
-    delay(200);
-    event_loop::initialise_buffer();
+    stopping = true;
     Serial.println("All motors off");
 }
 
@@ -191,7 +198,7 @@ void rotate() {
     event_loop::add_command_head(BACK_MOTOR, -0.8 * power, millis());
 }
 
-void rotate_and_grab(int power_rotate, int power_grab) {
+void rotate_and_grab() {
     int power_rotate;
     int power_grab;
     power_rotate = atoi(comm.next());
@@ -205,7 +212,7 @@ void rotate_and_grab(int power_rotate, int power_grab) {
     event_loop::add_command_head(GRAB_MOTOR, -power_grab, millis());
 }
 
-void stop_rotating(int power) {
+void stop_rotating() {
     int power;
 
     power = atoi(comm.next());
@@ -301,7 +308,7 @@ void grabber_move(int power) {
 // Decide whether to open or close the grabber
 void grab() {
     int power;
-    power = -atoi(comm.next());
+    power = atoi(comm.next());
     
     if(power > 0) {
         if (grabber_position == "closed") {
@@ -316,7 +323,7 @@ void grab() {
             
             // Close grabber.
             grabber_move(power);
-            grabber_position == "close";
+            grabber_position == "closed";
         }
     }
 }
