@@ -15,12 +15,13 @@ POWER_SIDEWAYS_BASE = 40
 
 POWER_STRAIGHT_MODIFIER = 0.15
 POWER_STRAIGHT_BASE = 60
+POWER_STRAIGHT_STOP = 30
 
 POWER_STRAIGHT_FETCH_MODIFIER = 0.3
 POWER_STRAIGHT_FETCH_BASE = 27
 
 POWER_ROTATE_MODIFIER = 1.2
-POWER_ROTATE_BASE = 23
+POWER_ROTATE_BASE = 25
 POWER_ROTATE_STOP = 25
 
 POWER_GRAB = 30
@@ -28,12 +29,13 @@ POWER_KICK = 100
 
 POWER_SPEEDKICK_KICK = 100
 POWER_SPEEDKICK_SIDE = 100
-POWER_SPEEDKICK_BACK = -35
+POWER_SPEEDKICK_BACK = -27
 
 BALL_MOVING = 3
 
 DEFENDING_PITCH_EDGE = 100
 
+already_stopped = True
 
 # Stop everything
 def stop(robotCom):
@@ -55,27 +57,29 @@ def moveSideways(robotCom, displacement, side, threshold=BALL_ALIGN_THRESHOLD):
 
 # Move straight, with speed relative to the distance left to cover
 def moveStraight(robotCom, displacement, state='defending', threshold=BALL_APPROACH_THRESHOLD):
-
+    global already_stopped
     base = POWER_STRAIGHT_BASE if state == 'defending' else POWER_STRAIGHT_FETCH_BASE
     modifier = POWER_STRAIGHT_MODIFIER if state == 'defending' else POWER_STRAIGHT_FETCH_MODIFIER
+    power = (modifier * displacement) + copysign(base, displacement)
 
     if abs(displacement) > threshold:
-        power = (modifier * displacement) \
-            + copysign(base, displacement)
         robotCom.moveStraight(power)
+        already_stopped = False
+    elif already_stopped == False:
+        robotCom.stopStraight(copysign(POWER_STRAIGHT_STOP, -power))
+        already_stopped = True
     else:
-        robotCom.stop()
+        pass
+        #robotCom.stop()
 
 
 # Grab the ball
 def grab(robotCom):
     robotCom.grab(POWER_GRAB)
 
-
 # Open the grabber without kicking
 def openGrabber(robotCom):
     robotCom.grab(-POWER_GRAB)
-
 
 # Kick the ball, full power
 def kick(robotCom):
@@ -107,7 +111,7 @@ def rotate_robot(robotCom, angle, grab=False):
     if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
         if grab:
             # power = power * 1.2
-            robotCom.rotateAndGrab(power, POWER_GRAB)
+            robotCom.rotateAndGrab(power, -POWER_GRAB)
         else:
             robotCom.rotate(power)
     else:

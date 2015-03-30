@@ -17,7 +17,7 @@ class Planner:
 
         self._defender_strategies = {'defending': [Defending],
                                      'fetching': [DefendingGrab],
-                                     'passing': [PassToAttacker, SpeedPass],
+                                     'passing': [SpeedPass, PassToAttacker],
                                      'waiting': [Standby],
                                      'penalty_def': [PenaltyDefend]}
 

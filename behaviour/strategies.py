@@ -77,10 +77,9 @@ class Defending(Strategy):
             align_robot_to_y_axis(self.robotCom, self.our_defender.angle)
 
     def close_grabber(self):
-        if self.our_defender.catcher == 'OPEN':
-            grab(self.robotCom)
-            self.our_defender.catcher = 'CLOSED'
-        self.current_state = 'MOVE_BACK'
+        grab(self.robotCom)
+        self.our_defender.catcher = 'CLOSED'
+        self.current_state = 'DEFEND_GOAL'
 
     def move_back(self):
         if robot_within_zone(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
@@ -273,9 +272,8 @@ class DefendingGrab(Strategy):
             self.current_state = 'OPEN_CATCHER'
 
     def openCatcher(self):
-        if self.our_defender.catcher == 'CLOSED':
-            openGrabber(self.robotCom)
-            self.our_defender.catcher = 'OPEN'
+        openGrabber(self.robotCom)
+        self.our_defender.catcher = 'OPEN'
 
         self.current_state = 'MOVE_TO_BALL'
 

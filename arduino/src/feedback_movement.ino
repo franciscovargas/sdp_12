@@ -4,11 +4,10 @@
 #include <SDPArduino.h>
 #include <string.h>
 
-# define EVENT_BUFFER_SIZE 50
+# define EVENT_BUFFER_SIZE 30
 
-SerialCommand comm;   // We create a SerialCommand object
+SerialCommand comm;
 
-String grabber_position = "closed";
 boolean kicker_running = false;
 boolean stopping = false;
 
@@ -18,7 +17,7 @@ int BACK_MOTOR = 3;
 int KICK_MOTOR = 4;
 int GRAB_MOTOR = 0;
 float KICK_TIME = 0.4;
-float GRAB_TIME = 0.5;
+float GRAB_TIME = 0.4;
 // Will use this time to accommodate grabbing (depending on the power)
 
 // Stores commands to be executed.
@@ -120,7 +119,6 @@ void loop() {
         stopping = false;
     }
 }
-
 
 // Individual motor move function
 // If the printing will not be necessary anymore, this function can just be replaced
@@ -237,7 +235,6 @@ void kick() {
     event_loop::add_command_head(GRAB_MOTOR, -50, millis());
 
     // Kick
-    move_motor(KICK_MOTOR, -power);
     event_loop::add_command_head(KICK_MOTOR, -power, millis()+200);
     
     // Stop both motors.
@@ -245,7 +242,6 @@ void kick() {
     event_loop::add_command_head(KICK_MOTOR, 0, millis()+200+(KICK_TIME*1000));
 
     Serial.println("Kicking");
-    grabber_position == "open";
 }
 
 // Evade and kick
@@ -311,20 +307,12 @@ void grab() {
     power = atoi(comm.next());
     
     if(power > 0) {
-        if (grabber_position == "closed") {
-            
-            // Open grabber.
-            grabber_move(power);
-            grabber_position == "open";
-        }
+        // Open grabber.
+        grabber_move(power);
     }
-    else {
-        if (grabber_position == "open") {
-            
-            // Close grabber.
-            grabber_move(power);
-            grabber_position == "closed";
-        }
+    else { 
+        // Close grabber.
+        grabber_move(power);
     }
 }
 
