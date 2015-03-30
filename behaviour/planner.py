@@ -1,6 +1,6 @@
 from world import World
-from strategies import Defending, DefendingGrab, PassToAttacker, \
-    Standby, PenaltyDefend  # , TestStrategy
+from strategies import Defending, DefendingGrab, PassToAttacker, Standby, \
+    PenaltyDefend, SpeedPass
 from utilities import BALL_MOVING
 
 
@@ -17,7 +17,7 @@ class Planner:
 
         self._defender_strategies = {'defending': [Defending],
                                      'fetching': [DefendingGrab],
-                                     'passing': [PassToAttacker],
+                                     'passing': [PassToAttacker, SpeedPass],
                                      'waiting': [Standby],
                                      'penalty_def': [PenaltyDefend]}
 
@@ -26,7 +26,6 @@ class Planner:
         next_strategy = self._defender_strategies[self._state][0]
 
         self._current_strategy = next_strategy(self._world, self.robotCom)
-
 
     # Provisional. Choose the first strategy in the applicable list.
     def get_next_strategy(self):

@@ -1,6 +1,4 @@
 from math import tan, pi, hypot, log, copysign
-from world import Robot
-import time
 
 BALL_APPROACH_THRESHOLD = 28
 
@@ -19,13 +17,18 @@ POWER_STRAIGHT_MODIFIER = 0.15
 POWER_STRAIGHT_BASE = 60
 
 POWER_STRAIGHT_FETCH_MODIFIER = 0.3
-POWER_STRAIGHT_FETCH_BASE = 25
+POWER_STRAIGHT_FETCH_BASE = 27
 
 POWER_ROTATE_MODIFIER = 1.2
 POWER_ROTATE_BASE = 23
+POWER_ROTATE_STOP = 25
 
 POWER_GRAB = 30
 POWER_KICK = 100
+
+POWER_SPEEDKICK_KICK = 100
+POWER_SPEEDKICK_SIDE = 100
+POWER_SPEEDKICK_BACK = -35
 
 BALL_MOVING = 3
 
@@ -78,6 +81,14 @@ def openGrabber(robotCom):
 def kick(robotCom):
     robotCom.kick(POWER_KICK)
 
+def speed_kick(robotCom, angle):
+
+    if(angle > pi):# go left and shoot
+        # call arduino function that evades and shoots
+        robotCom.speed_kick(POWER_SPEEDKICK_KICK, POWER_SPEEDKICK_SIDE, POWER_SPEEDKICK_BACK)
+    else: # go left and shoot
+        # call arduino function that evades and shoots
+        robotCom.speed_kick(POWER_SPEEDKICK_KICK, -POWER_SPEEDKICK_SIDE, POWER_SPEEDKICK_BACK)
 
 def robot_is_aligned(robot_angle, target_angle):
     absolute_angle = normalize_angle(robot_angle, target_angle)
@@ -92,15 +103,15 @@ def robot_is_aligned_to_y_axis(robot_angle):
 # rotate the robot until it is at the target angle, with speed relative to
 # the difference between the robot and target angles
 def rotate_robot(robotCom, angle, grab=False):
+    power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
     if(abs(angle) > ROBOT_ALIGN_THRESHOLD):
-        power = (POWER_ROTATE_MODIFIER * angle) + copysign(POWER_ROTATE_BASE, angle)
         if grab:
             # power = power * 1.2
             robotCom.rotateAndGrab(power, POWER_GRAB)
         else:
             robotCom.rotate(power)
     else:
-        robotCom.stop()
+        robotCom.stopRotate(copysign(POWER_ROTATE_STOP, (-power)))
 
 
 def align_robot(robotCom, robot_angle, pitch_alignment_angle, grab=False):
@@ -131,7 +142,6 @@ def normalize_angle(robot_angle, target_angle):
 
 
 def robot_within_zone(side, robot_x, zone_boundaries):
-    print zone_boundaries
     return side == 'left' and robot_x <= zone_boundaries[0] - 30 \
         or side == 'right' and robot_x >= zone_boundaries[1] + 30
 
@@ -192,7 +202,6 @@ def ball_moving_to_us(ball, our_side):
             return (pi/4) < ball.angle < (7*pi/4)
     else:
         return False
-
 
 def is_shot_blocked(world, our_robot, their_robot):
     '''

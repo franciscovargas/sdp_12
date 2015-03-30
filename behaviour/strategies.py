@@ -1,13 +1,14 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
     ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_goal, \
-    robot_within_zone, back_off_from_goal
+    robot_within_zone, back_off_from_goal, speed_kick
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
 
 # Imports from their code that are needed to compile (and maybe later)
 from utilities import calculate_motor_speed, is_shot_blocked
+import time
 
 
 class Strategy(object):
@@ -71,18 +72,15 @@ class Defending(Strategy):
     def align(self):
         if robot_is_aligned_to_y_axis(self.our_defender.angle):
             stop(self.robotCom)
-            self.current_state = 'CLOSE_GRABBER'
+            self.current_state = 'MOVE_BACK'
         else:
             align_robot_to_y_axis(self.robotCom, self.our_defender.angle)
 
     def close_grabber(self):
-        if robot_is_aligned_to_y_axis(self.our_defender.angle):
-            if self.our_defender.catcher == 'OPEN':
-                grab(self.robotCom)
-                self.our_defender.catcher = 'CLOSED'
-            self.current_state = 'MOVE_BACK'
-        else:
-            self.current_state = 'UNALIGNED'
+        if self.our_defender.catcher == 'OPEN':
+            grab(self.robotCom)
+            self.our_defender.catcher = 'CLOSED'
+        self.current_state = 'UNALIGNED'
 
     def move_back(self):
         if robot_within_zone(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
@@ -243,7 +241,7 @@ class PenaltyDefend(Strategy):
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class DefendingGrab(Strategy):
 
-    STATES = ['OPEN_CATCHER', 'ROTATE_TO_BALL', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
+    STATES = ['ROTATE_TO_BALL', 'OPEN_CATCHER', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
         super(DefendingGrab, self).__init__(world, self.STATES)
@@ -275,11 +273,11 @@ class DefendingGrab(Strategy):
         if angle > pi:
             angle = 2*pi - angle
 
+        # If we are already aligned, this function will call stopRotate.
+        rotate_robot(self.robotCom, angle)
+
         if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
-            stop(self.robotCom)
             self.current_state = 'MOVE_TO_BALL'
-        else:
-            rotate_robot(self.robotCom, angle)
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
@@ -299,54 +297,6 @@ class DefendingGrab(Strategy):
         grab(self.robotCom)
         self.current_state = 'GRABBED'
         self.our_defender.catcher = 'CLOSED'
-
-
-# Defender robot - pass to attacker
-# class DefendingPass(Strategy):
-
-#     STATES = ['ROTATE_TO_ATTACKER',
-#               'SHOOT', 'FINISHED']
-
-#     def __init__(self, world, robotCom):
-#         super(DefendingPass, self).__init__(world, self.STATES)
-
-#         # Map states into functions
-#         self.NEXT_ACTION_MAP = {
-#             'ROTATE_TO_ATTACKER': self.rotate,
-#             'SHOOT': self.shoot,
-#             'FINISHED': do_nothing
-#         }
-
-#         self.our_defender = self.world.our_defender
-#         self.our_attacker = self.world.our_attacker
-#         self.ball = self.world.ball
-
-#         # Used to communicate with the robot
-#         self.robotCom = robotCom
-
-#     def rotate(self):
-#         angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
-
-#         if align_robot(self.robotCom, angle, grab=True):
-#             self.current_state = 'SHOOT'
-
-#     def shoot(self):
-#         """
-#         Kick.
-#         """
-
-#         angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_attacker.y)
-
-#         if align_robot(self.robotCom, angle, grab=True):
-#             kick(self.robotCom)
-#             self.our_defender.catcher = 'OPEN'
-
-#             grab(self.robotCom)
-#             self.our_defender.catcher = 'CLOSED'
-
-#             self.current_state = 'FINISHED'
-#         else:
-#             self.current_state = 'ROTATE_TO_ATTACKER'
 
 
 # When the ball is not in our zone, do nothing.
@@ -429,8 +379,8 @@ class PassToAttacker(Strategy):
                 y = self.our_defender.y + 50
 
             # stop the robot from going to the extremities of the pitch
-            y = max([y, 10])
-            y = min([y, self.world._pitch.height - 10])
+            y = max([y, 30])
+            y = min([y, self.world._pitch.height - 30])
 
             displacement = self.our_defender.get_displacement_to_point(self.our_defender.x, y)
             if(self.our_defender.y > y):
@@ -507,6 +457,135 @@ class PassToAttacker(Strategy):
 
 #     def test(self):
 #         back_off(self.robotCom, self.world._our_side, self.our_defender.angle, self.our_defender.x)
+
+
+# Pass ball to attacker using speed_shoot
+# 1 - Position yourself to the middle of your zone.
+# 2 - Align towards enemies goal
+# 3 - If we have a clear shot, shoot. Else evade and shoot rapidly.
+# The speed boost is gained but performing the evasion and kicking on the arduino level, getting rid of vision delay.
+class SpeedPass(Strategy):
+
+    STATES = ['ROTATE_TO_MIDDLE', 'POSITION', 'ALIGN', 'SHOOT',
+              'SPEEDSHOOT', 'FINISHED']
+
+    def __init__(self, world, robotCom):
+        super(SpeedPass, self).__init__(world, self.STATES)
+
+        # Map states into functions
+        self.NEXT_ACTION_MAP = {
+            'ROTATE_TO_MIDDLE': self.rotate_to_middle,
+            'POSITION': self.position,
+            'ALIGN': self.align,
+            'SHOOT': self.shoot,
+            'SPEEDSHOOT': self.speed_shoot,
+            'FINISHED': do_nothing
+        }
+
+        self.our_defender = self.world.our_defender
+        self.our_attacker = self.world.our_attacker
+        self.their_attacker = self.world.their_attacker
+        self.ball = self.world.ball
+        self.pitch = self.world.pitch
+
+        # Counter used to stop sending commands to arduino while the robot is kicking
+        self.max_counter = 50
+        self.counter = self.max_counter
+
+        # Used to communicate with the robot
+        self.robotCom = robotCom
+
+    # Rotate yourself to the middle of your zone.
+    def rotate_to_middle(self):
+        ideal_x, ideal_y = self._get_shooting_coordinates(self.our_defender)
+        displacement, angle = self.our_defender.get_direction_to_point(ideal_x, ideal_y)
+
+        if angle > pi:
+            angle = 2*pi - angle
+
+        if has_matched(self.our_defender, x=ideal_x, y=ideal_y): # if robot is in the middle of his zone, align and shoot.
+            stop(self.robotCom)
+            self.current_state = 'ALIGN'
+        else:
+            if abs(angle) <= ROBOT_ALIGN_THRESHOLD: # move towards middle of the zone
+                stop(self.robotCom)
+                self.current_state = 'POSITION'
+            else:# align towards middle of the zone
+                rotate_robot(self.robotCom, angle, grab=True)
+
+    # Position yourself to the middle of your zone.
+    def position(self):
+        ideal_x, ideal_y = self._get_shooting_coordinates(self.our_defender)
+        displacement, angle = self.our_defender.get_direction_to_point(ideal_x, ideal_y)
+
+        if angle > pi:
+            angle = 2*pi - angle
+
+        if has_matched(self.our_defender, x=ideal_x, y=ideal_y): # if robot is in the middle of his zone, align and shoot.
+            stop(self.robotCom)
+            self.current_state = 'ALIGN'
+        else:
+            if abs(angle) <= ROBOT_ALIGN_THRESHOLD: # move towards middle of the zone
+                moveStraight(self.robotCom, displacement, state='fetching', threshold=20)
+            else:# align towards middle of the zone
+                stop(self.robotCom)
+                self.current_state = 'ROTATE_TO_MIDDLE'
+
+    def align(self):
+        # align Kevin to 180 deg from goal
+        if robot_is_aligned(self.our_defender.angle, self.pitch_centre):
+            stop(self.robotCom)
+            time.sleep(0.2) # wait until the robot stops rotating.
+
+            # if shot is blocked, speedshoot. else just shoot straght.
+            if is_shot_blocked(self.world, self.our_defender, self.their_attacker):
+                self.current_state = 'SPEEDSHOOT'
+            else:
+                self.current_state = 'SHOOT'
+        else:
+            align_robot(self.robotCom, self.our_defender.angle, self.pitch_centre, grab=True)
+
+    # Taking advantage of the vision delay, we tell Kevin to evade and shoot rapidly, without interaction with the vision.
+    # This should be impossible for the opponents to catch.
+    def speed_shoot(self):
+        if(self.counter == self.max_counter):
+
+            speed_kick(self.robotCom, self.our_defender.angle)
+
+            self.counter -= 1
+        elif(self.counter > 0):
+            self.counter -= 1
+        else:
+            stop(self.robotCom)
+            self.current_state = 'FINISHED'
+            self.our_defender.catcher = 'OPEN'
+
+    # Just shoot straight.
+    def shoot(self):
+        if(self.counter == self.max_counter):
+            kick(self.robotCom)
+            self.counter -= 1
+        elif(self.counter > 0):
+            self.counter -= 1
+        else:
+            stop(self.robotCom)
+            self.current_state = 'FINISHED'
+            self.our_defender.catcher = 'OPEN'
+
+    def _get_shooting_coordinates(self, robot):
+        """
+        Retrieve the coordinates to which we need to move before we set up the pass.
+        """
+        zone_index = robot.zone
+        zone_poly = self.world.pitch.zones[zone_index][0]
+
+        min_x = int(min(zone_poly, key=lambda z: z[0])[0])
+        max_x = int(max(zone_poly, key=lambda z: z[0])[0])
+
+        x = min_x + (max_x - min_x) / 2
+        y =  self.world.pitch.height / 2
+
+        return (x, y)
 
 
 # This might be a good strategy for later.
