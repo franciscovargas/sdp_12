@@ -72,7 +72,7 @@ class Defending(Strategy):
     def align(self):
         if robot_is_aligned_to_y_axis(self.our_defender.angle):
             stop(self.robotCom)
-            self.current_state = 'MOVE_BACK'
+            self.current_state = 'CLOSE_GRABBER'
         else:
             align_robot_to_y_axis(self.robotCom, self.our_defender.angle)
 
@@ -80,7 +80,7 @@ class Defending(Strategy):
         if self.our_defender.catcher == 'OPEN':
             grab(self.robotCom)
             self.our_defender.catcher = 'CLOSED'
-        self.current_state = 'UNALIGNED'
+        self.current_state = 'MOVE_BACK'
 
     def move_back(self):
         if robot_within_zone(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
@@ -260,13 +260,6 @@ class DefendingGrab(Strategy):
         # Used to communicate with the robot
         self.robotCom = robotCom
 
-    def openCatcher(self):
-        if self.our_defender.catcher == 'CLOSED':
-            openGrabber(self.robotCom)
-            self.our_defender.catcher = 'OPEN'
-
-        self.current_state = 'ROTATE_TO_BALL'
-
     def rotate(self):
         angle = self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y)
 
@@ -277,7 +270,14 @@ class DefendingGrab(Strategy):
         rotate_robot(self.robotCom, angle)
 
         if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
-            self.current_state = 'MOVE_TO_BALL'
+            self.current_state = 'OPEN_CATCHER'
+
+    def openCatcher(self):
+        if self.our_defender.catcher == 'CLOSED':
+            openGrabber(self.robotCom)
+            self.our_defender.catcher = 'OPEN'
+
+        self.current_state = 'MOVE_TO_BALL'
 
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
