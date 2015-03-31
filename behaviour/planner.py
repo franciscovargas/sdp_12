@@ -8,7 +8,7 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom, penalty=False):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender._receiving_area = {'width': 55, 'height': 35, 'front_offset': 0}
+        self._world.our_defender._receiving_area = {'width': 58, 'height': 36, 'front_offset': 0}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
@@ -17,7 +17,7 @@ class Planner:
 
         self._defender_strategies = {'defending': [Defending],
                                      'fetching': [DefendingGrab],
-                                     'passing': [SpeedPass, PassToAttacker],
+                                     'passing': [PassToAttacker, SpeedPass],
                                      'waiting': [Standby],
                                      'penalty_def': [PenaltyDefend]}
 

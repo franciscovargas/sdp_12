@@ -1,7 +1,7 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
     ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_goal, \
-    robot_within_zone, back_off_from_goal, speed_kick
+    robot_within_zone, back_off_from_goal, speed_kick, back_off_straight
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -133,17 +133,6 @@ class Defending(Strategy):
             # if(self.our_defender.y > self.ball.y):
             #     displacement = -displacement
 
-            # if ball_moving_to_us(self.ball, self.our_side):
-
-            #     if self.our_defender.catcher == 'CLOSED':
-            #         print "Opening grabber"
-            #         openGrabber(self.robotCom)
-            #         self.our_defender.catcher = 'OPEN'
-            # else:
-            #     if self.our_defender.catcher == 'OPEN':
-            #         print "Closing grabber"
-            #         grab(self.robotCom)
-            #         self.our_defender.catcher = 'CLOSED'
             if abs(self.our_defender.angle - 3*pi/2) > (self.our_defender.angle - pi/2):
                 rotation_modifier = -1
             else:
@@ -153,7 +142,6 @@ class Defending(Strategy):
                 moveStraight(self.robotCom, displacement * rotation_modifier, threshold=BALL_ALIGN_THRESHOLD)
             elif type_of_movement == 'sideways':
                 moveSideways(self.robotCom, -displacement, self.world._our_side)
-
 
 # Defend against incoming ball
 class PenaltyDefend(Strategy):
@@ -240,15 +228,16 @@ class PenaltyDefend(Strategy):
 # Defender robot - Go to the ball and grab it. Assumes the ball is not moving or moving very slowly.
 class DefendingGrab(Strategy):
 
-    STATES = ['ROTATE_TO_BALL', 'OPEN_CATCHER', 'MOVE_TO_BALL', 'GRAB_BALL', 'GRABBED']
+    STATES = ['OPEN_CATCHER', 'ROTATE_TO_BALL', 'MOVE_TO_BALL', 'BACKOFF', 'GRAB_BALL', 'GRABBED']
 
     def __init__(self, world, robotCom):
         super(DefendingGrab, self).__init__(world, self.STATES)
 
         self.NEXT_ACTION_MAP = {
-            'ROTATE_TO_BALL': self.rotate,
             'OPEN_CATCHER': self.openCatcher,
+            'ROTATE_TO_BALL': self.rotate,
             'MOVE_TO_BALL': self.position,
+            'BACKOFF': self.backoff,
             'GRAB_BALL': self.grab,
             'GRABBED': do_nothing
         }
@@ -269,14 +258,18 @@ class DefendingGrab(Strategy):
         rotate_robot(self.robotCom, angle)
 
         if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
-            self.current_state = 'OPEN_CATCHER'
+            openGrabber(self.robotCom)
+            self.current_state = 'MOVE_TO_BALL'
 
     def openCatcher(self):
+        
+        # do it twice in case one of the commands gets lost
         openGrabber(self.robotCom)
+        openGrabber(self.robotCom)
+
         self.our_defender.catcher = 'OPEN'
-
-        self.current_state = 'MOVE_TO_BALL'
-
+        self.current_state = 'ROTATE_TO_BALL'
+    
     def position(self):
         displacement, angle = self.our_defender.get_direction_to_point(self.ball.x, self.ball.y)
 
@@ -288,8 +281,18 @@ class DefendingGrab(Strategy):
             self.current_state = 'GRAB_BALL'
         elif (abs(angle) > PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_BALL'
+        elif robot_within_goal(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
+            self.current_state = 'BACKOFF'
         else:
             moveStraight(self.robotCom, displacement, state='fetching')
+
+    def backoff(self):
+        if robot_within_goal(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
+            back_off_straight(self.robotCom, self.our_side, self.our_defender.angle,
+                               self.our_defender.x, self.world.pitch.zone_boundaries())
+        else:
+            stop(self.robotCom)
+            self.current_state = 'ROTATE_TO_BALL'
 
     def grab(self):
         grab(self.robotCom)
@@ -345,6 +348,10 @@ class PassToAttacker(Strategy):
         self.ball = self.world.ball
         self.pitch = self.world.pitch
 
+        # Counter used to stop sending commands to arduino while the robot is kicking
+        self.max_counter = 35
+        self.counter = self.max_counter
+
         # Used to communicate with the robot
         self.robotCom = robotCom
 
@@ -394,19 +401,17 @@ class PassToAttacker(Strategy):
             self.current_state = 'SHOOT'
 
     def shoot(self):
-        """
-        Kick.
-        """
-        # angle = self.our_defender.get_rotation_to_point(self.our_attacker.x, self.our_defender.y)
-        # if (abs(angle) > self.PRECISE_BALL_ANGLE_THRESHOLD):
-        # if robot_is_aligned(self.our_defender.angle, self.pitch_centre):
-        stop(self.robotCom)
-        kick(self.robotCom)
-        self.current_state = 'FINISHED'
-        self.our_defender.catcher = 'OPEN'
-        # else:
-        #     self.current_state = 'ALIGN'
+        if(self.counter == self.max_counter):
 
+            kick(self.robotCom)
+
+            self.counter -= 1
+        elif(self.counter > 0):
+            self.counter -= 1
+        else:
+            stop(self.robotCom)
+            self.current_state = 'FINISHED'
+            self.our_defender.catcher = 'OPEN'
 
 '''
 

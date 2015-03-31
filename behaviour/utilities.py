@@ -21,21 +21,23 @@ POWER_STRAIGHT_FETCH_MODIFIER = 0.3
 POWER_STRAIGHT_FETCH_BASE = 27
 
 POWER_ROTATE_MODIFIER = 1.2
-POWER_ROTATE_BASE = 25
-POWER_ROTATE_STOP = 25
+POWER_ROTATE_BASE = 27
+POWER_ROTATE_STOP = 28
 
 POWER_GRAB = 30
-POWER_KICK = 100
+POWER_KICK = 60
 
 POWER_SPEEDKICK_KICK = 100
 POWER_SPEEDKICK_SIDE = 100
 POWER_SPEEDKICK_BACK = -27
 
+POWER_BACKOFF = 26
+
 BALL_MOVING = 3
 
 DEFENDING_PITCH_EDGE = 100
 
-already_stopped = True
+moving_stopped = True
 
 # Stop everything
 def stop(robotCom):
@@ -57,20 +59,17 @@ def moveSideways(robotCom, displacement, side, threshold=BALL_ALIGN_THRESHOLD):
 
 # Move straight, with speed relative to the distance left to cover
 def moveStraight(robotCom, displacement, state='defending', threshold=BALL_APPROACH_THRESHOLD):
-    global already_stopped
+    global moving_stopped
     base = POWER_STRAIGHT_BASE if state == 'defending' else POWER_STRAIGHT_FETCH_BASE
     modifier = POWER_STRAIGHT_MODIFIER if state == 'defending' else POWER_STRAIGHT_FETCH_MODIFIER
     power = (modifier * displacement) + copysign(base, displacement)
 
     if abs(displacement) > threshold:
         robotCom.moveStraight(power)
-        already_stopped = False
-    elif already_stopped == False:
+        moving_stopped = False
+    elif moving_stopped == False:
         robotCom.stopStraight(copysign(POWER_STRAIGHT_STOP, -power))
-        already_stopped = True
-    else:
-        pass
-        #robotCom.stop()
+        moving_stopped = True
 
 
 # Grab the ball
@@ -159,12 +158,12 @@ def back_off(robotCom, side, robot_angle, robot_x, zone_boundaries):
         if side == 'left' and robot_x > zone_boundaries[0] - 30:
 
             # print "Moving sideways"
-            moveSideways(robotCom, -30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            moveSideways(robotCom, -POWER_BACKOFF * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             # print "Finished sending sideways movement command, returning false"
 
         elif side == 'right' and robot_x < zone_boundaries[1] + 30:
             # print "Moving sideways"
-            moveSideways(robotCom, -30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            moveSideways(robotCom, -POWER_BACKOFF * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             # print "Finished sending sideways movement command, returning false"
 
         else:
@@ -185,18 +184,27 @@ def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
         if side == 'left' and robot_x <= zone_boundaries[4] + 30:
 
             print "Moving sideways"
-            moveSideways(robotCom, 30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            moveSideways(robotCom, POWER_BACKOFF * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             print "Finished sending sideways movement command, returning false"
 
         elif side == 'right' and robot_x >= zone_boundaries[5] - 30:
             print "Moving sideways"
-            moveSideways(robotCom, 30 * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
+            moveSideways(robotCom, POWER_BACKOFF * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             print "Finished sending sideways movement command, returning false"
 
         else:
             print "Backed off, stopping robot, returning True"
             stop(robotCom)
 
+def back_off_straight(robotCom, side, robot_angle, robot_x, zone_boundaries):
+    modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
+
+    if side == 'left' and robot_x <= zone_boundaries[4] + 30:
+        moveSideways(robotCom, POWER_BACKOFF * modifier, side, threshold=BACK_OFF_THRESHOLD)
+    elif side == 'right' and robot_x >= zone_boundaries[5] - 30:
+        moveSideways(robotCom, POWER_BACKOFF * modifier, side, threshold=BACK_OFF_THRESHOLD)
+    else:
+        stop(robotCom)
 
 def ball_moving_to_us(ball, our_side):
     if ball.velocity > BALL_MOVING:
@@ -219,7 +227,7 @@ def is_shot_blocked(world, our_robot, their_robot):
     # print "Predicted y: " + str(predicted_y) + " Their robot's y: " + str(their_robot.y) + "Their robot's length: " + str(their_robot.length)
     # print "Shot blocked: ", abs(predicted_y - their_robot.y) < their_robot.length
     # return abs(predicted_y - their_robot.y) < their_robot.length
-    return abs(their_robot.y - our_robot.y) < 40
+    return abs(their_robot.y - our_robot.y) < 50
 
 
 def predict_y_intersection(world,

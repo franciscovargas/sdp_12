@@ -4,7 +4,7 @@
 #include <SDPArduino.h>
 #include <string.h>
 
-# define EVENT_BUFFER_SIZE 30
+# define EVENT_BUFFER_SIZE 60
 
 SerialCommand comm;
 
@@ -263,9 +263,9 @@ void speed_kick() {
     }
     
     // stop all motors
-    event_loop::add_command_head(BACK_MOTOR, 0, millis()+800);
-    event_loop::add_command_head(LEFT_MOTOR, 0, millis()+800);
-    event_loop::add_command_head(RIGHT_MOTOR, 0, millis()+800);
+    event_loop::add_command_head(BACK_MOTOR, 0, millis()+900);
+    event_loop::add_command_head(LEFT_MOTOR, 0, millis()+900);
+    event_loop::add_command_head(RIGHT_MOTOR, 0, millis()+900);
     event_loop::add_command_head(GRAB_MOTOR, 0, millis()+1000);
 
     // Move back and open grabber
@@ -273,11 +273,11 @@ void speed_kick() {
     event_loop::add_command_head(GRAB_MOTOR, -50, millis()+1100);
 
     // Kick
-    event_loop::add_command_head(GRAB_MOTOR, 0, millis()+1300);
-    event_loop::add_command_head(KICK_MOTOR, -kick_power, millis()+1300);
+    event_loop::add_command_head(GRAB_MOTOR, 0, millis()+1250);
+    event_loop::add_command_head(KICK_MOTOR, -kick_power, millis()+1250);
     
     // Stop kicker
-    event_loop::add_command_head(KICK_MOTOR, 0, millis()+1300+(KICK_TIME*1000));
+    event_loop::add_command_head(KICK_MOTOR, 0, millis()+1250+(KICK_TIME*1000));
 
     Serial.println("Kicking");
 }
