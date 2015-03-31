@@ -249,17 +249,24 @@ class DefendingGrab(Strategy):
         self.robotCom = robotCom
 
     def rotate(self):
-        angle = self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y)
+        # Dont move when ball is near the goal
+        if robot_within_goal(self.our_side, self.ball.x, self.world.pitch.zone_boundaries()):
+            print 'Ball near goal'
+            stop(self.robotCom)
+        else:
+            angle = self.our_defender.get_rotation_to_point(self.ball.x, self.ball.y)
 
-        if angle > pi:
-            angle = 2*pi - angle
+            if angle > pi:
+                angle = 2*pi - angle
 
-        # If we are already aligned, this function will call stopRotate.
-        rotate_robot(self.robotCom, angle)
+            
 
-        if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
-            openGrabber(self.robotCom)
-            self.current_state = 'MOVE_TO_BALL'
+            # If we are already aligned, this function will call stopRotate.
+            rotate_robot(self.robotCom, angle)
+
+            if abs(angle) <= ROBOT_ALIGN_THRESHOLD:
+                openGrabber(self.robotCom)
+                self.current_state = 'MOVE_TO_BALL'
 
     def openCatcher(self):
         
