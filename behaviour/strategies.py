@@ -1,7 +1,7 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
     ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_goal, \
-    robot_within_zone, back_off_from_goal, speed_kick, back_off_straight
+    robot_within_zone, back_off_from_goal, speed_kick, back_off_grab
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -281,14 +281,15 @@ class DefendingGrab(Strategy):
             self.current_state = 'GRAB_BALL'
         elif (abs(angle) > PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_BALL'
-        elif robot_within_goal(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
-            self.current_state = 'BACKOFF'
+        elif robot_within_goal(self.our_side, self.ball.x, self.world.pitch.zone_boundaries()):
+            print 'Ball near goal'
+            stop(self.robotCom)
         else:
             moveStraight(self.robotCom, displacement, state='fetching')
 
     def backoff(self):
         if robot_within_goal(self.our_side, self.our_defender.x, self.world.pitch.zone_boundaries()):
-            back_off_straight(self.robotCom, self.our_side, self.our_defender.angle,
+            back_off_grab(self.robotCom, self.our_side, self.our_defender.angle,
                                self.our_defender.x, self.world.pitch.zone_boundaries())
         else:
             stop(self.robotCom)

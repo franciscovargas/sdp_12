@@ -25,13 +25,14 @@ POWER_ROTATE_BASE = 27
 POWER_ROTATE_STOP = 28
 
 POWER_GRAB = 30
-POWER_KICK = 60
+POWER_KICK = 70
 
 POWER_SPEEDKICK_KICK = 100
 POWER_SPEEDKICK_SIDE = 100
 POWER_SPEEDKICK_BACK = -27
 
 POWER_BACKOFF = 26
+BACKOFF_THRESHOLD = 30
 
 BALL_MOVING = 3
 
@@ -172,8 +173,8 @@ def back_off(robotCom, side, robot_angle, robot_x, zone_boundaries):
 
 
 def robot_within_goal(side, robot_x, zone_boundaries):
-    return side == 'left' and robot_x <= zone_boundaries[4] + 30 \
-        or side == 'right' and robot_x >= zone_boundaries[5] - 30
+    return side == 'left' and robot_x <= zone_boundaries[4] + BACKOFF_THRESHOLD \
+        or side == 'right' and robot_x >= zone_boundaries[5] - BACKOFF_THRESHOLD
 
 
 def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
@@ -181,13 +182,13 @@ def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
 
         rotation_modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
 
-        if side == 'left' and robot_x <= zone_boundaries[4] + 30:
+        if side == 'left' and robot_x <= zone_boundaries[4] + BACKOFF_THRESHOLD:
 
             print "Moving sideways"
             moveSideways(robotCom, POWER_BACKOFF * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             print "Finished sending sideways movement command, returning false"
 
-        elif side == 'right' and robot_x >= zone_boundaries[5] - 30:
+        elif side == 'right' and robot_x >= zone_boundaries[5] - BACKOFF_THRESHOLD:
             print "Moving sideways"
             moveSideways(robotCom, POWER_BACKOFF * rotation_modifier, side, threshold=BACK_OFF_THRESHOLD)
             print "Finished sending sideways movement command, returning false"
@@ -196,12 +197,12 @@ def back_off_from_goal(robotCom, side, robot_angle, robot_x, zone_boundaries):
             print "Backed off, stopping robot, returning True"
             stop(robotCom)
 
-def back_off_straight(robotCom, side, robot_angle, robot_x, zone_boundaries):
+def back_off_grab(robotCom, side, robot_angle, robot_x, zone_boundaries):
     modifier = 1 if abs(robot_angle - 3*pi/2) < abs(robot_angle - pi/2) else -1
 
-    if side == 'left' and robot_x <= zone_boundaries[4] + 30:
+    if side == 'left' and robot_x <= zone_boundaries[4] + BACKOFF_THRESHOLD:
         moveSideways(robotCom, POWER_BACKOFF * modifier, side, threshold=BACK_OFF_THRESHOLD)
-    elif side == 'right' and robot_x >= zone_boundaries[5] - 30:
+    elif side == 'right' and robot_x >= zone_boundaries[5] - BACKOFF_THRESHOLD:
         moveSideways(robotCom, POWER_BACKOFF * modifier, side, threshold=BACK_OFF_THRESHOLD)
     else:
         stop(robotCom)
