@@ -1,7 +1,7 @@
 from utilities import rotate_robot, align_robot, align_robot_to_y_axis, predict_y_intersection, moveStraight, moveSideways, has_matched, \
     stop, do_nothing, BALL_MOVING, kick, grab, openGrabber, ROBOT_ALIGN_THRESHOLD, back_off, PRECISE_BALL_ANGLE_THRESHOLD, \
     ball_moving_to_us, BALL_ALIGN_THRESHOLD, DEFENDING_PITCH_EDGE, robot_is_aligned, robot_is_aligned_to_y_axis, robot_within_goal, \
-    robot_within_zone, back_off_from_goal, speed_kick, back_off_grab
+    robot_within_zone, back_off_from_goal, speed_kick, back_off_grab, grab_cont, ball_within_goal
 from math import pi, sin, cos
 from random import randint
 # Up until here are the imports that we're using
@@ -245,12 +245,15 @@ class DefendingGrab(Strategy):
         self.our_defender = self.world.our_defender
         self.ball = self.world.ball
 
+        self.bottom = self.world.pitch.zone_boundaries()[2] + 70
+        self.top = self.world.pitch.zone_boundaries()[3] - 53
+
         # Used to communicate with the robot
         self.robotCom = robotCom
 
     def rotate(self):
         # Dont move when ball is near the goal
-        if robot_within_goal(self.our_side, self.ball.x, self.world.pitch.zone_boundaries()):
+        if ball_within_goal(self.our_side, self.ball.x, self.world.pitch.zone_boundaries()):
             print 'Ball near goal'
             stop(self.robotCom)
         else:
@@ -288,7 +291,7 @@ class DefendingGrab(Strategy):
             self.current_state = 'GRAB_BALL'
         elif (abs(angle) > PRECISE_BALL_ANGLE_THRESHOLD):
             self.current_state = 'ROTATE_TO_BALL'
-        elif robot_within_goal(self.our_side, self.ball.x, self.world.pitch.zone_boundaries()):
+        elif ball_within_goal(self.our_side, self.ball.x, self.world.pitch.zone_boundaries()):
             print 'Ball near goal'
             stop(self.robotCom)
         else:
@@ -303,9 +306,17 @@ class DefendingGrab(Strategy):
             self.current_state = 'ROTATE_TO_BALL'
 
     def grab(self):
-        grab(self.robotCom)
-        self.current_state = 'GRABBED'
-        self.our_defender.catcher = 'CLOSED'
+        grab_cont(self.robotCom)
+        grab_cont(self.robotCom)
+
+        if (self.our_defender.y >= self.top or self.our_defender.y <= self.bottom):
+            print 'moving backwards while grabbing'
+            moveStraight(self.robotCom, -25, state='fetching', threshold=0)
+        else:
+            grab(self.robotCom)
+            print 'grabbed'
+            self.current_state = 'GRABBED'
+            self.our_defender.catcher = 'CLOSED'
 
 
 # When the ball is not in our zone, do nothing.

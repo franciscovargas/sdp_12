@@ -8,7 +8,7 @@ class Communications(object):
                  setConnectionOff=False,
                  port='/dev/ttyACM0',
                  baudrate=9600,
-                 timeout=2):
+                 timeout=0.2):
         if setConnectionOff is False:
 
             try:
@@ -21,5 +21,4 @@ class Communications(object):
     def write(self, command):
         self.port.write(command + '\r\n')
         if self.debug:
-            print
-            self.port.readline()
+            print self.port.readline()

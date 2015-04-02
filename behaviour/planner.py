@@ -8,7 +8,7 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom, penalty=False):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender._receiving_area = {'width': 58, 'height': 36, 'front_offset': 0}
+        self._world.our_defender._receiving_area = {'width': 60, 'height': 35, 'front_offset': 0}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
@@ -31,7 +31,7 @@ class Planner:
     def get_next_strategy(self):
         next_strategy = self._defender_strategies[self._state][0]
         self._current_strategy = next_strategy(self._world, self.robotCom)
-        print 'Choosing strategy: ', next_strategy
+        #print 'Choosing strategy: ', next_strategy
 
     @property
     def strat_state(self):
@@ -55,18 +55,19 @@ class Planner:
             if self._state == 'waiting' and ball.velocity > BALL_MOVING and ball.velocity < 300:
                 self._state = 'defending'
                 self.get_next_strategy()
-                print "Defender in penalty state: ball moving, defending"
+                #print "Defender in penalty state: ball moving, defending"
 
         else:
             # once we have the ball, pass it to our teammate
             if self._state == 'fetching' and self.strat_state == 'GRABBED':
                 self._state = 'passing'
                 self.get_next_strategy()
-                print "We've grabbed the ball, now switching to passing"
+                #print "We've grabbed the ball, now switching to passing"
 
             elif self._state == 'passing' and self.strat_state != 'FINISHED':
+                pass
                 # keep passing
-                print "Still passing the ball"
+                #print "Still passing the ball"
             # elif self._state == 'waiting':
             #     # (milestone 2) once the ball starts moving, we can start moving the defender
             #     # (there is a bug in the vision (?) code that sets the ball velocity to 304 for the first two frames or so)
@@ -80,7 +81,7 @@ class Planner:
                 if self._state != 'defending':
                     self._state = 'defending'
                     self.get_next_strategy()
-                print "Defending, ball moving and not in our zone"
+                #print "Defending, ball moving and not in our zone"
 
             else:
                 # We have the ball in our zone, so we can fetch and pass
@@ -89,14 +90,15 @@ class Planner:
                 if self._state == 'defending' or self._state == 'waiting':
                     self._state = 'fetching'
                     self.get_next_strategy()
-                    print "Defending, fetching the ball"
+                    #print "Defending, fetching the ball"
 
                 # If we've finished passing but the ball's still in our zone, fetch it
                 elif self._state == 'passing' and self.strat_state == 'FINISHED':
                     self._state = 'defending'
                     self.get_next_strategy()
-                    print "Finished passing, now back to defending"
+                    #print "Finished passing, now back to defending"
                 else:
-                    print "Keeping same strategy"
+                    pass
+                    #print "Keeping same strategy"
 
         return self._current_strategy.next_action()

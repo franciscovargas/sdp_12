@@ -4,7 +4,7 @@
 #include <SDPArduino.h>
 #include <string.h>
 
-# define EVENT_BUFFER_SIZE 60
+# define EVENT_BUFFER_SIZE 30
 
 SerialCommand comm;
 
@@ -44,7 +44,7 @@ namespace event_loop {
    
    // If there is no empty slot, drop the command and print error to serial
    if (empty_slot == -1) {
-     Serial.println("error: command buffer full, command dropped");
+     //Serial.println("error: command buffer full, command dropped");
      return;
    }
       
@@ -102,12 +102,15 @@ void setup() {
     comm.setDefaultHandler(unrecognized);  // Handler for command that isn't matched  (says "Command not recognized.")
 
     SDPsetup();
-    Serial.println("Ready");
+    //Serial.println("Ready");
 }
 
 void loop() {
     if (Serial.available()) {
         comm.readSerial(); // We don't do much, just process serial commands
+    }
+    else if (Serial.available() > 50) {
+        Serial.flush();
     }
     
     event_loop::process_list();
@@ -126,9 +129,9 @@ void loop() {
 void move_motor(int motor_num, int power) {
 
     motorMove(motor_num, power);
-    Serial.print(motor_num);
-    Serial.print(" motor moving at ");
-    Serial.println(power);
+    //Serial.print(motor_num);
+    //Serial.print(" motor moving at ");
+    //Serial.println(power);
 }
 
 // Move straight (Forwards / Backwards)
@@ -183,7 +186,7 @@ void stop_all() {
     event_loop::add_command_head(BACK_MOTOR, 0, millis());
     
     stopping = true;
-    Serial.println("All motors off");
+    //Serial.println("All motors off");
 }
 
 // Rotate functions
@@ -241,7 +244,7 @@ void kick() {
     event_loop::add_command_head(GRAB_MOTOR, 0, millis()+200);
     event_loop::add_command_head(KICK_MOTOR, 0, millis()+200+(KICK_TIME*1000));
 
-    Serial.println("Kicking");
+    //Serial.println("Kicking");
 }
 
 // Evade and kick
@@ -279,11 +282,13 @@ void speed_kick() {
     // Stop kicker
     event_loop::add_command_head(KICK_MOTOR, 0, millis()+1250+(KICK_TIME*1000));
 
-    Serial.println("Kicking");
+    //Serial.println("Kicking");
 }
 
-// Move grabber.
-void grabber_move(int power) {
+// Decide whether to open or close the grabber
+void grab() {
+    int power;
+    power = atoi(comm.next());
     
     if (power != 100) {
         float time_move = (200-power)/100 * GRAB_TIME;
@@ -297,34 +302,16 @@ void grabber_move(int power) {
         event_loop::add_command_head(GRAB_MOTOR, -power, millis());
         event_loop::add_command_head(GRAB_MOTOR, 0, millis()+(GRAB_TIME*1000));
     }
-
-    Serial.println("Grabbing");
-}
-
-// Decide whether to open or close the grabber
-void grab() {
-    int power;
-    power = atoi(comm.next());
-    
-    if(power > 0) {
-        // Open grabber.
-        grabber_move(power);
-    }
-    else { 
-        // Close grabber.
-        grabber_move(power);
-    }
 }
 
 void grab_continuous() {
     int power;
     power = atoi(comm.next());
 
-    move_motor(GRAB_MOTOR, power);
-    Serial.println("Graaaabing");
+    event_loop::add_command_head(GRAB_MOTOR, power, millis());
 }
 
 // This gets set as the default handler, and gets called when no other command matches.
 void unrecognized(const char *command) {
-    Serial.println("Command not recognized.");
+    //Serial.println("Command not recognized.");
 }
