@@ -246,7 +246,7 @@ class DefendingGrab(Strategy):
         self.ball = self.world.ball
 
         self.bottom = self.world.pitch.zone_boundaries()[2] + 70
-        self.top = self.world.pitch.zone_boundaries()[3] - 53
+        self.top = self.world.pitch.zone_boundaries()[3] - 60
 
         # Used to communicate with the robot
         self.robotCom = robotCom

@@ -8,7 +8,7 @@ class Planner:
 
     def __init__(self, our_side, pitch_num, robotCom, penalty=False):
         self._world = World(our_side, pitch_num)
-        self._world.our_defender._receiving_area = {'width': 60, 'height': 35, 'front_offset': 0}
+        self._world.our_defender._receiving_area = {'width': 63, 'height': 35, 'front_offset': 0}
 
         # To be assigned to strategy. Used to communicate with the robot
         self.robotCom = robotCom
